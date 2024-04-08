@@ -1,0 +1,87 @@
+<Config>
+ <Terminal>
+  <Levels>
+   <Debug enable="true">
+    <Options encoder="raw" format="capital_color" enable_trace="true" />
+   </Debug>
+   <Info enable="true">
+    <Options encoder="raw" format="capital_color" enable_trace="false" />
+   </Info>
+   <Warn enable="true">
+    <Options encoder="raw" format="capital_color" enable_trace="true" />
+   </Warn>
+   <Error enable="true">
+    <Options encoder="raw" format="capital_color" enable_trace="true" />
+   </Error>
+   <DPanic enable="true">
+    <Options encoder="raw" format="capital_color" enable_trace="true" />
+   </DPanic>
+   <Panic enable="true">
+    <Options encoder="raw" format="capital_color" enable_trace="true" />
+   </Panic>
+   <Fatal enable="true">
+    <Options encoder="raw" format="capital_color" enable_trace="true" />
+   </Fatal>
+  </Levels>
+  <Options time_format="2006-01-02T15:04:05Z07:00" />
+ </Terminal>
+ <Files>
+  <File file_name="unknown.log" path="/var/logs">
+   <Levels>
+    <Debug enable="true">
+     <Options encoder="raw" format="capital" enable_trace="true" />
+    </Debug>
+    <Info enable="true">
+     <Options encoder="raw" format="capital" enable_trace="false" />
+    </Info>
+    <Warn enable="true">
+     <Options encoder="raw" format="capital" enable_trace="true" />
+    </Warn>
+    <Error enable="true">
+     <Options encoder="raw" format="capital" enable_trace="true" />
+    </Error>
+    <DPanic enable="true">
+     <Options encoder="raw" format="capital" enable_trace="true" />
+    </DPanic>
+    <Panic enable="true">
+     <Options encoder="raw" format="capital" enable_trace="true" />
+    </Panic>
+    <Fatal enable="true">
+     <Options encoder="raw" format="capital" enable_trace="true" />
+    </Fatal>
+   </Levels>
+   <Options time_format="2006-01-02T15:04:05Z07:00">
+    <Rotation enable="true" file_size="4GB" />
+   </Options>
+  </File>
+  <File file_name="unknown.debug.log" path="/var/logs">
+   <Levels>
+    <Debug enable="true">
+     <Options encoder="raw" format="capital" enable_trace="true" />
+    </Debug>
+    <DPanic enable="true">
+     <Options encoder="raw" format="capital" enable_trace="true" />
+    </DPanic>
+   </Levels>
+   <Options time_format="2006-01-02T15:04:05Z07:00">
+    <Rotation enable="true" file_size="4GB" />
+   </Options>
+  </File>
+  <File file_name="unknown.error.log" path="/var/logs">
+   <Levels>
+    <Error enable="true">
+     <Options encoder="raw" format="capital" enable_trace="true" />
+    </Error>
+    <Panic enable="true">
+     <Options encoder="raw" format="capital" enable_trace="true" />
+    </Panic>
+    <Fatal enable="true">
+     <Options encoder="raw" format="capital" enable_trace="true" />
+    </Fatal>
+   </Levels>
+   <Options time_format="2006-01-02T15:04:05Z07:00">
+    <Rotation enable="true" file_size="4GB" />
+   </Options>
+  </File>
+ </Files>
+</Config>

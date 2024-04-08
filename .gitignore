@@ -1,0 +1,7 @@
+/.idea
+/bin/*
+/var/cache/*
+/var/logs/*
+/var/run/*
+/var/temp/*
+/var/test/cache/*
