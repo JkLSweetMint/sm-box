@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"sm-box/src/core/env"
 	"strings"
 	"time"
@@ -112,7 +111,7 @@ func (conf *Config) Default() *Config {
 		conf.Files = []*ConfigFileLog{
 			// Global
 			{
-				FileName: fmt.Sprintf("%s.log", env.Vars.SystemName),
+				FileName: "%s.log",
 				Path:     env.Paths.Var.Logs,
 
 				Options: &ConfigFilesLogFileOptions{
@@ -185,7 +184,7 @@ func (conf *Config) Default() *Config {
 
 			// Debug
 			{
-				FileName: fmt.Sprintf("%s.debug.log", env.Vars.SystemName),
+				FileName: "%s.debug.log",
 				Path:     env.Paths.Var.Logs,
 
 				Options: &ConfigFilesLogFileOptions{
@@ -218,7 +217,7 @@ func (conf *Config) Default() *Config {
 
 			// Error
 			{
-				FileName: fmt.Sprintf("%s.error.log", env.Vars.SystemName),
+				FileName: "%s.error.log",
 				Path:     env.Paths.Var.Logs,
 
 				Options: &ConfigFilesLogFileOptions{

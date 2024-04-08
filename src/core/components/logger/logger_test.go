@@ -62,7 +62,7 @@ func TestLogger_Rotation(t *testing.T) {
 	{
 		var err error
 
-		if log, err = New("", conf); err != nil {
+		if log, err = newLogger("", conf); err != nil {
 			t.Errorf("An error occurred while creating the logging component: '%s'. ", err)
 		}
 	}

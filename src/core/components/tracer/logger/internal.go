@@ -12,13 +12,12 @@ import (
 	"strings"
 )
 
-// logger - компонент ведения журнала системы.
+// logger - компонент ведения журнала трессировки.
 type logger struct {
-	initiator string
 	*internal
 }
 
-// internal - внутренняя реализация компонента ведения журнала системы.
+// internal - внутренняя реализация компонента ведения журнала трессировки.
 type internal struct {
 	conf     *Config
 	instance *zap.Logger
@@ -26,17 +25,12 @@ type internal struct {
 }
 
 // newLogger - создание компонента ведения журнала.
-func newLogger(initiator string, conf *Config) (log *logger, err error) {
-	if initiator = strings.TrimSpace(initiator); initiator == "" {
-		initiator = "unknown"
-	}
-
+func newLogger(conf *Config) (log *logger, err error) {
 	if conf == nil {
 		conf = new(Config).Default()
 	}
 
 	log = &logger{
-		initiator: initiator,
 		internal: &internal{
 			conf:    conf,
 			sources: make([]io.WriteCloser, 0),
@@ -64,13 +58,8 @@ func newLogger(initiator string, conf *Config) (log *logger, err error) {
 					zapcore.FatalLevel,
 				}
 				configs = []*ConfigTerminalLogLevel{
-					log.conf.Terminal.Levels.Debug,
 					log.conf.Terminal.Levels.Info,
-					log.conf.Terminal.Levels.Warn,
 					log.conf.Terminal.Levels.Error,
-					log.conf.Terminal.Levels.DPanic,
-					log.conf.Terminal.Levels.Panic,
-					log.conf.Terminal.Levels.Fatal,
 				}
 			)
 
@@ -144,13 +133,8 @@ func newLogger(initiator string, conf *Config) (log *logger, err error) {
 						zapcore.FatalLevel,
 					}
 					configs = []*ConfigFileLogLevel{
-						flConf.Levels.Debug,
 						flConf.Levels.Info,
-						flConf.Levels.Warn,
 						flConf.Levels.Error,
-						flConf.Levels.DPanic,
-						flConf.Levels.Panic,
-						flConf.Levels.Fatal,
 					}
 				)
 
@@ -240,27 +224,6 @@ func newLogger(initiator string, conf *Config) (log *logger, err error) {
 	return
 }
 
-// Debug - создает сообщение 'Debug' уровня журнала.
-func (log *logger) Debug() (msg Message) {
-	if log.instance == nil {
-		return
-	}
-
-	var m = &message{
-		initiator: log.initiator,
-		text:      "",
-
-		lvl:    zap.DebugLevel,
-		fields: nil,
-
-		write: log.instance.Log,
-	}
-
-	msg = m
-
-	return
-}
-
 // Info - создает сообщение 'Info' уровня журнала.
 func (log *logger) Info() (msg Message) {
 	if log.instance == nil {
@@ -268,31 +231,9 @@ func (log *logger) Info() (msg Message) {
 	}
 
 	var m = &message{
-		initiator: log.initiator,
-		text:      "",
+		text: "",
 
 		lvl:    zap.InfoLevel,
-		fields: nil,
-
-		write: log.instance.Log,
-	}
-
-	msg = m
-
-	return
-}
-
-// Warn - создает сообщение 'Warn' уровня журнала.
-func (log *logger) Warn() (msg Message) {
-	if log.instance == nil {
-		return
-	}
-
-	var m = &message{
-		initiator: log.initiator,
-		text:      "",
-
-		lvl:    zap.WarnLevel,
 		fields: nil,
 
 		write: log.instance.Log,
@@ -310,79 +251,9 @@ func (log *logger) Error() (msg Message) {
 	}
 
 	var m = &message{
-		initiator: log.initiator,
-		text:      "",
+		text: "",
 
 		lvl:    zap.ErrorLevel,
-		fields: nil,
-
-		write: log.instance.Log,
-	}
-
-	msg = m
-
-	return
-}
-
-// Panic - создает сообщение 'Panic' уровня журнала.
-//
-// Вызов всегда будет завершаться с вызовом паники.
-func (log *logger) Panic() (msg Message) {
-	if log.instance == nil {
-		return
-	}
-
-	var m = &message{
-		initiator: log.initiator,
-		text:      "",
-
-		lvl:    zap.PanicLevel,
-		fields: nil,
-
-		write: log.instance.Log,
-	}
-
-	msg = m
-
-	return
-}
-
-// DPanic - создает сообщение 'DPanic' уровня журнала.
-//
-// Вызов завершится с вызовом паники если уровень журнала стоит на 'Debug'.
-func (log *logger) DPanic() (msg Message) {
-	if log.instance == nil {
-		return
-	}
-
-	var m = &message{
-		initiator: log.initiator,
-		text:      "",
-
-		lvl:    zap.DPanicLevel,
-		fields: nil,
-
-		write: log.instance.Log,
-	}
-
-	msg = m
-
-	return
-}
-
-// Fatal - создает сообщение 'Fatal' уровня журнала.
-//
-// Вызов всегда будет завершаться с вызовом os.Exit(1).
-func (log *logger) Fatal() (msg Message) {
-	if log.instance == nil {
-		return
-	}
-
-	var m = &message{
-		initiator: log.initiator,
-		text:      "",
-
-		lvl:    zap.FatalLevel,
 		fields: nil,
 
 		write: log.instance.Log,
@@ -407,13 +278,8 @@ func (log *logger) Close() (err error) {
 }
 
 // Copy - копирование компонента и журналов для инициатора.
-func (log *logger) Copy(initiator string) Logger {
-	if initiator = strings.TrimSpace(initiator); initiator == "" {
-		initiator = "unknown"
-	}
-
+func (log *logger) Copy() Logger {
 	return &logger{
-		initiator: initiator,
-		internal:  log.internal,
+		internal: log.internal,
 	}
 }

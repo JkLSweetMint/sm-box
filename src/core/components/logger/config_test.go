@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"reflect"
 	"sm-box/src/core/env"
 	"testing"
@@ -89,7 +88,7 @@ func TestConfig_Default(t *testing.T) {
 				Files: []*ConfigFileLog{
 					// Global
 					{
-						FileName: fmt.Sprintf("%s.log", env.Vars.SystemName),
+						FileName: "%s.log",
 						Path:     env.Paths.Var.Logs,
 
 						Options: &ConfigFilesLogFileOptions{
@@ -162,7 +161,7 @@ func TestConfig_Default(t *testing.T) {
 
 					// Debug
 					{
-						FileName: fmt.Sprintf("%s.debug.log", env.Vars.SystemName),
+						FileName: "%s.debug.log",
 						Path:     env.Paths.Var.Logs,
 
 						Options: &ConfigFilesLogFileOptions{
@@ -195,7 +194,7 @@ func TestConfig_Default(t *testing.T) {
 
 					// Error
 					{
-						FileName: fmt.Sprintf("%s.error.log", env.Vars.SystemName),
+						FileName: "%s.error.log",
 						Path:     env.Paths.Var.Logs,
 
 						Options: &ConfigFilesLogFileOptions{
@@ -387,7 +386,7 @@ func TestConfig_FillEmptyFields(t *testing.T) {
 				Files: []*ConfigFileLog{
 					// Global
 					{
-						FileName: fmt.Sprintf("%s.log", env.Vars.SystemName),
+						FileName: "%s.log",
 						Path:     env.Paths.Var.Logs,
 
 						Options: &ConfigFilesLogFileOptions{
@@ -469,7 +468,7 @@ func TestConfig_FillEmptyFields(t *testing.T) {
 				Files: []*ConfigFileLog{
 					// Global
 					{
-						FileName: fmt.Sprintf("%s.log", env.Vars.SystemName),
+						FileName: "%s.log",
 						Path:     env.Paths.Var.Logs,
 
 						Options: &ConfigFilesLogFileOptions{
@@ -607,7 +606,7 @@ func TestConfig_FillEmptyFields(t *testing.T) {
 				Files: []*ConfigFileLog{
 					// Global
 					{
-						FileName: fmt.Sprintf("%s.log", env.Vars.SystemName),
+						FileName: "%s.log",
 						Path:     env.Paths.Var.Logs,
 
 						Options: &ConfigFilesLogFileOptions{
@@ -730,7 +729,7 @@ func TestConfig_FillEmptyFields(t *testing.T) {
 				Files: []*ConfigFileLog{
 					// Global
 					{
-						FileName: fmt.Sprintf("%s.log", env.Vars.SystemName),
+						FileName: "%s.log",
 						Path:     env.Paths.Var.Logs,
 
 						Options: &ConfigFilesLogFileOptions{
@@ -896,7 +895,7 @@ func TestConfig_Validate(t *testing.T) {
 				Files: []*ConfigFileLog{
 					// Global
 					{
-						FileName: fmt.Sprintf("%s.log", env.Vars.SystemName),
+						FileName: "%s.log",
 						Path:     env.Paths.Var.Logs,
 
 						Options: &ConfigFilesLogFileOptions{
@@ -1027,7 +1026,7 @@ func TestConfig_Validate(t *testing.T) {
 				Files: []*ConfigFileLog{
 					// Global
 					{
-						FileName: fmt.Sprintf("%s.log", env.Vars.SystemName),
+						FileName: "%s.log",
 						Path:     env.Paths.Var.Logs,
 
 						Options: &ConfigFilesLogFileOptions{
