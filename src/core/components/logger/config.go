@@ -1,10 +1,16 @@
 package logger
 
 import (
+	"sm-box/src/core/components/configurator"
 	"sm-box/src/core/env"
 	"strings"
 	"time"
 )
+
+var confProfile = configurator.PrivateProfile{
+	Dir:      "/components",
+	Filename: "logger.xml",
+}
 
 // Config - конфигурация компонента ведения журнала системы.
 type Config struct {

@@ -1,8 +1,14 @@
 package tracer
 
 import (
+	"sm-box/src/core/components/configurator"
 	"sm-box/src/core/components/tracer/logger"
 )
+
+var confProfile = configurator.PrivateProfile{
+	Dir:      "/components",
+	Filename: "tracer.xml",
+}
 
 // Config - конфигурация компонента трессировки.
 type Config struct {

@@ -532,9 +532,9 @@ func Test_privateConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PrivateProfile{
-					encoder:  nil,
-					dir:      "/testing",
-					filename: "test.xml",
+					Encoder:  nil,
+					Dir:      "/testing",
+					Filename: "test.xml",
 				},
 			},
 			want: &privateConfigurator[*TestConfig]{
@@ -554,9 +554,9 @@ func Test_privateConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PrivateProfile{
-					encoder:  new(encoders.XmlEncoder),
-					dir:      "/testing",
-					filename: "test.xml",
+					Encoder:  new(encoders.XmlEncoder),
+					Dir:      "/testing",
+					Filename: "test.xml",
 				},
 			},
 			want: &privateConfigurator[*TestConfig]{
@@ -576,9 +576,9 @@ func Test_privateConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PrivateProfile{
-					encoder:  new(encoders.XmlEncoder),
-					dir:      "/testing",
-					filename: "test.xml",
+					Encoder:  new(encoders.XmlEncoder),
+					Dir:      "/testing",
+					Filename: "test.xml",
 				},
 			},
 			want: &privateConfigurator[*TestConfig]{
@@ -598,7 +598,7 @@ func Test_privateConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PrivateProfile{
-					filename: "test.xml",
+					Filename: "test.xml",
 				},
 			},
 			want: &privateConfigurator[*TestConfig]{
@@ -618,7 +618,7 @@ func Test_privateConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PrivateProfile{
-					encoder: prtDefaultEncoder,
+					Encoder: prtDefaultEncoder,
 				},
 			},
 			want: &privateConfigurator[*TestConfig]{
@@ -638,8 +638,8 @@ func Test_privateConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PrivateProfile{
-					encoder:  prtDefaultEncoder,
-					filename: "test.xml",
+					Encoder:  prtDefaultEncoder,
+					Filename: "test.xml",
 				},
 			},
 			want: &privateConfigurator[*TestConfig]{
@@ -659,7 +659,7 @@ func Test_privateConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PrivateProfile{
-					filename: "test.xml",
+					Filename: "test.xml",
 				},
 			},
 			want: &privateConfigurator[*TestConfig]{
@@ -679,7 +679,7 @@ func Test_privateConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PrivateProfile{
-					dir: "/testing",
+					Dir: "/testing",
 				},
 			},
 			want: &privateConfigurator[*TestConfig]{
@@ -718,7 +718,7 @@ func Test_privateConfigurator_Read(t *testing.T) {
 			}
 
 			defer func() {
-				if err := os.RemoveAll(dir); err != nil {
+				if err := os.RemoveAll(path.Join(env.Paths.SystemLocation, env.Paths.System.Path, "/testing")); err != nil {
 					t.Errorf("Failed to prepare data for testing: '%s'. ", err)
 				}
 			}()

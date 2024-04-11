@@ -29,7 +29,7 @@ func (t *tracer) FunctionCall(args ...any) {
 
 	// Проверки
 	{
-		if log == nil {
+		if log == nil || config == nil {
 			return
 		}
 
@@ -53,7 +53,7 @@ func (t *tracer) FunctionCall(args ...any) {
 		t.inputArgs = args
 	}
 
-	log.Info().Format("-->                      '%s'", functionName()).Field("input", args)
+	log.Info().Format("--> |                  | '%s'", functionName()).Field("input", args).Write()
 }
 
 // Error - запись ошибки в журнал.
@@ -68,7 +68,7 @@ func (t *tracer) FunctionCallFinished(args ...any) {
 
 	// Проверки
 	{
-		if log == nil {
+		if log == nil || config == nil {
 			return
 		}
 
@@ -97,7 +97,7 @@ func (t *tracer) FunctionCallFinished(args ...any) {
 
 		log.Error().Format("<-x %s '%s'", workTm, functionName()).
 			Field("error", t.err).
-			Field("output", args)
+			Field("output", args).Write()
 
 	} else {
 		var workTm string
@@ -106,6 +106,6 @@ func (t *tracer) FunctionCallFinished(args ...any) {
 			workTm = formatWorkTime(time.Now().Sub(tm))
 		}
 
-		log.Info().Format("<-- %s '%s'", workTm, functionName()).Field("output", args)
+		log.Info().Format("<-- %s '%s'", workTm, functionName()).Field("output", args).Write()
 	}
 }

@@ -70,7 +70,7 @@ func TestLogger_Rotation(t *testing.T) {
 	// Запись тестовых данных
 	{
 		for i := 0; i < 100; i++ {
-			log.Info().Text("Test message").Write()
+			log.Info().Text("Test message ").Write()
 		}
 	}
 

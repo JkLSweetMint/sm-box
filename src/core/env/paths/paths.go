@@ -213,6 +213,7 @@ func (storage *Dev) Build(options BuildOptions) *Dev {
 
 			storage.Etc = path.Join(p, storage.Etc)
 
+			storage.Var.Path = path.Join(p, storage.Var.Path)
 			storage.Var.Temp = path.Join(p, storage.Var.Temp)
 			storage.Var.Logs = path.Join(p, storage.Var.Logs)
 			storage.Var.Cache = path.Join(p, storage.Var.Cache)

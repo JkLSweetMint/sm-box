@@ -42,17 +42,16 @@ func (c *publicConfigurator[T]) File(dir, filename string) Public[T] {
 
 // Profile - установить профиль конфигурации.
 func (c *publicConfigurator[T]) Profile(profile PublicProfile) Public[T] {
-	profile.dir = strings.TrimSpace(profile.dir)
-	profile.filename = strings.TrimSpace(profile.filename)
+	if profile.Dir = strings.TrimSpace(profile.Dir); profile.Dir != "" {
+		c.dir = strings.TrimSpace(profile.Dir)
+	}
 
-	if profile.dir != "" {
-		c.dir = profile.dir
+	if profile.Filename = strings.TrimSpace(profile.Filename); profile.Filename != "" {
+		c.filename = strings.TrimSpace(profile.Filename)
 	}
-	if profile.filename != "" {
-		c.filename = profile.filename
-	}
-	if profile.encoder != nil {
-		c.encoder = profile.encoder
+
+	if profile.Encoder != nil {
+		c.encoder = profile.Encoder
 	}
 
 	return c

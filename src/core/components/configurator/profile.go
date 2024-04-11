@@ -2,12 +2,12 @@ package configurator
 
 // PublicProfile - публичный профиль конфигурации.
 type PublicProfile struct {
-	encoder       Encoder
-	dir, filename string
+	Encoder       Encoder
+	Dir, Filename string
 }
 
 // PrivateProfile - приватный профиль конфигурации.
 type PrivateProfile struct {
-	encoder       Encoder
-	dir, filename string
+	Encoder       Encoder
+	Dir, Filename string
 }

@@ -1,11 +1,27 @@
 package tracer
 
-import "sm-box/src/core/components/tracer/logger"
+import (
+	"sm-box/src/core/components/configurator"
+	"sm-box/src/core/components/tracer/logger"
+)
 
-func init() {
-	config = new(Config).Default()
+func Init() (err error) {
+	var (
+		c    configurator.Configurator[*Config]
+		conf = new(Config)
+	)
 
-	if _, err := logger.New(config.Logger); err != nil {
-		panic(err)
+	if c, err = configurator.New[*Config](conf); err != nil {
+		return
+	} else if err = c.Private().Profile(confProfile).Read(); err != nil {
+		return
 	}
+
+	if _, err = logger.New(conf.Logger); err != nil {
+		return
+	}
+
+	config = conf
+
+	return
 }

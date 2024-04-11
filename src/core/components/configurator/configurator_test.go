@@ -38,7 +38,6 @@ func (conf *TestConfig) Default() *TestConfig {
 
 func (conf *TestConfig) Validate() (err error) {
 	return
-
 }
 
 func TestNew(t *testing.T) {

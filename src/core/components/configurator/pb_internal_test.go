@@ -532,9 +532,9 @@ func Test_publicConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PublicProfile{
-					encoder:  nil,
-					dir:      "/testing",
-					filename: "test.yaml",
+					Encoder:  nil,
+					Dir:      "/testing",
+					Filename: "test.yaml",
 				},
 			},
 			want: &publicConfigurator[*TestConfig]{
@@ -554,9 +554,9 @@ func Test_publicConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PublicProfile{
-					encoder:  new(encoders.XmlEncoder),
-					dir:      "/testing",
-					filename: "test.xml",
+					Encoder:  new(encoders.XmlEncoder),
+					Dir:      "/testing",
+					Filename: "test.xml",
 				},
 			},
 			want: &publicConfigurator[*TestConfig]{
@@ -576,9 +576,9 @@ func Test_publicConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PublicProfile{
-					encoder:  new(encoders.XmlEncoder),
-					dir:      "/testing",
-					filename: "test.xml",
+					Encoder:  new(encoders.XmlEncoder),
+					Dir:      "/testing",
+					Filename: "test.xml",
 				},
 			},
 			want: &publicConfigurator[*TestConfig]{
@@ -598,7 +598,7 @@ func Test_publicConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PublicProfile{
-					filename: "test.yaml",
+					Filename: "test.yaml",
 				},
 			},
 			want: &publicConfigurator[*TestConfig]{
@@ -618,7 +618,7 @@ func Test_publicConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PublicProfile{
-					encoder: pbDefaultEncoder,
+					Encoder: pbDefaultEncoder,
 				},
 			},
 			want: &publicConfigurator[*TestConfig]{
@@ -638,8 +638,8 @@ func Test_publicConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PublicProfile{
-					encoder:  pbDefaultEncoder,
-					filename: "test.yaml",
+					Encoder:  pbDefaultEncoder,
+					Filename: "test.yaml",
 				},
 			},
 			want: &publicConfigurator[*TestConfig]{
@@ -659,7 +659,7 @@ func Test_publicConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PublicProfile{
-					filename: "test.yaml",
+					Filename: "test.yaml",
 				},
 			},
 			want: &publicConfigurator[*TestConfig]{
@@ -679,7 +679,7 @@ func Test_publicConfigurator_Profile(t *testing.T) {
 			},
 			args: args{
 				profile: PublicProfile{
-					dir: "/testing",
+					Dir: "/testing",
 				},
 			},
 			want: &publicConfigurator[*TestConfig]{

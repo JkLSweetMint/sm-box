@@ -1,12 +1,26 @@
 package core
 
-// Config - конфигурация ядра системы.
-type Config struct {
+import "sm-box/src/core/components/configurator"
+
+var confProfile = configurator.PrivateProfile{
+	Dir:      "/",
+	Filename: "core.xml",
 }
 
-// BuildConfig - построения конфигурации системы.
-func BuildConfig() (conf *Config, err error) {
-	conf = new(Config)
+// Config - конфигурация ядра системы.
+type Config struct{}
 
+// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+func (conf *Config) FillEmptyFields() *Config {
+	return conf
+}
+
+// Default - запись стандартной конфигурации.
+func (conf *Config) Default() *Config {
+	return conf
+}
+
+// Validate - валидация конфигурации.
+func (conf *Config) Validate() (err error) {
 	return
 }

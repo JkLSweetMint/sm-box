@@ -2,7 +2,13 @@
 
 ### Global:
 - [ ] Добавить валидацию конфигураций;
-- [ ] Прикрутить использования компонента [управления конфигурациями проекта](src/core/components/configurator/configurator.go) для компонентов [ведения журнала](src/core/components/logger/logger.go) и [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
+- [ ] Разработать компонент для корректного завершения работы ядра системы;
+
+---
+
+### v24.0.4:
+- [x] Разработка [ядра системы](src/core/core.go)
+- [x] Прикрутить использования компонента [управления конфигурациями проекта](src/core/components/configurator/configurator.go) для компонентов [ведения журнала](src/core/components/logger/logger.go) и [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
 
 ---
 
