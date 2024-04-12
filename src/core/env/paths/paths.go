@@ -14,6 +14,9 @@ type Dev struct {
 	// Bin - путь к директории исполняемых файлов.
 	// Стандартное расположение: /bin
 	Bin string
+	// SystemBin - путь к директории инструментов для администрирования.
+	// Стандартное расположение: /sbin
+	SystemBin string
 	// Etc - путь к директории конфигурационных файлов.
 	// Стандартное расположение: /etc
 	Etc string
@@ -82,6 +85,9 @@ type Prod struct {
 	// Bin - путь к директории исполняемых файлов.
 	// Стандартное расположение: /bin
 	Bin string
+	// SystemBin - путь к директории инструментов для администрирования.
+	// Стандартное расположение: /sbin
+	SystemBin string
 	// Etc - путь к директории конфигурационных файлов.
 	// Стандартное расположение: /etc
 	Etc string
@@ -137,6 +143,7 @@ func (storage *Dev) Build(options BuildOptions) *Dev {
 	storage.SystemLocation = ""
 
 	storage.Bin = "/bin"
+	storage.SystemBin = "/sbin"
 	storage.Etc = "/etc"
 
 	// Src
@@ -229,6 +236,7 @@ func (storage *Prod) Build(options BuildOptions) *Prod {
 	storage.SystemLocation = ""
 
 	storage.Bin = "/bin"
+	storage.SystemBin = "/sbin"
 	storage.Etc = "/etc"
 
 	// Src

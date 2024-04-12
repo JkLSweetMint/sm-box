@@ -1,25 +1,32 @@
 # ChangeLog:
 
+### v24.0.5:
+- Добавлена директория [/sbin](/sbin) в [хранилище путей системы](src/core/env/paths/paths.go);
+- Разработан [компонент для корректного завершения работы ядра системы](src/core/components/closer/closer.go);
+- Сделаны доработки [ядра системы](src/core/core.go);
+
+---
+
 ### v24.0.4:
-- [x] Доработки компонента [управления конфигурациями проекта](src/core/components/configurator/configurator.go);
-- [x] Доработки компонента [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
-- [x] Разработка [ядра системы](src/core/core.go)
+- Доработки компонента [управления конфигурациями проекта](src/core/components/configurator/configurator.go);
+- Доработки компонента [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
+- Разработка [ядра системы](src/core/core.go)
 
 ---
 
 ### v24.0.3:
-- [x] Разработан компонент [управления конфигурациями проекта](src/core/components/configurator/configurator.go);
+- Разработан компонент [управления конфигурациями проекта](src/core/components/configurator/configurator.go);
 
 ---
 
 ### v24.0.2:
-- [x] Разработан компонент [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
-- [x] Правки по компоненту [ведения журнала](src/core/components/logger/logger.go);
+- Разработан компонент [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
+- Правки по компоненту [ведения журнала](src/core/components/logger/logger.go);
 
 ---
 
 ### v24.0.1:
-- [x] Разработана основа [ядра системы](src/core/core.go);
-- [x] Разработан компонент [ведения журнала](src/core/components/logger/logger.go);
+- Разработана основа [ядра системы](src/core/core.go);
+- Разработан компонент [ведения журнала](src/core/components/logger/logger.go);
 
 ---

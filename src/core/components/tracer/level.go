@@ -10,6 +10,7 @@ const (
 	LevelCoreDebug
 	LevelCoreInternal
 	LevelCoreEvent
+	LevelCoreComponent
 
 	LevelCoreAddon
 	LevelCoreAddonDebug

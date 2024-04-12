@@ -15,7 +15,7 @@ var (
 	// Mode - текущий режим работы системы.
 	Mode env_mode.Mode = env_mode.Dev
 	// Version - текущая версия системы.
-	Version = "24.0.4"
+	Version = "24.0.5"
 	// OS - версия операционной системы.
 	OS = fmt.Sprintf("%s - %s", runtime.GOOS, runtime.GOARCH)
 )
