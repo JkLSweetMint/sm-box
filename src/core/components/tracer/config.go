@@ -12,7 +12,7 @@ var confProfile = configurator.PrivateProfile{
 
 // Config - конфигурация компонента трессировки.
 type Config struct {
-	Levels []Level        `json:"levels" yaml:"Levels" xml:"Levels>Level"`
+	Levels []Level        `json:"levels" yaml:"Levels" xml:"Level,attr"`
 	Logger *logger.Config `json:"logger" yaml:"Logger" xml:"Logger"`
 }
 

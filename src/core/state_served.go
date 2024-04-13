@@ -4,11 +4,13 @@ import (
 	"context"
 	"sm-box/src/core/components/logger"
 	"sm-box/src/core/components/tracer"
+	"sm-box/src/core/tools/task_scheduler"
 )
 
 // stateServed - реализация ядра системы для состояния StateServed - "Served".
 type stateServed struct {
 	components *components
+	tools      *tools
 
 	ctx  context.Context
 	conf *Config
@@ -101,4 +103,11 @@ func (c *stateServed) Components() interface {
 	Logger() logger.Logger
 } {
 	return c.components
+}
+
+// Tools - получение внутренних инструментов ядра системы.
+func (c *stateServed) Tools() interface {
+	TaskScheduler() task_scheduler.Scheduler
+} {
+	return c.tools
 }

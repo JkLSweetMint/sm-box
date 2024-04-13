@@ -4,11 +4,13 @@ import (
 	"context"
 	"sm-box/src/core/components/logger"
 	"sm-box/src/core/components/tracer"
+	"sm-box/src/core/tools/task_scheduler"
 )
 
 // stateOff - реализация ядра системы для состояния  StateOff - "Off".
 type stateOff struct {
 	components *components
+	tools      *tools
 
 	ctx  context.Context
 	conf *Config
@@ -95,4 +97,11 @@ func (c *stateOff) Components() interface {
 	Logger() logger.Logger
 } {
 	return c.components
+}
+
+// Tools - получение внутренних инструментов ядра системы.
+func (c *stateOff) Tools() interface {
+	TaskScheduler() task_scheduler.Scheduler
+} {
+	return c.tools
 }

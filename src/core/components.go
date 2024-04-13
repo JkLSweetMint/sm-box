@@ -1,6 +1,8 @@
 package core
 
-import "sm-box/src/core/components/logger"
+import (
+	"sm-box/src/core/components/logger"
+)
 
 // components - компоненты ядра системы.
 type components struct {

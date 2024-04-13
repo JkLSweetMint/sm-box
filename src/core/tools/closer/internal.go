@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-// closer - компонент ядра системы отвечающий за корректное завершение работы системы.
+// closer - инструмент ядра системы отвечающий за корректное завершение работы системы.
 type closer struct {
 	conf *Config
 
@@ -23,7 +23,7 @@ type closer struct {
 func (c *closer) Wait() {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelCoreComponent)
+		var trc = tracer.New(tracer.LevelCoreTool)
 
 		trc.FunctionCall()
 		trc.FunctionCallFinished()
@@ -37,7 +37,7 @@ func (c *closer) Wait() {
 func (c *closer) Cancel() {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelCoreComponent)
+		var trc = tracer.New(tracer.LevelCoreTool)
 
 		trc.FunctionCall()
 		trc.FunctionCallFinished()
@@ -48,6 +48,14 @@ func (c *closer) Cancel() {
 
 // tracking - отслеживание сигналов для завершения работы.
 func (c *closer) tracking() {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelCoreTool)
+
+		trc.FunctionCall()
+		trc.FunctionCallFinished()
+	}
+
 	var ch = make(chan os.Signal, 1)
 
 	signal.Notify(ch, c.conf.Signals...)

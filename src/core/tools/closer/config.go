@@ -12,7 +12,7 @@ var defaultSignals = []os.Signal{
 	syscall.SIGKILL,
 }
 
-// Config - конфигурация компонента ядра системы отвечающий за корректное завершение работы системы.
+// Config - конфигурация инструмента ядра системы отвечающий за корректное завершение работы системы.
 type Config struct {
 	Signals []os.Signal `json:"signals" yaml:"Signals" xml:"Signals>Signal"`
 }

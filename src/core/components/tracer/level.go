@@ -11,6 +11,7 @@ const (
 	LevelCoreInternal
 	LevelCoreEvent
 	LevelCoreComponent
+	LevelCoreTool
 
 	LevelCoreAddon
 	LevelCoreAddonDebug
@@ -64,6 +65,8 @@ var (
 		"CoreDebug",
 		"CoreInternal",
 		"CoreEvent",
+		"CoreComponent",
+		"CoreTool",
 
 		"CoreAddon",
 		"CoreAddonDebug",
@@ -115,6 +118,8 @@ var (
 		LevelCoreDebug,
 		LevelCoreInternal,
 		LevelCoreEvent,
+		LevelCoreComponent,
+		LevelCoreTool,
 
 		LevelCoreAddon,
 		LevelCoreAddonDebug,
@@ -162,9 +167,9 @@ var (
 type Level int
 
 // String - получение строкового представления уровнял журнала трессировки.
-func (level Level) String() string {
-	if len(allLevelsString) >= int(level) {
-		return allLevelsString[level-1]
+func (l Level) String() string {
+	if len(allLevelsString) >= int(l) {
+		return allLevelsString[l-1]
 	}
 
 	return ""

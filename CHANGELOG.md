@@ -1,5 +1,14 @@
 # ChangeLog:
 
+### v24.0.6:
+- Доработки компонента [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
+- Разработан [инструмент для управления задачами ядра системы](src/core/tools/task_scheduler/task_scheduler.go);
+- Компонент для [компонент для корректного завершения работы ядра системы](src/core/components/closer/closer.go) стал [инструментом](src/core/tools/closer/closer.go);
+- Добавлено взаимодействие с [инструментами ядра](src/core/tools) в [ядре системы](src/core/core.go);
+- Добавлен уровень ведения журнала трессировки для инструментов ядра в компоненте [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
+
+---
+
 ### v24.0.5:
 - Добавлена директория [/sbin](/sbin) в [хранилище путей системы](src/core/env/paths/paths.go);
 - Разработан [компонент для корректного завершения работы ядра системы](src/core/components/closer/closer.go);

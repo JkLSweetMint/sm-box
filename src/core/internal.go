@@ -4,11 +4,13 @@ import (
 	"context"
 	"sm-box/src/core/components/logger"
 	"sm-box/src/core/components/tracer"
+	"sm-box/src/core/tools/task_scheduler"
 )
 
 // core - ядро системы.
 type core struct {
 	components *components
+	tools      *tools
 
 	ctx  context.Context
 	conf *Config
@@ -103,6 +105,13 @@ func (c *core) Components() interface {
 	Logger() logger.Logger
 } {
 	return c.components
+}
+
+// Tools - получение внутренних инструментов ядра системы.
+func (c *core) Tools() interface {
+	TaskScheduler() task_scheduler.Scheduler
+} {
+	return c.tools
 }
 
 // updateState - обновление состояния ядра.

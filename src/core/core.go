@@ -5,6 +5,7 @@ import (
 	"sm-box/src/core/components/configurator"
 	"sm-box/src/core/components/logger"
 	"sm-box/src/core/components/tracer"
+	"sm-box/src/core/tools/task_scheduler"
 	"sync"
 )
 
@@ -28,6 +29,9 @@ type Core interface {
 
 	Components() interface {
 		Logger() logger.Logger
+	}
+	Tools() interface {
+		TaskScheduler() task_scheduler.Scheduler
 	}
 }
 
