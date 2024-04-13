@@ -5,6 +5,8 @@ import (
 	"sm-box/src/core/components/configurator"
 	"sm-box/src/core/components/logger"
 	"sm-box/src/core/components/tracer"
+	"sm-box/src/core/env"
+	"sm-box/src/core/tools/closer"
 	"sm-box/src/core/tools/task_scheduler"
 	"sync"
 )
@@ -55,15 +57,18 @@ func New() (cr Core, err error) {
 	var created bool
 
 	once.Do(func() {
-		var instance_ = &core{
+		var ref = &core{
+			channels: new(channels),
+
 			ctx: context.Background(),
 		}
 
 		// Конфигурация
 		{
-			var conf = new(Config)
-
-			var c configurator.Configurator[*Config]
+			var (
+				conf = new(Config)
+				c    configurator.Configurator[*Config]
+			)
 
 			if c, err = configurator.New[*Config](conf); err != nil {
 				return
@@ -71,36 +76,58 @@ func New() (cr Core, err error) {
 				return
 			}
 
-			instance_.conf = conf
+			ref.conf = conf
 		}
 
 		// Компоненты
 		{
-			instance_.components = new(components)
+			ref.components = new(components)
 
 			// Logger
 			{
-				if instance_.components.logger, err = logger.New(loggerInitiator); err != nil {
+				if ref.components.logger, err = logger.New(loggerInitiator); err != nil {
 					return
 				}
 			}
 		}
 
-		// Состояние
+		// Инструменты
 		{
-			instance_.state = &stateNew{
-				components: instance_.components,
-				ctx:        instance_.ctx,
-				conf:       instance_.conf,
+			ref.tools = new(tools)
+
+			// Closer
+			{
+				if ref.tools.closer, ref.ctx = closer.New(ref.conf.Tools.Closer, ref.ctx, env.Synchronization.WaitGroup); err != nil {
+					return
+				}
+			}
+
+			// TaskScheduler
+			{
+				if ref.tools.taskScheduler, ref.channels.taskScheduler, err = task_scheduler.New(ref.ctx); err != nil {
+					return
+				}
 			}
 		}
 
-		instance = instance_
+		instance = ref
+
+		// Состояние
+		{
+			if err = ref.updateState(StateNew); err != nil {
+				return
+			}
+		}
 
 		instance.Components().Logger().Info().
 			Text("The system core instance has been created. ").
-			Field("state", instance_.State()).
-			Field("config", instance_.conf).Write()
+			Field("state", ref.State()).
+			Field("config", ref.conf).Write()
+
+		// Вызов задачи планировщика - 'BeforeNew'.
+		{
+			ref.channels.taskScheduler <- task_scheduler.TaskBeforeNew
+		}
 
 		created = true
 	})

@@ -11,26 +11,26 @@ const (
 	// TaskBeforeNew - вызов после создания ядра системы.
 	TaskBeforeNew
 
-	// TaskAfterBoot - вызов перед запуском загрузки ядра системы.
-	TaskAfterBoot
-	// TaskBoot - вызов одновременно с запуском загрузки ядра системы.
-	TaskBoot
 	// TaskBeforeBoot - вызов после завершения загрузки ядра системы.
 	TaskBeforeBoot
+	// TaskBoot - вызов одновременно с запуском загрузки ядра системы.
+	TaskBoot
+	// TaskAfterBoot - вызов перед запуском загрузки ядра системы.
+	TaskAfterBoot
 
-	// TaskAfterServe - вызов перед запуском обслуживания системы ядром.
-	TaskAfterServe
-	// TaskServe - вызов одновременно c запуском обслуживания системы ядром.
-	TaskServe
 	// TaskBeforeServe - вызов после запуском обслуживания системы ядром.
 	TaskBeforeServe
+	// TaskServe - вызов одновременно c запуском обслуживания системы ядром.
+	TaskServe
+	// TaskAfterServe - вызов перед запуском обслуживания системы ядром.
+	TaskAfterServe
 
-	// TaskAfterShutdown - вызов перед завершением обслуживания системы ядром.
-	TaskAfterShutdown
-	// TaskShutdown - вызов одновременно c завершением обслуживания системы ядром.
-	TaskShutdown
 	// TaskBeforeShutdown - вызов после завершения обслуживания системы ядром.
 	TaskBeforeShutdown
+	// TaskShutdown - вызов одновременно c завершением обслуживания системы ядром.
+	TaskShutdown
+	// TaskAfterShutdown - вызов перед завершением обслуживания системы ядром.
+	TaskAfterShutdown
 
 	maxTaskType
 )
@@ -38,17 +38,17 @@ const (
 var allTaskTypesString = [...]string{
 	"BeforeNew",
 
+	"BeforeBoot",
+	"Boot",
 	"AfterBoot",
-	"Boot",
-	"BeforeBoot",
 
-	"AfterServe",
-	"Serve",
 	"BeforeServe",
+	"Serve",
+	"AfterServe",
 
-	"AfterShutdown",
-	"Boot",
 	"BeforeBoot",
+	"Boot",
+	"AfterShutdown",
 }
 
 // TaskType - тип задачи.

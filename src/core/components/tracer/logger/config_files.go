@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"sm-box/src/pkg/utils/size"
+	"sm-box/src/pkg/tools/size"
 )
 
 // ConfigFilesLog - конфигурация файлов для компонента ведения журнала трессировки.

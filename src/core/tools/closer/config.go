@@ -1,11 +1,10 @@
 package closer
 
 import (
-	"os"
 	"syscall"
 )
 
-var defaultSignals = []os.Signal{
+var defaultSignals = []syscall.Signal{
 	syscall.SIGINT,
 	syscall.SIGTERM,
 	syscall.SIGQUIT,
@@ -14,13 +13,13 @@ var defaultSignals = []os.Signal{
 
 // Config - конфигурация инструмента ядра системы отвечающий за корректное завершение работы системы.
 type Config struct {
-	Signals []os.Signal `json:"signals" yaml:"Signals" xml:"Signals>Signal"`
+	Signals []syscall.Signal `json:"signals" yaml:"Signals" xml:"Signals>Signal"`
 }
 
 // FillEmptyFields - заполнение обязательных пустых полей конфигурации
 func (conf *Config) FillEmptyFields() *Config {
 	if conf.Signals == nil {
-		conf.Signals = make([]os.Signal, 0)
+		conf.Signals = make([]syscall.Signal, 0)
 	}
 
 	return conf

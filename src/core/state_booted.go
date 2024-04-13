@@ -11,6 +11,7 @@ import (
 type stateBooted struct {
 	components *components
 	tools      *tools
+	channels   *channels
 
 	ctx  context.Context
 	conf *Config
@@ -50,8 +51,18 @@ func (c *stateBooted) Serve() (err error) {
 		trc.Error(err).FunctionCallFinished()
 	}
 
+	// Вызов задачи планировщика - 'BeforeServe'.
+	{
+		c.channels.taskScheduler <- task_scheduler.TaskBeforeServe
+	}
+
 	c.Components().Logger().Info().
 		Text("The core starts system maintenance... ").Write()
+
+	// Вызов задачи планировщика - 'Serve'.
+	{
+		c.channels.taskScheduler <- task_scheduler.TaskServe
+	}
 
 	// Изменение состояния
 	{
@@ -64,6 +75,13 @@ func (c *stateBooted) Serve() (err error) {
 
 	c.Components().Logger().Info().
 		Text("The core has started system maintenance. ").Write()
+
+	// Вызов задачи планировщика - 'AfterServe'.
+	{
+		c.channels.taskScheduler <- task_scheduler.TaskAfterServe
+	}
+
+	c.tools.closer.Wait()
 
 	return
 }

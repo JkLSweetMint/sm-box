@@ -11,6 +11,7 @@ import (
 type stateNew struct {
 	components *components
 	tools      *tools
+	channels   *channels
 
 	ctx  context.Context
 	conf *Config
@@ -27,8 +28,18 @@ func (c *stateNew) Boot() (err error) {
 		trc.Error(err).FunctionCallFinished()
 	}
 
+	// Вызов задачи планировщика - 'BeforeBoot'.
+	{
+		c.channels.taskScheduler <- task_scheduler.TaskBeforeBoot
+	}
+
 	c.Components().Logger().Info().
 		Text("The system core has started booting... ").Write()
+
+	// Вызов задачи планировщика - 'Boot'.
+	{
+		c.channels.taskScheduler <- task_scheduler.TaskBoot
+	}
 
 	// Изменение состояния
 	{
@@ -41,6 +52,11 @@ func (c *stateNew) Boot() (err error) {
 
 	c.Components().Logger().Info().
 		Text("The system core has been booted. ").Write()
+
+	// Вызов задачи планировщика - 'AfterBoot'.
+	{
+		c.channels.taskScheduler <- task_scheduler.TaskAfterBoot
+	}
 
 	return
 }

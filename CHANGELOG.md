@@ -1,5 +1,11 @@
 # ChangeLog:
 
+### v24.0.7:
+- Доработки [ядра системы](src/core/core.go);
+- Доработки [компонента для корректного завершения работы ядра системы](src/core/tools/closer/closer.go);
+
+---
+
 ### v24.0.6:
 - Доработки компонента [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
 - Разработан [инструмент для управления задачами ядра системы](src/core/tools/task_scheduler/task_scheduler.go);

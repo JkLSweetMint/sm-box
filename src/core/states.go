@@ -1,7 +1,8 @@
 package core
 
 const (
-	StateNew State = iota + 1
+	StateNil State = iota
+	StateNew
 	StateBooted
 	StateServed
 	StateOff
@@ -9,6 +10,7 @@ const (
 
 // State - состояние ядра системы.
 // Возможные варианты:
+//  0. StateNil    - "Nil";
 //  1. StateNew    - "New";
 //  2. StateBooted - "Booted";
 //  3. StateServed - "Served";
@@ -18,6 +20,8 @@ type State int
 // String - получение строкового представления состояния ядра системы.
 func (index State) String() (v string) {
 	switch index {
+	case StateNil:
+		v = "Nil"
 	case StateNew:
 		v = "New"
 	case StateBooted:

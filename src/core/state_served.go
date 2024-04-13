@@ -11,6 +11,7 @@ import (
 type stateServed struct {
 	components *components
 	tools      *tools
+	channels   *channels
 
 	ctx  context.Context
 	conf *Config
@@ -73,8 +74,23 @@ func (c *stateServed) Shutdown() (err error) {
 		trc.Error(err).FunctionCallFinished()
 	}
 
+	// Вызов задачи планировщика - 'BeforeShutdown'.
+	{
+		c.channels.taskScheduler <- task_scheduler.TaskBeforeShutdown
+	}
+
 	c.Components().Logger().Info().
 		Text("The core completes system maintenance... ").Write()
+
+	// Вызов задачи планировщика - 'Shutdown'.
+	{
+		c.channels.taskScheduler <- task_scheduler.TaskShutdown
+	}
+
+	// Завершение работы
+	{
+		c.tools.closer.Cancel()
+	}
 
 	// Изменение состояния
 	{
@@ -87,6 +103,11 @@ func (c *stateServed) Shutdown() (err error) {
 
 	c.Components().Logger().Info().
 		Text("The core has completed system maintenance. ").Write()
+
+	// Вызов задачи планировщика - 'AfterShutdown'.
+	{
+		c.channels.taskScheduler <- task_scheduler.TaskAfterShutdown
+	}
 
 	return
 }

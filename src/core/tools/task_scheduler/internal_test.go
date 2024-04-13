@@ -261,7 +261,7 @@ func Test_scheduler_tracking(t *testing.T) {
 			return
 		},
 	}); err != nil {
-		t.Errorf("Failed to reguster a task in task scheduler: '%s'. ", err)
+		t.Errorf("Failed to register a task in task scheduler: '%s'. ", err)
 	}
 
 	if err = sc.Register(Task{
@@ -272,7 +272,7 @@ func Test_scheduler_tracking(t *testing.T) {
 			return
 		},
 	}); err != nil {
-		t.Errorf("Failed to reguster a task in task scheduler: '%s'. ", err)
+		t.Errorf("Failed to register a task in task scheduler: '%s'. ", err)
 	}
 
 	if err = sc.Register(Task{
@@ -283,7 +283,7 @@ func Test_scheduler_tracking(t *testing.T) {
 			return
 		},
 	}); err != nil {
-		t.Errorf("Failed to reguster a task in task scheduler: '%s'. ", err)
+		t.Errorf("Failed to register a task in task scheduler: '%s'. ", err)
 	}
 
 	var completed = make(chan struct{})

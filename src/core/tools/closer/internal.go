@@ -56,9 +56,16 @@ func (c *closer) tracking() {
 		trc.FunctionCallFinished()
 	}
 
-	var ch = make(chan os.Signal, 1)
+	var (
+		ch      = make(chan os.Signal, 1)
+		signals = make([]os.Signal, len(c.conf.Signals))
+	)
 
-	signal.Notify(ch, c.conf.Signals...)
+	for i, sig := range c.conf.Signals {
+		signals[i] = sig
+	}
+
+	signal.Notify(ch, signals...)
 
 	select {
 	case <-ch:

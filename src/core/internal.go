@@ -11,6 +11,7 @@ import (
 type core struct {
 	components *components
 	tools      *tools
+	channels   *channels
 
 	ctx  context.Context
 	conf *Config
@@ -22,6 +23,11 @@ type core struct {
 
 		State() (state State)
 	}
+}
+
+// channels - каналы ядра системы.
+type channels struct {
+	taskScheduler chan<- task_scheduler.TaskType
 }
 
 // Boot - загрузка ядра, построение системы, создание компонентов.
@@ -87,11 +93,16 @@ func (c *core) Shutdown() (err error) {
 // State - получение состояния ядра системы.
 //
 // Возможные варианты состояния ядра:
+//  0. StateNil    - "Nil";
 //  1. StateNew    - "New";
 //  2. StateBooted - "Booted";
 //  3. StateServed - "Served";
 //  4. StateOff    - "Off";
 func (c *core) State() (state State) {
+	if c.state == nil {
+		return StateNil
+	}
+
 	return c.state.State()
 }
 
@@ -143,13 +154,30 @@ func (c *core) updateState(state State) (err error) {
 	}()
 
 	switch state {
+	case StateNew:
+		{
+			if old == StateNil {
+				c.state = &stateNew{
+					components: c.components,
+					tools:      c.tools,
+					channels:   c.channels,
+
+					ctx:  c.ctx,
+					conf: c.conf,
+				}
+				return
+			}
+		}
 	case StateBooted:
 		{
 			if old == StateNew {
 				c.state = &stateBooted{
 					components: c.components,
-					ctx:        c.ctx,
-					conf:       c.conf,
+					tools:      c.tools,
+					channels:   c.channels,
+
+					ctx:  c.ctx,
+					conf: c.conf,
 				}
 				return
 			}
@@ -159,8 +187,11 @@ func (c *core) updateState(state State) (err error) {
 			if old == StateBooted {
 				c.state = &stateServed{
 					components: c.components,
-					ctx:        c.ctx,
-					conf:       c.conf,
+					tools:      c.tools,
+					channels:   c.channels,
+
+					ctx:  c.ctx,
+					conf: c.conf,
 				}
 				return
 			}
@@ -170,8 +201,11 @@ func (c *core) updateState(state State) (err error) {
 			if old == StateServed {
 				c.state = &stateOff{
 					components: c.components,
-					ctx:        c.ctx,
-					conf:       c.conf,
+					tools:      c.tools,
+					channels:   c.channels,
+
+					ctx:  c.ctx,
+					conf: c.conf,
 				}
 				return
 			}
