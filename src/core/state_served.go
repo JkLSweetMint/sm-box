@@ -2,8 +2,8 @@ package core
 
 import (
 	"context"
-	"sm-box/src/core/components/logger"
 	"sm-box/src/core/components/tracer"
+	"sm-box/src/core/env"
 	"sm-box/src/core/tools/task_scheduler"
 )
 
@@ -109,6 +109,8 @@ func (c *stateServed) Shutdown() (err error) {
 		c.channels.taskScheduler <- task_scheduler.TaskAfterShutdown
 	}
 
+	env.Synchronization.WaitGroup.Wait()
+
 	return
 }
 
@@ -120,15 +122,11 @@ func (c *stateServed) State() (state State) {
 }
 
 // Components - получение компонентов ядра системы.
-func (c *stateServed) Components() interface {
-	Logger() logger.Logger
-} {
+func (c *stateServed) Components() Components {
 	return c.components
 }
 
 // Tools - получение внутренних инструментов ядра системы.
-func (c *stateServed) Tools() interface {
-	TaskScheduler() task_scheduler.Scheduler
-} {
+func (c *stateServed) Tools() Tools {
 	return c.tools
 }

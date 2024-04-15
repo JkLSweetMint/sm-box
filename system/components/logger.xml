@@ -24,7 +24,7 @@
     <Options encoder="raw" format="capital_color" enable_trace="true" />
    </Fatal>
   </Levels>
-  <Options time_format="2006-01-02T15:04:05Z07:00" />
+  <Options time_format="2006-01-02 15:04:05" />
  </Terminal>
  <Files>
   <File file_name="%s.log" path="/var/logs">
@@ -51,7 +51,7 @@
      <Options encoder="raw" format="capital" enable_trace="true" />
     </Fatal>
    </Levels>
-   <Options time_format="2006-01-02T15:04:05Z07:00">
+   <Options time_format="2006-01-02 15:04:05">
     <Rotation enable="true" file_size="4GB" />
    </Options>
   </File>
@@ -64,7 +64,7 @@
      <Options encoder="raw" format="capital" enable_trace="true" />
     </DPanic>
    </Levels>
-   <Options time_format="2006-01-02T15:04:05Z07:00">
+   <Options time_format="2006-01-02 15:04:05">
     <Rotation enable="true" file_size="4GB" />
    </Options>
   </File>
@@ -80,7 +80,7 @@
      <Options encoder="raw" format="capital" enable_trace="true" />
     </Fatal>
    </Levels>
-   <Options time_format="2006-01-02T15:04:05Z07:00">
+   <Options time_format="2006-01-02 15:04:05">
     <Rotation enable="true" file_size="4GB" />
    </Options>
   </File>

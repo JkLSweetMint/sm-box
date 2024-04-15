@@ -11,25 +11,25 @@ const (
 	// TaskBeforeNew - вызов после создания ядра системы.
 	TaskBeforeNew
 
-	// TaskBeforeBoot - вызов после завершения загрузки ядра системы.
+	// TaskBeforeBoot - вызов перед запуском загрузки ядра системы.
 	TaskBeforeBoot
 	// TaskBoot - вызов одновременно с запуском загрузки ядра системы.
 	TaskBoot
-	// TaskAfterBoot - вызов перед запуском загрузки ядра системы.
+	// TaskAfterBoot - вызов после завершения загрузки ядра системы.
 	TaskAfterBoot
 
-	// TaskBeforeServe - вызов после запуском обслуживания системы ядром.
+	// TaskBeforeServe - вызов перед запуском обслуживания системы ядром.
 	TaskBeforeServe
 	// TaskServe - вызов одновременно c запуском обслуживания системы ядром.
 	TaskServe
-	// TaskAfterServe - вызов перед запуском обслуживания системы ядром.
+	// TaskAfterServe - вызов после запуском обслуживания системы ядром.
 	TaskAfterServe
 
-	// TaskBeforeShutdown - вызов после завершения обслуживания системы ядром.
+	// TaskBeforeShutdown - вызов перед завершением обслуживания системы ядром.
 	TaskBeforeShutdown
 	// TaskShutdown - вызов одновременно c завершением обслуживания системы ядром.
 	TaskShutdown
-	// TaskAfterShutdown - вызов перед завершением обслуживания системы ядром.
+	// TaskAfterShutdown - вызов после завершения обслуживания системы ядром.
 	TaskAfterShutdown
 
 	maxTaskType

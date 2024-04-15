@@ -1,5 +1,13 @@
 # ChangeLog:
 
+### v24.0.8:
+- Разработана основа [сервера](src/internal/server/server.go);
+- Доработки [ядра системы](src/core/core.go);
+- Доработки [компонента для корректного завершения работы ядра системы](src/core/tools/closer/closer.go);
+- Доработки [инструмента для управления задачами ядра системы](src/core/tools/task_scheduler/task_scheduler.go);
+
+---
+
 ### v24.0.7:
 - Доработки [ядра системы](src/core/core.go);
 - Доработки [компонента для корректного завершения работы ядра системы](src/core/tools/closer/closer.go);

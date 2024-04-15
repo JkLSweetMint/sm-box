@@ -5,7 +5,6 @@ import (
 	"sm-box/src/core/components/configurator"
 	"sm-box/src/core/components/logger"
 	"sm-box/src/core/components/tracer"
-	"sm-box/src/core/env"
 	"sm-box/src/core/tools/closer"
 	"sm-box/src/core/tools/task_scheduler"
 	"sync"
@@ -22,19 +21,15 @@ var (
 
 // Core - описание ядра системы.
 type Core interface {
-	Shutdown() (err error)
 	Boot() (err error)
 	Serve() (err error)
+	Shutdown() (err error)
 
 	State() (state State)
 	Ctx() (ctx context.Context)
 
-	Components() interface {
-		Logger() logger.Logger
-	}
-	Tools() interface {
-		TaskScheduler() task_scheduler.Scheduler
-	}
+	Components() Components
+	Tools() Tools
 }
 
 // New - создание ядра системы.
@@ -97,7 +92,7 @@ func New() (cr Core, err error) {
 
 			// Closer
 			{
-				if ref.tools.closer, ref.ctx = closer.New(ref.conf.Tools.Closer, ref.ctx, env.Synchronization.WaitGroup); err != nil {
+				if ref.tools.closer, ref.ctx = closer.New(ref.conf.Tools.Closer, ref.ctx); err != nil {
 					return
 				}
 			}

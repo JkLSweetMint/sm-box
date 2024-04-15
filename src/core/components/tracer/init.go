@@ -5,6 +5,7 @@ import (
 	"sm-box/src/core/components/tracer/logger"
 )
 
+// Init - инициализация компонента ведения журнала трессировки вызовов функций/методов.
 func Init() (err error) {
 	var (
 		c    configurator.Configurator[*Config]

@@ -51,7 +51,12 @@ func New(ctx context.Context) (sc Scheduler, c chan<- TaskType, err error) {
 	sc = s
 
 	env.Synchronization.WaitGroup.Add(1)
-	go s.tracking(ctx)
+
+	go func() {
+		defer env.Synchronization.WaitGroup.Done()
+
+		s.tracking(ctx)
+	}()
 
 	return
 }

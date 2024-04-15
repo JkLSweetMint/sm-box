@@ -5,14 +5,13 @@ import (
 	"os"
 	"os/signal"
 	"sm-box/src/core/components/tracer"
-	"sync"
 )
 
 // closer - инструмент ядра системы отвечающий за корректное завершение работы системы.
 type closer struct {
 	conf *Config
 
-	wg        *sync.WaitGroup
+	stop      chan struct{}
 	ctx       context.Context
 	ctxCancel context.CancelFunc
 }
@@ -29,8 +28,7 @@ func (c *closer) Wait() {
 		trc.FunctionCallFinished()
 	}
 
-	c.wg.Wait()
-	c.ctxCancel()
+	<-c.stop
 }
 
 // Cancel - сообщает системе о завершении работы.
@@ -44,6 +42,8 @@ func (c *closer) Cancel() {
 	}
 
 	c.ctxCancel()
+
+	c.stop <- struct{}{}
 }
 
 // tracking - отслеживание сигналов для завершения работы.
@@ -69,10 +69,8 @@ func (c *closer) tracking() {
 
 	select {
 	case <-ch:
-		{
-			c.Cancel()
-		}
+		c.Cancel()
 	case <-c.ctx.Done():
-		return
+		c.Cancel()
 	}
 }

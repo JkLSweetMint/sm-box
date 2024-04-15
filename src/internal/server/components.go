@@ -1,15 +1,13 @@
-package core
+package server
 
-import (
-	"sm-box/src/core/components/logger"
-)
+import "sm-box/src/core/components/logger"
 
-// Components - описание компонентов ядра системы.
+// Components - описание компонентов сервера.
 type Components interface {
 	Logger() logger.Logger
 }
 
-// components - компоненты ядра системы.
+// components - компоненты сервера.
 type components struct {
 	logger logger.Logger
 }

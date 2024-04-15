@@ -50,13 +50,9 @@ func (s *scheduler) tracking(ctx context.Context) {
 		trc.FunctionCallFinished()
 	}
 
-	defer env.Synchronization.WaitGroup.Done()
-
 For:
 	for {
 		select {
-		case <-ctx.Done():
-			break For
 		case tt := <-s.channel:
 			{
 				for iter := s.aggregate.Iterator(tt); iter.Has(); iter.Next() {
@@ -86,6 +82,10 @@ For:
 						s.components.Logger.Info().
 							Format("Task '%s' with type '%s' completed. ", task.Name, task.Type)
 					}()
+				}
+
+				if tt == TaskAfterShutdown {
+					break For
 				}
 			}
 		}

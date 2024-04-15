@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"sm-box/src/core/components/logger"
 	"sm-box/src/core/components/tracer"
 	"sm-box/src/core/tools/task_scheduler"
 )
@@ -115,15 +114,11 @@ func (c *stateNew) State() (state State) {
 }
 
 // Components - получение компонентов ядра системы.
-func (c *stateNew) Components() interface {
-	Logger() logger.Logger
-} {
+func (c *stateNew) Components() Components {
 	return c.components
 }
 
 // Tools - получение внутренних инструментов ядра системы.
-func (c *stateNew) Tools() interface {
-	TaskScheduler() task_scheduler.Scheduler
-} {
+func (c *stateNew) Tools() Tools {
 	return c.tools
 }

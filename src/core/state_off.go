@@ -2,9 +2,7 @@ package core
 
 import (
 	"context"
-	"sm-box/src/core/components/logger"
 	"sm-box/src/core/components/tracer"
-	"sm-box/src/core/tools/task_scheduler"
 )
 
 // stateOff - реализация ядра системы для состояния  StateOff - "Off".
@@ -94,15 +92,11 @@ func (c *stateOff) State() (state State) {
 }
 
 // Components - получение компонентов ядра системы.
-func (c *stateOff) Components() interface {
-	Logger() logger.Logger
-} {
+func (c *stateOff) Components() Components {
 	return c.components
 }
 
 // Tools - получение внутренних инструментов ядра системы.
-func (c *stateOff) Tools() interface {
-	TaskScheduler() task_scheduler.Scheduler
-} {
+func (c *stateOff) Tools() Tools {
 	return c.tools
 }
