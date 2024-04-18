@@ -1,55 +1,62 @@
 # ChangeLog:
 
+### v24.0.9:
+- Переработка архитектуры проекта;
+- Доработки основы [коробки](src/internal/app/box.go);
+- Проектирование базы данных;
+
+---
+
 ### v24.0.8:
-- Разработана основа [сервера](src/internal/server/server.go);
-- Доработки [ядра системы](src/core/core.go);
-- Доработки [компонента для корректного завершения работы ядра системы](src/core/tools/closer/closer.go);
-- Доработки [инструмента для управления задачами ядра системы](src/core/tools/task_scheduler/task_scheduler.go);
+- Разработана основа [коробки](src/internal/app/box.go);
+- Доработки [ядра системы](src/pkg/core/core.go);
+- Доработки [компонента для корректного завершения работы ядра системы](src/pkg/core/tools/closer/closer.go);
+- Доработки [инструмента для управления задачами ядра системы](src/pkg/core/tools/task_scheduler/task_scheduler.go);
 
 ---
 
 ### v24.0.7:
-- Доработки [ядра системы](src/core/core.go);
-- Доработки [компонента для корректного завершения работы ядра системы](src/core/tools/closer/closer.go);
+- Доработки [ядра системы](src/pkg/core/core.go);
+- Доработки [компонента для корректного завершения работы ядра системы](src/pkg/core/tools/closer/closer.go);
 
 ---
 
 ### v24.0.6:
-- Доработки компонента [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
-- Разработан [инструмент для управления задачами ядра системы](src/core/tools/task_scheduler/task_scheduler.go);
-- Компонент для [компонент для корректного завершения работы ядра системы](src/core/components/closer/closer.go) стал [инструментом](src/core/tools/closer/closer.go);
-- Добавлено взаимодействие с [инструментами ядра](src/core/tools) в [ядре системы](src/core/core.go);
-- Добавлен уровень ведения журнала трессировки для инструментов ядра в компоненте [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
+- Доработки компонента [ведения журнала трессировки вызовов](src/pkg/core/components/tracer/tracer.go);
+- Разработан [инструмент для управления задачами ядра системы](src/pkg/core/tools/task_scheduler/task_scheduler.go);
+- Компонент для [компонент для корректного завершения работы ядра системы](src/pkg/core/components/closer/closer.go) стал [инструментом](src/pkg/core/tools/closer/closer.go);
+- Добавлено взаимодействие с [инструментами ядра](src/pkg/core/tools) в [ядре системы](src/pkg/core/core.go);
+- Добавлен уровень ведения журнала трессировки для инструментов ядра в компоненте [ведения журнала трессировки вызовов](src/pkg/core/components/tracer/tracer.go);
 
 ---
 
 ### v24.0.5:
-- Добавлена директория [/sbin](/sbin) в [хранилище путей системы](src/core/env/paths/paths.go);
-- Разработан [компонент для корректного завершения работы ядра системы](src/core/components/closer/closer.go);
-- Сделаны доработки [ядра системы](src/core/core.go);
+- Добавлена директория [/sbin](/sbin) в [хранилище путей системы](src/pkg/core/env/paths/paths.go);
+- Разработан [компонент для корректного завершения работы ядра системы](src/pkg/core/components/closer/closer.go);
+- Сделаны доработки [ядра системы](src/pkg/core/core.go);
 
 ---
 
 ### v24.0.4:
-- Доработки компонента [управления конфигурациями проекта](src/core/components/configurator/configurator.go);
-- Доработки компонента [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
-- Разработка [ядра системы](src/core/core.go)
+- Доработки компонента [управления конфигурациями проекта](src/pkg/core/components/configurator/configurator.go);
+- Доработки компонента [ведения журнала трессировки вызовов](src/pkg/core/components/tracer/tracer.go);
+- Разработка [ядра системы](src/pkg/core/core.go)
 
 ---
 
 ### v24.0.3:
-- Разработан компонент [управления конфигурациями проекта](src/core/components/configurator/configurator.go);
+- Разработан компонент [управления конфигурациями проекта](src/pkg/core/components/configurator/configurator.go);
 
 ---
 
 ### v24.0.2:
-- Разработан компонент [ведения журнала трессировки вызовов](src/core/components/tracer/tracer.go);
-- Правки по компоненту [ведения журнала](src/core/components/logger/logger.go);
+- Разработан компонент [ведения журнала трессировки вызовов](src/pkg/core/components/tracer/tracer.go);
+- Правки по компоненту [ведения журнала](src/pkg/core/components/logger/logger.go);
 
 ---
 
 ### v24.0.1:
-- Разработана основа [ядра системы](src/core/core.go);
-- Разработан компонент [ведения журнала](src/core/components/logger/logger.go);
+- Разработана основа [ядра системы](src/pkg/core/core.go);
+- Разработан компонент [ведения журнала](src/pkg/core/components/logger/logger.go);
 
 ---
