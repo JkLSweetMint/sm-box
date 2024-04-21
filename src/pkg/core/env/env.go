@@ -32,7 +32,7 @@ var (
 )
 
 const (
-	testSystemLocation = "F:/projects/SweetMint/sm-box"
+	testSystemLocation = "F:/projects/SweetMint/sm-box/box"
 )
 
 // init - инициализация окружения системы.

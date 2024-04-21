@@ -14,9 +14,9 @@ create table if not exists system_access_roles
             primary key autoincrement,
     project_id integer
         references system_access_roles (id),
-    name text    not null
+    title text    not null
 
-        check (id > 2 or (id = 1 and name = 'root') or (id = 2 and name = 'user'))
+        check (id > 2 or (id = 1 and title = 'root') or (id = 2 and title = 'user'))
 );
 
 create table if not exists system_access_roles_inheritance
@@ -29,8 +29,8 @@ create table if not exists system_access_roles_inheritance
         check (parent != heir)
 );
 
-insert into system_access_roles(id, project_id, name) values (1, null, 'root');
-insert into system_access_roles(id, project_id, name) values (2, null, 'user');
+insert into system_access_roles(id, project_id, title) values (1, null, 'root');
+insert into system_access_roles(id, project_id, title) values (2, null, 'user');
 
 insert into system_access_roles_inheritance(parent,  heir) values (1, 2);
 

@@ -26,6 +26,9 @@ type Dev struct {
 	Src *struct {
 		// Path - путь к директории.
 		Path string
+
+		// Embed - путь к директории со встроенными файлами /embed.
+		Embed string
 	}
 
 	// System - директория системных файлов.
@@ -150,9 +153,15 @@ func (storage *Dev) Build(options BuildOptions) *Dev {
 	{
 		storage.Src = &struct {
 			Path string
+
+			Embed string
 		}{
 			Path: "/src",
 		}
+
+		var s = storage.Src
+
+		s.Embed = path.Join(s.Path, "/embed")
 	}
 
 	// System

@@ -107,9 +107,9 @@ func (bx *box) serve(ctx context.Context) (err error) {
 	// Транспортная часть
 	{
 		go func() {
-			if err = bx.Transports().Graphql().Serve(); err != nil {
+			if err = bx.Transports().RestApi().Serve(); err != nil {
 				bx.Components().Logger().Error().
-					Format("Failed to launch 'graphql http api': '%s'. ", err)
+					Format("Failed to launch 'http rest api': '%s'. ", err)
 			}
 		}()
 	}
@@ -135,9 +135,9 @@ func (bx *box) shutdown(ctx context.Context) (err error) {
 
 	// Транспортная часть
 	{
-		if err = bx.Transports().Graphql().Shutdown(); err != nil {
+		if err = bx.Transports().RestApi().Shutdown(); err != nil {
 			bx.Components().Logger().Error().
-				Format("Failed to stop 'graphql http api': '%s'. ", err)
+				Format("Failed to stop 'http rest api': '%s'. ", err)
 		}
 	}
 

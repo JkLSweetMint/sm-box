@@ -2,8 +2,10 @@ package app
 
 import (
 	"context"
-	"sm-box/src/internal/app/transports/graphql"
+	"sm-box/src/internal/app/transports/rest_api"
 	"sm-box/src/pkg/core"
+	"sm-box/src/pkg/core/addons/encryption_keys"
+	"sm-box/src/pkg/core/addons/pid"
 	"sm-box/src/pkg/core/components/configurator"
 	"sm-box/src/pkg/core/components/logger"
 	"sm-box/src/pkg/core/components/tracer"
@@ -80,29 +82,50 @@ func New() (box_ Box, err error) {
 	{
 		bx.transports = new(transports)
 
-		if bx.transports.graphql, err = graphql.New(bx.Ctx()); err != nil {
+		if bx.transports.restApi, err = rest_api.New(bx.Ctx()); err != nil {
 			return
 		}
 	}
 
 	// Регистрация задач коробки
 	{
-		if err = bx.core.Tools().TaskScheduler().Register(task_scheduler.Task{
-			Name: "Starting the server maintenance. ",
-			Type: task_scheduler.TaskServe,
-			Func: bx.serve,
-		}); err != nil {
-			bx.Components().Logger().Error().
-				Format("Failed to register a task in task scheduler: '%s'. ", err)
+		// Дополнения ядра
+		{
+			if err = bx.core.Tools().TaskScheduler().Register(pid.TaskCreatePIDFile); err != nil {
+				bx.Components().Logger().Error().
+					Format("Failed to register a task in task scheduler: '%s'. ", err)
+			}
+
+			if err = bx.core.Tools().TaskScheduler().Register(pid.TaskRemovePIDFile); err != nil {
+				bx.Components().Logger().Error().
+					Format("Failed to register a task in task scheduler: '%s'. ", err)
+			}
+
+			if err = bx.core.Tools().TaskScheduler().Register(encryption_keys.TaskInitEncryptionKeys); err != nil {
+				bx.Components().Logger().Error().
+					Format("Failed to register a task in task scheduler: '%s'. ", err)
+			}
 		}
 
-		if err = bx.core.Tools().TaskScheduler().Register(task_scheduler.Task{
-			Name: "Completion of server maintenance. ",
-			Type: task_scheduler.TaskShutdown,
-			Func: bx.shutdown,
-		}); err != nil {
-			bx.Components().Logger().Error().
-				Format("Failed to register a task in task scheduler: '%s'. ", err)
+		// Основные
+		{
+			if err = bx.core.Tools().TaskScheduler().Register(task_scheduler.Task{
+				Name: "Starting the server maintenance. ",
+				Type: task_scheduler.TaskServe,
+				Func: bx.serve,
+			}); err != nil {
+				bx.Components().Logger().Error().
+					Format("Failed to register a task in task scheduler: '%s'. ", err)
+			}
+
+			if err = bx.core.Tools().TaskScheduler().Register(task_scheduler.Task{
+				Name: "Completion of server maintenance. ",
+				Type: task_scheduler.TaskShutdown,
+				Func: bx.shutdown,
+			}); err != nil {
+				bx.Components().Logger().Error().
+					Format("Failed to register a task in task scheduler: '%s'. ", err)
+			}
 		}
 	}
 

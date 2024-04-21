@@ -1,6 +1,7 @@
 package vars
 
 import (
+	"crypto/rsa"
 	"fmt"
 	"math/rand"
 	"syscall"
@@ -13,6 +14,12 @@ type Dev struct {
 	ID         string    // Идентификатор запуска
 	PID        int       // Идентификатор процесса.
 	LaunchTime time.Time // Время запуска системы.
+
+	// Ключи шифрования системы.
+	EncryptionKeys *struct {
+		Private *rsa.PrivateKey // Приватный ключ.
+		Public  *rsa.PublicKey  // Публичный ключ.
+	}
 }
 
 // Prod - переменные окружения системы в боевом режиме.
@@ -21,6 +28,12 @@ type Prod struct {
 	ID         string    // Идентификатор запуска
 	PID        int       // Идентификатор процесса.
 	LaunchTime time.Time // Время запуска системы.
+
+	// Ключи шифрования системы.
+	EncryptionKeys *struct {
+		Private *rsa.PrivateKey // Приватный ключ.
+		Public  *rsa.PublicKey  // Публичный ключ.
+	}
 }
 
 // Build - построение хранилища.
@@ -30,6 +43,11 @@ func (storage *Dev) Build() *Dev {
 		ID:         fmt.Sprintf("%d-%d", int(time.Now().UnixNano()), rand.Int()),
 		PID:        syscall.Getpid(),
 		LaunchTime: time.Now(),
+
+		EncryptionKeys: new(struct {
+			Private *rsa.PrivateKey
+			Public  *rsa.PublicKey
+		}),
 	}
 }
 
@@ -40,5 +58,10 @@ func (storage *Prod) Build() *Prod {
 		ID:         fmt.Sprintf("%d-%d", int(time.Now().UnixNano()), rand.Int()),
 		PID:        syscall.Getpid(),
 		LaunchTime: time.Now(),
+
+		EncryptionKeys: new(struct {
+			Private *rsa.PrivateKey
+			Public  *rsa.PublicKey
+		}),
 	}
 }

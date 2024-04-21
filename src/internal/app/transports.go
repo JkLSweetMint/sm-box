@@ -1,20 +1,20 @@
 package app
 
 import (
-	"sm-box/src/internal/app/transports/graphql"
+	"sm-box/src/internal/app/transports/rest_api"
 )
 
 // Transports - описание транспортной части коробки.
 type Transports interface {
-	Graphql() graphql.Engine
+	RestApi() rest_api.Engine
 }
 
 // components - транспортная часть коробки.
 type transports struct {
-	graphql graphql.Engine
+	restApi rest_api.Engine
 }
 
-// Graphql - получение graphql http api.
-func (t *transports) Graphql() graphql.Engine {
-	return t.graphql
+// RestApi - получение http rest api.
+func (t *transports) RestApi() rest_api.Engine {
+	return t.restApi
 }
