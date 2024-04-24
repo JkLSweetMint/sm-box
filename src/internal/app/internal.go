@@ -107,7 +107,7 @@ func (bx *box) serve(ctx context.Context) (err error) {
 	// Транспортная часть
 	{
 		go func() {
-			if err = bx.Transports().RestApi().Serve(); err != nil {
+			if err = bx.Transports().RestApi().Listen(); err != nil {
 				bx.Components().Logger().Error().
 					Format("Failed to launch 'http rest api': '%s'. ", err)
 			}

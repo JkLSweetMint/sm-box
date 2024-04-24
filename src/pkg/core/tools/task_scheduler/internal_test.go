@@ -59,7 +59,7 @@ func Test_scheduler_Register(t *testing.T) {
 			args: args{
 				t: Task{
 					Name: "Test task 1",
-					Type: minTaskType,
+					Type: taskZero,
 					Func: nil,
 				},
 			},
@@ -156,7 +156,7 @@ func Test_scheduler_Register(t *testing.T) {
 			args: args{
 				t: Task{
 					Name: "Test task 3",
-					Type: minTaskType,
+					Type: taskZero,
 					Func: nil,
 				},
 			},

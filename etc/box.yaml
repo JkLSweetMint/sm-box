@@ -1,0 +1,80 @@
+Transports:
+    RestAPI:
+        Engine:
+            ServerHeader: Sm-Box rest api
+            StrictRouting: true
+            CaseSensitive: false
+            Immutable: false
+            UnescapePath: false
+            BodyLimit: 4194304
+            Concurrency: 262144
+            ReadTimeout: 0s
+            WriteTimeout: 0s
+            IdleTimeout: 0s
+            ReadBufferSize: 4096
+            WriteBufferSize: 4096
+            CompressedFileSuffix: .box.gz
+            ProxyHeader: ""
+            GETOnly: false
+            DisableKeepalive: false
+            DisableDefaultDate: false
+            DisableDefaultContentType: false
+            DisableHeaderNormalizing: false
+            AppName: Sm-Box Rest API
+            StreamRequestBody: false
+            DisablePreParseMultipartForm: false
+            ReduceMemoryUsage: false
+            Network: tcp4
+            EnableTrustedProxyCheck: false
+            TrustedProxies: []
+            EnableIPValidation: false
+            RequestMethods: []
+            EnableSplittingOnParsers: false
+            Addr: 127.0.0.1:8080
+            Name: api
+            Version: v1.0
+            Domains: []
+        Middlewares:
+            Compress:
+                Enable: true
+                Level: 1
+            Cache:
+                Enable: true
+                Expiration: 1m0s
+                CacheHeader: X-Cache
+                CacheControl: false
+                StoreResponseHeaders: false
+                MaxBytes: 0
+                Methods:
+                    - GET
+                    - HEAD
+            Cors:
+                Enable: true
+                AllowOrigins: []
+                AllowMethods:
+                    - GET
+                    - POST
+                    - HEAD
+                    - PUT
+                    - DELETE
+                    - PATCH
+                    - OPTIONS
+                AllowHeaders:
+                    - Origin
+                    - Access-Control-Allow-Headers
+                    - Access-Control-Allow-Origin
+                    - Access-Control-Allow-Credentials
+                    - Content-Type
+                    - Content-Length
+                    - Accept-Encoding
+                    - Cookie
+                    - Authorization
+                    - RequestURL
+                    - Set-Cookie
+                    - X-Requested-With
+                AllowCredentials: false
+                ExposeHeaders:
+                    - Content-Disposition
+                    - Content-Length
+                MaxAge: 36000
+                AllowPrivateNetwork: true

@@ -7,6 +7,14 @@
 
 ---
 
+### v24.0.11:
+- Доработать архитектуру проекта;
+- Доработать основу [коробки](src/internal/app/box.go);
+- Сделать [транспортную часть коробки](src/internal/app/transports);
+- Сделать [http rest api коробки](src/internal/app/transports/rest_api/engine.go);
+
+---
+
 ### v24.0.10:
 - [x] Доработать архитектуру проекта;
 - [x] Доработать основу [коробки](src/internal/app/box.go);

@@ -35,7 +35,7 @@ const (
 	maxTaskType
 )
 
-var allTaskTypesString = [...]string{
+var taskTypesList = [...]string{
 	"BeforeNew",
 
 	"BeforeBoot",
@@ -79,8 +79,8 @@ func (t *Task) Exec(ctx context.Context) (err error) {
 
 // String - получение строкового представления типа задачи системы.
 func (e TaskType) String() (val string) {
-	if len(allTaskTypesString) >= int(e) {
-		return allTaskTypesString[e-1]
+	if e > minTaskType && int(e) <= len(taskTypesList) {
+		return taskTypesList[e-1]
 	}
 
 	return

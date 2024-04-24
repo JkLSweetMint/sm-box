@@ -1,7 +1,9 @@
 package tracer
 
 const (
-	LevelMain Level = iota + 1
+	minLevel Level = iota
+
+	LevelMain
 	LevelDebug
 	LevelInternal
 	LevelEvent
@@ -18,10 +20,10 @@ const (
 	LevelCoreAddonInternal
 	LevelCoreAddonEvent
 
-	LevelCoreTransport
-	LevelCoreTransportDebug
-	LevelCoreTransportInternal
-	LevelCoreTransportEvent
+	LevelTransport
+	LevelTransportDebug
+	LevelTransportInternal
+	LevelTransportEvent
 
 	LevelPackage
 	LevelPackageDebug
@@ -55,7 +57,7 @@ const (
 )
 
 var (
-	allLevelsString = [...]string{
+	levelsList = [...]string{
 		"Main",
 		"Debug",
 		"Internal",
@@ -73,10 +75,10 @@ var (
 		"CoreAddonInternal",
 		"CoreAddonEvent",
 
-		"CoreTransport",
-		"CoreTransportDebug",
-		"CoreTransportInternal",
-		"CoreTransportEvent",
+		"Transport",
+		"TransportDebug",
+		"TransportInternal",
+		"TransportEvent",
 
 		"Package",
 		"PackageDebug",
@@ -126,10 +128,10 @@ var (
 		LevelCoreAddonInternal,
 		LevelCoreAddonEvent,
 
-		LevelCoreTransport,
-		LevelCoreTransportDebug,
-		LevelCoreTransportInternal,
-		LevelCoreTransportEvent,
+		LevelTransport,
+		LevelTransportDebug,
+		LevelTransportInternal,
+		LevelTransportEvent,
 
 		LevelPackage,
 		LevelPackageDebug,
@@ -168,8 +170,8 @@ type Level int
 
 // String - получение строкового представления уровнял журнала трессировки.
 func (l Level) String() string {
-	if len(allLevelsString) >= int(l) {
-		return allLevelsString[l-1]
+	if l > minLevel && int(l) <= len(levelsList) {
+		return levelsList[l-1]
 	}
 
 	return ""

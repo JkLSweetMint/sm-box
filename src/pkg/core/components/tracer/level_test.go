@@ -57,8 +57,8 @@ func TestLevel_String(t *testing.T) {
 		},
 		{
 			name:  "Case 10",
-			level: LevelCoreTransportInternal,
-			want:  allLevelsString[LevelCoreTransportInternal-1],
+			level: LevelTransportInternal,
+			want:  allLevelsString[LevelTransportInternal-1],
 		},
 	}
 

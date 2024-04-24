@@ -1,5 +1,13 @@
 # ChangeLog:
 
+### v24.0.11:
+- Доработка архитектуры проекта;
+- Доработки основы [коробки](src/internal/app/box.go);
+- Создание [транспортной части коробки](src/internal/app/transports);
+- Создание [http rest api коробки](src/internal/app/transports/rest_api/engine.go);
+
+---
+
 ### v24.0.10:
 - Доработка архитектуры проекта;
 - Доработки основы [коробки](src/internal/app/box.go);

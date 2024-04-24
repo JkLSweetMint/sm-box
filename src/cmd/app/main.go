@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sm-box/src/internal/app"
+	"sm-box/src/pkg/core/addons/encryption_keys"
 	"sm-box/src/pkg/core/components/tracer"
 	"sm-box/src/pkg/core/env"
 	env_mode "sm-box/src/pkg/core/env/mode"
@@ -10,12 +11,16 @@ import (
 
 func init() {
 	env.Vars.SystemName = "box"
-	env.Version = "24.0.10"
+	env.Version = "24.0.11"
 
 	if env.Mode == env_mode.Dev {
 		if err := tracer.Init(); err != nil {
 			panic(fmt.Sprintf("An error occurred during initialization of the function/method call trace logging component: '%s'. ", err))
 		}
+	}
+
+	if err := encryption_keys.Init(); err != nil {
+		panic(fmt.Sprintf("An error occurred during the initialization of the system add-on for encryption keys: '%s'. ", err))
 	}
 }
 

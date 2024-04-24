@@ -20,4 +20,3 @@ func (c *configurator[T]) Private() Private[T] {
 		encoder: prtDefaultEncoder,
 	}
 }
-

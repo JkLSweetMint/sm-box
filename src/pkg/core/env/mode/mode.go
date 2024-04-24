@@ -1,11 +1,18 @@
 package mode
 
 const (
+	minMode = iota
+
 	// Dev - режим разработки.
-	Dev = iota + 1
+	Dev
 	// Prod = боевой режим.
 	Prod
 )
+
+var modeList = []string{
+	"DEV",
+	"PROD",
+}
 
 // Mode - режим работы системы.
 //
@@ -17,15 +24,10 @@ const (
 type Mode int
 
 // String - получение строкового представления режима работы системы.
-func (mode Mode) String() (val string) {
-	val = "UNKNOWN"
-
-	switch mode {
-	case Dev:
-		val = "DEV"
-	case Prod:
-		val = "PROD"
+func (m Mode) String() (val string) {
+	if m > minMode && int(m) <= len(modeList) {
+		return modeList[m-1]
 	}
 
-	return
+	return "UNKNOWN"
 }

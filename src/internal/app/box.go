@@ -41,13 +41,13 @@ func New() (box_ Box, err error) {
 	// Конфигурация
 	{
 		var (
-			conf = new(Config)
+			conf = new(Config).Default()
 			c    configurator.Configurator[*Config]
 		)
 
 		if c, err = configurator.New[*Config](conf); err != nil {
 			return
-		} else if err = c.Private().Profile(confProfile).Read(); err != nil {
+		} else if err = c.Public().Profile(confProfile).Init(); err != nil {
 			return
 		}
 
@@ -82,7 +82,7 @@ func New() (box_ Box, err error) {
 	{
 		bx.transports = new(transports)
 
-		if bx.transports.restApi, err = rest_api.New(bx.Ctx()); err != nil {
+		if bx.transports.restApi, err = rest_api.New(bx.Ctx(), bx.conf.Transports.RestAPI); err != nil {
 			return
 		}
 	}
