@@ -2,8 +2,8 @@ package core
 
 import (
 	"context"
-	"sm-box/src/pkg/core/components/tracer"
-	"sm-box/src/pkg/core/tools/task_scheduler"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/tools/task_scheduler"
 )
 
 // stateBooted - реализация ядра системы для состояния StateBooted - "Booted".
@@ -25,7 +25,7 @@ func (c *stateBooted) Boot() (err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	c.Components().Logger().Info().
@@ -47,7 +47,7 @@ func (c *stateBooted) Serve() (err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	// Вызов задачи планировщика - 'BeforeServe'.
@@ -94,7 +94,7 @@ func (c *stateBooted) Shutdown() (err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	c.Components().Logger().Info().

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"runtime"
-	env_mode "sm-box/src/pkg/core/env/mode"
-	env_paths "sm-box/src/pkg/core/env/paths"
-	env_synchronization "sm-box/src/pkg/core/env/synchronization"
-	env_vars "sm-box/src/pkg/core/env/vars"
+	env_mode "sm-box/pkg/core/env/mode"
+	env_paths "sm-box/pkg/core/env/paths"
+	env_synchronization "sm-box/pkg/core/env/synchronization"
+	env_vars "sm-box/pkg/core/env/vars"
 	"testing"
 )
 
@@ -32,7 +32,7 @@ var (
 )
 
 const (
-	testSystemLocation = "F:/projects/SweetMint/sm-box/box"
+	devSystemLocation = "F:/projects/SweetMint/sm-box/box"
 )
 
 // init - инициализация окружения системы.
@@ -42,7 +42,7 @@ func init() {
 	testing.Init()
 	godotenv.Load()
 
-	if Paths.SystemLocation, err = getSystemLocation(testSystemLocation); err != nil {
+	if Paths.SystemLocation, err = getSystemLocation(); err != nil {
 		panic(err)
 	}
 

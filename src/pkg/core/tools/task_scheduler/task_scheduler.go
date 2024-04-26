@@ -2,9 +2,9 @@ package task_scheduler
 
 import (
 	"context"
-	"sm-box/src/pkg/core/components/logger"
-	"sm-box/src/pkg/core/components/tracer"
-	"sm-box/src/pkg/core/env"
+	"sm-box/pkg/core/components/logger"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
 	"sync"
 )
 
@@ -24,7 +24,7 @@ func New(ctx context.Context) (sc Scheduler, c chan<- TaskType, err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCoreTool)
 
 		trc.FunctionCall(ctx)
-		trc.Error(err).FunctionCallFinished(sc, c)
+		defer func() { trc.Error(err).FunctionCallFinished(sc, c) }()
 	}
 
 	var s = &scheduler{

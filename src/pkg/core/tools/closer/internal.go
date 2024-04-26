@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"sm-box/src/pkg/core/components/tracer"
+	"sm-box/pkg/core/components/tracer"
 )
 
 // closer - инструмент ядра системы отвечающий за корректное завершение работы системы.
@@ -25,7 +25,7 @@ func (c *closer) Wait() {
 		var trc = tracer.New(tracer.LevelCoreTool)
 
 		trc.FunctionCall()
-		trc.FunctionCallFinished()
+		defer func() { trc.FunctionCallFinished() }()
 	}
 
 	<-c.stop
@@ -38,7 +38,7 @@ func (c *closer) Cancel() {
 		var trc = tracer.New(tracer.LevelCoreTool)
 
 		trc.FunctionCall()
-		trc.FunctionCallFinished()
+		defer func() { trc.FunctionCallFinished() }()
 	}
 
 	c.ctxCancel()
@@ -53,7 +53,7 @@ func (c *closer) tracking() {
 		var trc = tracer.New(tracer.LevelCoreTool)
 
 		trc.FunctionCall()
-		trc.FunctionCallFinished()
+		defer func() { trc.FunctionCallFinished() }()
 	}
 
 	var (

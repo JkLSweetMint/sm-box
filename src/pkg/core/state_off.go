@@ -2,7 +2,7 @@ package core
 
 import (
 	"context"
-	"sm-box/src/pkg/core/components/tracer"
+	"sm-box/pkg/core/components/tracer"
 )
 
 // stateOff - реализация ядра системы для состояния  StateOff - "Off".
@@ -24,7 +24,7 @@ func (c *stateOff) Boot() (err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	c.Components().Logger().Info().
@@ -47,7 +47,7 @@ func (c *stateOff) Serve() (err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	c.Components().Logger().Info().
@@ -70,7 +70,7 @@ func (c *stateOff) Shutdown() (err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	c.Components().Logger().Info().

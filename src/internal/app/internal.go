@@ -2,9 +2,9 @@ package app
 
 import (
 	"context"
-	"sm-box/src/pkg/core"
-	"sm-box/src/pkg/core/components/tracer"
-	"sm-box/src/pkg/core/env"
+	"sm-box/pkg/core"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
 )
 
 // box - реализация коробки.
@@ -25,7 +25,7 @@ func (bx *box) Serve() (err error) {
 		var trc = tracer.New(tracer.LevelMain)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	if err = bx.core.Serve(); err != nil {
@@ -47,7 +47,7 @@ func (bx *box) Shutdown() (err error) {
 		var trc = tracer.New(tracer.LevelMain)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	if err = bx.core.Shutdown(); err != nil {
@@ -98,7 +98,7 @@ func (bx *box) serve(ctx context.Context) (err error) {
 		var trc = tracer.New(tracer.LevelInternal)
 
 		trc.FunctionCall(ctx)
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	bx.Components().Logger().Info().
@@ -127,7 +127,7 @@ func (bx *box) shutdown(ctx context.Context) (err error) {
 		var trc = tracer.New(tracer.LevelInternal)
 
 		trc.FunctionCall(ctx)
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	bx.Components().Logger().Info().

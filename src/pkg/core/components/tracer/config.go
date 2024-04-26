@@ -1,8 +1,8 @@
 package tracer
 
 import (
-	"sm-box/src/pkg/core/components/configurator"
-	"sm-box/src/pkg/core/components/tracer/logger"
+	"sm-box/pkg/core/components/configurator"
+	"sm-box/pkg/core/components/tracer/logger"
 )
 
 var confProfile = configurator.PrivateProfile{
@@ -12,7 +12,7 @@ var confProfile = configurator.PrivateProfile{
 
 // Config - конфигурация компонента трессировки.
 type Config struct {
-	Levels []Level        `json:"levels" yaml:"Levels" xml:"Level,attr"`
+	Levels []Level        `json:"levels" yaml:"Levels" xml:"Levels>Level"`
 	Logger *logger.Config `json:"logger" yaml:"Logger" xml:"Logger"`
 }
 

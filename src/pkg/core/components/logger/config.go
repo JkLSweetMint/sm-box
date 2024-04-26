@@ -1,8 +1,9 @@
 package logger
 
 import (
-	"sm-box/src/pkg/core/components/configurator"
-	"sm-box/src/pkg/core/env"
+	"sm-box/pkg/core/components/configurator"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
 	"strings"
 	"time"
 )
@@ -20,6 +21,14 @@ type Config struct {
 
 // FillEmptyFields - заполнение обязательных пустых полей конфигурации.
 func (conf *Config) FillEmptyFields() *Config {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	if conf.Terminal == nil {
 		conf.Terminal = new(ConfigTerminalLog)
 	}
@@ -45,6 +54,14 @@ func (conf *Config) FillEmptyFields() *Config {
 
 // Default - запись стандартной конфигурации.
 func (conf *Config) Default() *Config {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	// Terminal
 	{
 		conf.Terminal = &ConfigTerminalLog{
@@ -269,5 +286,13 @@ func (conf *Config) Default() *Config {
 
 // Validate - валидация конфигурации.
 func (conf *Config) Validate() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
 	return
 }

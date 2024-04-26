@@ -8,8 +8,8 @@ import (
 	"io"
 	"os"
 	"path"
-	"sm-box/src/pkg/core/components/configurator"
-	"sm-box/src/pkg/core/env"
+	"sm-box/pkg/core/components/configurator"
+	"sm-box/pkg/core/env"
 	"strings"
 )
 
@@ -33,11 +33,11 @@ func newLogger(initiator string, conf *Config) (log *logger, err error) {
 	}
 
 	if conf == nil {
-		conf = new(Config)
+		conf = new(Config).Default()
 
 		if c, err := configurator.New[*Config](conf); err != nil {
 			return nil, err
-		} else if err = c.Private().Profile(confProfile).Read(); err != nil {
+		} else if err = c.Private().Profile(confProfile).Init(); err != nil {
 			return nil, err
 		}
 	}

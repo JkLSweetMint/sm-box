@@ -23,15 +23,19 @@ type Logger interface {
 }
 
 // New - создание компонента ведения журнала.
-func New(initiator string, conf ...*Config) (log Logger, err error) {
+func New(initiator string, configs ...*Config) (log Logger, err error) {
 	once.Do(func() {
-		var c *Config
+		var conf *Config
 
-		if conf != nil {
-			c = conf[0]
+		if configs != nil {
+			conf = configs[0]
+
+			if err = conf.FillEmptyFields().Validate(); err != nil {
+				return
+			}
 		}
 
-		if instance, err = newLogger(initiator, c); err != nil {
+		if instance, err = newLogger(initiator, conf); err != nil {
 			return
 		}
 

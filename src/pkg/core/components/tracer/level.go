@@ -7,6 +7,8 @@ const (
 	LevelDebug
 	LevelInternal
 	LevelEvent
+	LevelDatabaseConnector
+	LevelConfig
 
 	LevelCore
 	LevelCoreDebug
@@ -62,6 +64,8 @@ var (
 		"Debug",
 		"Internal",
 		"Event",
+		"DatabaseConnector",
+		"Config",
 
 		"Core",
 		"CoreDebug",
@@ -115,6 +119,8 @@ var (
 		LevelDebug,
 		LevelInternal,
 		LevelEvent,
+		LevelDatabaseConnector,
+		LevelConfig,
 
 		LevelCore,
 		LevelCoreDebug,

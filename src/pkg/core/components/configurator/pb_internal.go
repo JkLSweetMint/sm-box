@@ -4,8 +4,8 @@ import (
 	"errors"
 	"os"
 	"path"
-	"sm-box/src/pkg/core/components/configurator/encoders"
-	"sm-box/src/pkg/core/env"
+	"sm-box/pkg/core/components/configurator/encoders"
+	"sm-box/pkg/core/env"
 	"strings"
 )
 

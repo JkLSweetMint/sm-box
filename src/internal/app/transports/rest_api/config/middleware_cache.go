@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	cache_middleware "github.com/gofiber/fiber/v3/middleware/cache"
 	"github.com/gofiber/utils/v2"
+	"sm-box/pkg/core/components/tracer"
 	"time"
 )
 
@@ -50,11 +51,27 @@ type MiddlewareCache struct {
 
 // FillEmptyFields - заполнение обязательных пустых полей конфигурации
 func (conf *MiddlewareCache) FillEmptyFields() *MiddlewareCache {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	return conf
 }
 
 // Default - запись стандартной конфигурации.
 func (conf *MiddlewareCache) Default() *MiddlewareCache {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	conf.Enable = true
 	conf.Expiration = 1 * time.Minute
 	conf.CacheHeader = "X-Cache"
@@ -68,6 +85,14 @@ func (conf *MiddlewareCache) Default() *MiddlewareCache {
 
 // Validate - валидация конфигурации.
 func (conf *MiddlewareCache) Validate() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
 	return
 }
 

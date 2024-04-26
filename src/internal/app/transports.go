@@ -1,7 +1,7 @@
 package app
 
 import (
-	"sm-box/src/internal/app/transports/rest_api"
+	"sm-box/internal/app/transports/rest_api"
 )
 
 // Transports - описание транспортной части коробки.

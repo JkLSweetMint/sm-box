@@ -2,11 +2,11 @@ package core
 
 import (
 	"context"
-	"sm-box/src/pkg/core/components/configurator"
-	"sm-box/src/pkg/core/components/logger"
-	"sm-box/src/pkg/core/components/tracer"
-	"sm-box/src/pkg/core/tools/closer"
-	"sm-box/src/pkg/core/tools/task_scheduler"
+	"sm-box/pkg/core/components/configurator"
+	"sm-box/pkg/core/components/logger"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/tools/closer"
+	"sm-box/pkg/core/tools/task_scheduler"
 	"sync"
 )
 
@@ -46,7 +46,7 @@ func New() (cr Core, err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished(cr)
+		defer func() { trc.Error(err).FunctionCallFinished(cr) }()
 	}
 
 	var created bool
@@ -60,18 +60,19 @@ func New() (cr Core, err error) {
 
 		// Конфигурация
 		{
-			var (
-				conf = new(Config)
-				c    configurator.Configurator[*Config]
-			)
+			var c configurator.Configurator[*Config]
 
-			if c, err = configurator.New[*Config](conf); err != nil {
+			ref.conf = new(Config).Default()
+
+			if c, err = configurator.New[*Config](ref.conf); err != nil {
 				return
-			} else if err = c.Private().Profile(confProfile).Read(); err != nil {
+			} else if err = c.Private().Profile(confProfile).Init(); err != nil {
 				return
 			}
 
-			ref.conf = conf
+			if err = ref.conf.FillEmptyFields().Validate(); err != nil {
+				return
+			}
 		}
 
 		// Компоненты

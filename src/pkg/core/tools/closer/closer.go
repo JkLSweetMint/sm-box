@@ -2,8 +2,8 @@ package closer
 
 import (
 	"context"
-	"sm-box/src/pkg/core/components/tracer"
-	"sm-box/src/pkg/core/env"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
 )
 
 // Closer - описание инструмента ядра системы отвечающий за корректное завершение работы системы.
@@ -19,7 +19,11 @@ func New(conf *Config, ctx context.Context) (cl Closer, ct context.Context) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCoreTool)
 
 		trc.FunctionCall(conf, ctx)
-		trc.FunctionCallFinished(cl, ct)
+		defer func() { trc.FunctionCallFinished(cl, ct) }()
+	}
+
+	if err := conf.FillEmptyFields().Validate(); err != nil {
+		return
 	}
 
 	var c = &closer{

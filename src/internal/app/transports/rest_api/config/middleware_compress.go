@@ -2,6 +2,7 @@ package config
 
 import (
 	compress_middleware "github.com/gofiber/fiber/v3/middleware/compress"
+	"sm-box/pkg/core/components/tracer"
 )
 
 // MiddlewareCompress - конфигурация промежуточного программного обеспечения для сжатия ответа с сервера.
@@ -21,11 +22,27 @@ type MiddlewareCompress struct {
 
 // FillEmptyFields - заполнение обязательных пустых полей конфигурации
 func (conf *MiddlewareCompress) FillEmptyFields() *MiddlewareCompress {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	return conf
 }
 
 // Default - запись стандартной конфигурации.
 func (conf *MiddlewareCompress) Default() *MiddlewareCompress {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	conf.Enable = true
 	conf.Level = compress_middleware.LevelBestSpeed
 
@@ -34,6 +51,14 @@ func (conf *MiddlewareCompress) Default() *MiddlewareCompress {
 
 // Validate - валидация конфигурации.
 func (conf *MiddlewareCompress) Validate() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
 	return
 }
 

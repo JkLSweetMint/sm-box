@@ -6,9 +6,13 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"io/fs"
 	"os"
 	"path"
-	"sm-box/src/pkg/core/env"
+	"slices"
+	"sm-box/embed"
+	"sm-box/pkg/core/env"
+	env_mode "sm-box/pkg/core/env/mode"
 )
 
 const (
@@ -20,7 +24,6 @@ const (
 // По-умолчанию используется rsa 4096Bytes.
 func Init() (err error) {
 	var (
-		dir = path.Join(env.Paths.SystemLocation, env.Paths.Src.Embed)
 		prt *rsa.PrivateKey
 		pb  *rsa.PublicKey
 	)
@@ -35,28 +38,128 @@ func Init() (err error) {
 	// Проверка существования
 	{
 		var (
-			exists = [2]bool{
-				true,
-				true,
+			exists = []bool{
+				false,
+				false,
 			}
-			files = [2]string{
-				path.Join(dir, prtFileName),
-				path.Join(dir, pbFileName),
+			files = []string{
+				prtFileName,
+				pbFileName,
 			}
 		)
 
-		for i, p := range files {
-			if _, err = os.Stat(p); errors.Is(err, os.ErrNotExist) {
-				err = nil
-				exists[i] = false
-			} else if err != nil {
-				return
+		switch env.Mode {
+		case env_mode.Dev:
+			{
+				var dir = path.Join(env.Paths.SystemLocation, env.Paths.Src.Embed)
+
+				for i, p := range files {
+					exists[i] = true
+
+					if _, err = os.Stat(path.Join(dir, p)); errors.Is(err, os.ErrNotExist) {
+						err = nil
+						exists[i] = false
+					} else if err != nil {
+						return
+					}
+				}
+			}
+		case env_mode.Prod:
+			{
+				var dir []fs.DirEntry
+
+				if dir, err = embed.Dir.ReadDir("."); err != nil {
+					return
+				}
+
+				for _, fl := range dir {
+					if index := slices.Index(files, fl.Name()); index >= 0 {
+						exists[index] = true
+					}
+				}
 			}
 		}
 
 		if exists[0] && exists[1] {
-			if prt, pb, err = read(dir); err != nil {
-				return
+			switch env.Mode {
+			case env_mode.Dev:
+				{
+					var dir = path.Join(env.Paths.SystemLocation, env.Paths.Src.Embed)
+
+					// Приватный ключ
+					{
+						var (
+							data  []byte
+							block *pem.Block
+						)
+
+						if data, err = os.ReadFile(path.Join(dir, prtFileName)); err != nil {
+							return
+						}
+
+						block, _ = pem.Decode(data)
+
+						if prt, err = x509.ParsePKCS1PrivateKey(block.Bytes); err != nil {
+							return
+						}
+					}
+
+					// Публичный ключ
+					{
+						var (
+							data  []byte
+							block *pem.Block
+						)
+
+						if data, err = os.ReadFile(path.Join(dir, pbFileName)); err != nil {
+							return
+						}
+
+						block, _ = pem.Decode(data)
+
+						if pb, err = x509.ParsePKCS1PublicKey(block.Bytes); err != nil {
+							return
+						}
+					}
+				}
+			case env_mode.Prod:
+				{
+					// Приватный ключ
+					{
+						var (
+							data  []byte
+							block *pem.Block
+						)
+
+						if data, err = embed.Dir.ReadFile(prtFileName); err != nil {
+							return
+						}
+
+						block, _ = pem.Decode(data)
+
+						if prt, err = x509.ParsePKCS1PrivateKey(block.Bytes); err != nil {
+							return
+						}
+					}
+
+					// Публичный ключ
+					{
+						var (
+							data  []byte
+							block *pem.Block
+						)
+
+						if data, err = embed.Dir.ReadFile(pbFileName); err != nil {
+							return
+						}
+
+						block, _ = pem.Decode(data)
+
+						if pb, err = x509.ParsePKCS1PublicKey(block.Bytes); err != nil {
+							return
+						}
+					}
+				}
 			}
 
 			return
@@ -64,6 +167,11 @@ func Init() (err error) {
 			err = ErrInvalidEncryptionKeys
 			return
 		}
+	}
+
+	if env.Mode != env_mode.Dev {
+		err = ErrInvalidEncryptionKeys
+		return
 	}
 
 	// Создание ключей
@@ -75,77 +183,32 @@ func Init() (err error) {
 		pb = &prt.PublicKey
 	}
 
-	if err = write(dir, prt, pb); err != nil {
-		return
-	}
-
-	return
-}
-
-// write - запись ключей шифрования.
-func write(dir string, prt *rsa.PrivateKey, pb *rsa.PublicKey) (err error) {
-	// Приватный ключ
+	// Запись ключей
 	{
-		var block = &pem.Block{
-			Type:  "RSA PRIVATE KEY",
-			Bytes: x509.MarshalPKCS1PrivateKey(prt),
+		var dir = path.Join(env.Paths.SystemLocation, env.Paths.Src.Embed)
+
+		// Приватный ключ
+		{
+			var block = &pem.Block{
+				Type:  "RSA PRIVATE KEY",
+				Bytes: x509.MarshalPKCS1PrivateKey(prt),
+			}
+
+			if err = os.WriteFile(path.Join(dir, prtFileName), pem.EncodeToMemory(block), 0644); err != nil {
+				return
+			}
 		}
 
-		if err = os.WriteFile(path.Join(dir, prtFileName), pem.EncodeToMemory(block), 0644); err != nil {
-			return
-		}
-	}
+		// Публичный ключ
+		{
+			var block = &pem.Block{
+				Type:  "PUBLIC KEY",
+				Bytes: x509.MarshalPKCS1PublicKey(pb),
+			}
 
-	// Публичный ключ
-	{
-		var block = &pem.Block{
-			Type:  "PUBLIC KEY",
-			Bytes: x509.MarshalPKCS1PublicKey(pb),
-		}
-
-		if err = os.WriteFile(path.Join(dir, pbFileName), pem.EncodeToMemory(block), 0644); err != nil {
-			return
-		}
-	}
-
-	return err
-}
-
-// read - чтение ключей шифрования.
-func read(dir string) (prt *rsa.PrivateKey, pb *rsa.PublicKey, err error) {
-	// Приватный ключ
-	{
-		var (
-			data  []byte
-			block *pem.Block
-		)
-
-		if data, err = os.ReadFile(path.Join(dir, prtFileName)); err != nil {
-			return
-		}
-
-		block, _ = pem.Decode(data)
-
-		if prt, err = x509.ParsePKCS1PrivateKey(block.Bytes); err != nil {
-			return
-		}
-	}
-
-	// Публичный ключ
-	{
-		var (
-			data  []byte
-			block *pem.Block
-		)
-
-		if data, err = os.ReadFile(path.Join(dir, pbFileName)); err != nil {
-			return
-		}
-
-		block, _ = pem.Decode(data)
-
-		if pb, err = x509.ParsePKCS1PublicKey(block.Bytes); err != nil {
-			return
+			if err = os.WriteFile(path.Join(dir, pbFileName), pem.EncodeToMemory(block), 0644); err != nil {
+				return
+			}
 		}
 	}
 

@@ -2,7 +2,7 @@ package pid
 
 import (
 	"context"
-	"sm-box/src/pkg/core/tools/task_scheduler"
+	"sm-box/pkg/core/tools/task_scheduler"
 )
 
 var (

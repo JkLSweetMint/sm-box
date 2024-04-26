@@ -1,20 +1,20 @@
 package tracer
 
 import (
-	"sm-box/src/pkg/core/components/configurator"
-	"sm-box/src/pkg/core/components/tracer/logger"
+	"sm-box/pkg/core/components/configurator"
+	"sm-box/pkg/core/components/tracer/logger"
 )
 
 // Init - инициализация компонента ведения журнала трессировки вызовов функций/методов.
 func Init() (err error) {
 	var (
 		c    configurator.Configurator[*Config]
-		conf = new(Config)
+		conf = new(Config).Default()
 	)
 
 	if c, err = configurator.New[*Config](conf); err != nil {
 		return
-	} else if err = c.Private().Profile(confProfile).Read(); err != nil {
+	} else if err = c.Private().Profile(confProfile).Init(); err != nil {
 		return
 	}
 

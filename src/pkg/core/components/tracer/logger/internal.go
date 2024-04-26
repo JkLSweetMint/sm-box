@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 	"path"
-	"sm-box/src/pkg/core/env"
+	"sm-box/pkg/core/env"
 	"strings"
 )
 

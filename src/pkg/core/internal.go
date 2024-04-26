@@ -2,8 +2,8 @@ package core
 
 import (
 	"context"
-	"sm-box/src/pkg/core/components/tracer"
-	"sm-box/src/pkg/core/tools/task_scheduler"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/tools/task_scheduler"
 )
 
 // core - ядро системы.
@@ -38,7 +38,7 @@ func (c *core) Boot() (err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	if err = c.state.Boot(); err != nil {
@@ -58,7 +58,7 @@ func (c *core) Serve() (err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	if err = c.state.Serve(); err != nil {
@@ -78,7 +78,7 @@ func (c *core) Shutdown() (err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	if err = c.state.Shutdown(); err != nil {
@@ -127,7 +127,7 @@ func (c *core) updateState(state State) (err error) {
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
 
 		trc.FunctionCall(state)
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	var old = c.State()

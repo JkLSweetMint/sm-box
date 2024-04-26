@@ -1,7 +1,7 @@
 package core
 
 import (
-	"sm-box/src/pkg/core/components/logger"
+	"sm-box/pkg/core/components/logger"
 )
 
 // Components - описание компонентов ядра системы.

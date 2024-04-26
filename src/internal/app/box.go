@@ -2,15 +2,15 @@ package app
 
 import (
 	"context"
-	"sm-box/src/internal/app/transports/rest_api"
-	"sm-box/src/pkg/core"
-	"sm-box/src/pkg/core/addons/encryption_keys"
-	"sm-box/src/pkg/core/addons/pid"
-	"sm-box/src/pkg/core/components/configurator"
-	"sm-box/src/pkg/core/components/logger"
-	"sm-box/src/pkg/core/components/tracer"
-	"sm-box/src/pkg/core/env"
-	"sm-box/src/pkg/core/tools/task_scheduler"
+	"sm-box/internal/app/transports/rest_api"
+	"sm-box/pkg/core"
+	"sm-box/pkg/core/addons/encryption_keys"
+	"sm-box/pkg/core/addons/pid"
+	"sm-box/pkg/core/components/configurator"
+	"sm-box/pkg/core/components/logger"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
+	"sm-box/pkg/core/tools/task_scheduler"
 )
 
 // Box - описание функционала коробки.
@@ -33,41 +33,42 @@ func New() (box_ Box, err error) {
 		var trc = tracer.New(tracer.LevelMain)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished(box_)
+		defer func() { trc.Error(err).FunctionCallFinished(box_) }()
 	}
 
-	var bx = new(box)
+	var ref = new(box)
 
 	// Конфигурация
 	{
-		var (
-			conf = new(Config).Default()
-			c    configurator.Configurator[*Config]
-		)
+		var c configurator.Configurator[*Config]
 
-		if c, err = configurator.New[*Config](conf); err != nil {
+		ref.conf = new(Config).Default()
+
+		if c, err = configurator.New[*Config](ref.conf); err != nil {
 			return
-		} else if err = c.Public().Profile(confProfile).Init(); err != nil {
+		} else if err = c.Private().Profile(confProfile).Init(); err != nil {
 			return
 		}
 
-		bx.conf = conf
+		if err = ref.conf.FillEmptyFields().Validate(); err != nil {
+			return
+		}
 	}
 
 	// Ядро
 	{
-		if bx.core, err = core.New(); err != nil {
+		if ref.core, err = core.New(); err != nil {
 			return
 		}
 	}
 
 	// Компоненты
 	{
-		bx.components = new(components)
+		ref.components = new(components)
 
 		// Logger
 		{
-			if bx.components.logger, err = logger.New(env.Vars.SystemName); err != nil {
+			if ref.components.logger, err = logger.New(env.Vars.SystemName); err != nil {
 				return
 			}
 		}
@@ -75,14 +76,14 @@ func New() (box_ Box, err error) {
 
 	// Контроллеры
 	{
-		bx.controllers = new(controllers)
+		ref.controllers = new(controllers)
 	}
 
 	// Транспортная часть
 	{
-		bx.transports = new(transports)
+		ref.transports = new(transports)
 
-		if bx.transports.restApi, err = rest_api.New(bx.Ctx(), bx.conf.Transports.RestAPI); err != nil {
+		if ref.transports.restApi, err = rest_api.New(ref.Ctx(), ref.conf.Transports.RestAPI); err != nil {
 			return
 		}
 	}
@@ -91,39 +92,39 @@ func New() (box_ Box, err error) {
 	{
 		// Дополнения ядра
 		{
-			if err = bx.core.Tools().TaskScheduler().Register(pid.TaskCreatePIDFile); err != nil {
-				bx.Components().Logger().Error().
+			if err = ref.core.Tools().TaskScheduler().Register(pid.TaskCreatePIDFile); err != nil {
+				ref.Components().Logger().Error().
 					Format("Failed to register a task in task scheduler: '%s'. ", err)
 			}
 
-			if err = bx.core.Tools().TaskScheduler().Register(pid.TaskRemovePIDFile); err != nil {
-				bx.Components().Logger().Error().
+			if err = ref.core.Tools().TaskScheduler().Register(pid.TaskRemovePIDFile); err != nil {
+				ref.Components().Logger().Error().
 					Format("Failed to register a task in task scheduler: '%s'. ", err)
 			}
 
-			if err = bx.core.Tools().TaskScheduler().Register(encryption_keys.TaskInitEncryptionKeys); err != nil {
-				bx.Components().Logger().Error().
+			if err = ref.core.Tools().TaskScheduler().Register(encryption_keys.TaskInitEncryptionKeys); err != nil {
+				ref.Components().Logger().Error().
 					Format("Failed to register a task in task scheduler: '%s'. ", err)
 			}
 		}
 
 		// Основные
 		{
-			if err = bx.core.Tools().TaskScheduler().Register(task_scheduler.Task{
+			if err = ref.core.Tools().TaskScheduler().Register(task_scheduler.Task{
 				Name: "Starting the server maintenance. ",
 				Type: task_scheduler.TaskServe,
-				Func: bx.serve,
+				Func: ref.serve,
 			}); err != nil {
-				bx.Components().Logger().Error().
+				ref.Components().Logger().Error().
 					Format("Failed to register a task in task scheduler: '%s'. ", err)
 			}
 
-			if err = bx.core.Tools().TaskScheduler().Register(task_scheduler.Task{
+			if err = ref.core.Tools().TaskScheduler().Register(task_scheduler.Task{
 				Name: "Completion of server maintenance. ",
 				Type: task_scheduler.TaskShutdown,
-				Func: bx.shutdown,
+				Func: ref.shutdown,
 			}); err != nil {
-				bx.Components().Logger().Error().
+				ref.Components().Logger().Error().
 					Format("Failed to register a task in task scheduler: '%s'. ", err)
 			}
 		}
@@ -131,16 +132,16 @@ func New() (box_ Box, err error) {
 
 	// Построение ядра
 	{
-		if err = bx.core.Boot(); err != nil {
+		if err = ref.core.Boot(); err != nil {
 			return
 		}
 	}
 
-	box_ = bx
+	box_ = ref
 
 	box_.Components().Logger().Info().
 		Format("A '%s' has been created. ", env.Vars.SystemName).
-		Field("config", bx.conf).Write()
+		Field("config", ref.conf).Write()
 
 	return
 }

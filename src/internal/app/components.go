@@ -1,6 +1,6 @@
 package app
 
-import "sm-box/src/pkg/core/components/logger"
+import "sm-box/pkg/core/components/logger"
 
 // Components - описание компонентов коробки.
 type Components interface {

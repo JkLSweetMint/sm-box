@@ -2,9 +2,9 @@ package task_scheduler
 
 import (
 	"context"
-	"sm-box/src/pkg/core/components/logger"
-	"sm-box/src/pkg/core/components/tracer"
-	"sm-box/src/pkg/core/env"
+	"sm-box/pkg/core/components/logger"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
 )
 
 // scheduler - инструмент ядра системы для выполнения запланированных задач.
@@ -27,7 +27,7 @@ func (s *scheduler) Register(t Task) (err error) {
 		var trc = tracer.New(tracer.LevelCoreTool)
 
 		trc.FunctionCall(t)
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	if t.Type <= minTaskType || t.Type >= maxTaskType {
@@ -47,7 +47,7 @@ func (s *scheduler) tracking(ctx context.Context) {
 		var trc = tracer.New(tracer.LevelCoreTool)
 
 		trc.FunctionCall(ctx)
-		trc.FunctionCallFinished()
+		defer func() { trc.FunctionCallFinished() }()
 	}
 
 For:

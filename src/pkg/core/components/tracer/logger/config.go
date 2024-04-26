@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"sm-box/src/pkg/core/env"
+	"sm-box/pkg/core/env"
 	"strings"
 	"time"
 )
@@ -44,14 +44,14 @@ func (conf *Config) Default() *Config {
 		conf.Terminal = &ConfigTerminalLog{
 			Levels: &ConfigTerminalLogLevels{
 				Info: &ConfigTerminalLogLevel{
-					Enable: true,
+					Enable: false,
 					Options: &ConfigTerminalLogLevelOptions{
 						Encoder: "raw",
 						Format:  "capital_color",
 					},
 				},
 				Error: &ConfigTerminalLogLevel{
-					Enable: true,
+					Enable: false,
 					Options: &ConfigTerminalLogLevelOptions{
 						Encoder: "raw",
 						Format:  "capital_color",

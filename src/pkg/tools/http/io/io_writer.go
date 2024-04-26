@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"gopkg.in/yaml.v3"
-	http_tools "sm-box/src/pkg/tools/http"
+	http_tools "sm-box/pkg/tools/http"
 )
 
 type ResponseWrapper struct {

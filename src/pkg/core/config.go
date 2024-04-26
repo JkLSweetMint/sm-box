@@ -1,8 +1,9 @@
 package core
 
 import (
-	"sm-box/src/pkg/core/components/configurator"
-	"sm-box/src/pkg/core/tools/closer"
+	"sm-box/pkg/core/components/configurator"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/tools/closer"
 )
 
 var confProfile = configurator.PrivateProfile{
@@ -22,6 +23,14 @@ type ConfigTools struct {
 
 // FillEmptyFields - заполнение обязательных пустых полей конфигурации
 func (conf *Config) FillEmptyFields() *Config {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	if conf.Tools == nil {
 		conf.Tools = new(ConfigTools)
 	}
@@ -33,6 +42,14 @@ func (conf *Config) FillEmptyFields() *Config {
 
 // FillEmptyFields - заполнение обязательных пустых полей конфигурации
 func (conf *ConfigTools) FillEmptyFields() *ConfigTools {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	if conf.Closer == nil {
 		conf.Closer = new(closer.Config)
 	}
@@ -44,6 +61,14 @@ func (conf *ConfigTools) FillEmptyFields() *ConfigTools {
 
 // Default - запись стандартной конфигурации.
 func (conf *Config) Default() *Config {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	conf.Tools = new(ConfigTools).Default()
 
 	return conf
@@ -51,6 +76,14 @@ func (conf *Config) Default() *Config {
 
 // Default - запись стандартной конфигурации.
 func (conf *ConfigTools) Default() *ConfigTools {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	conf.Closer = new(closer.Config).Default()
 
 	return conf
@@ -58,10 +91,26 @@ func (conf *ConfigTools) Default() *ConfigTools {
 
 // Validate - валидация конфигурации.
 func (conf *Config) Validate() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
 	return
 }
 
 // Validate - валидация конфигурации.
 func (conf *ConfigTools) Validate() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
 	return
 }

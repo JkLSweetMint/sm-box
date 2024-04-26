@@ -25,7 +25,7 @@ type Private[T any] interface {
 	File(dir, filename string) Private[T]
 	Profile(profile PrivateProfile) Private[T]
 
-	Read() (err error)
+	Init() (err error)
 }
 
 // New - создание диспетчера конфигураций.

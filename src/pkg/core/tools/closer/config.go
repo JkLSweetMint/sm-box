@@ -1,6 +1,7 @@
 package closer
 
 import (
+	"sm-box/pkg/core/components/tracer"
 	"syscall"
 )
 
@@ -18,6 +19,14 @@ type Config struct {
 
 // FillEmptyFields - заполнение обязательных пустых полей конфигурации
 func (conf *Config) FillEmptyFields() *Config {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	if conf.Signals == nil {
 		conf.Signals = make([]syscall.Signal, 0)
 	}
@@ -27,6 +36,14 @@ func (conf *Config) FillEmptyFields() *Config {
 
 // Default - запись стандартной конфигурации.
 func (conf *Config) Default() *Config {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	conf.Signals = defaultSignals
 
 	return conf
@@ -34,5 +51,13 @@ func (conf *Config) Default() *Config {
 
 // Validate - валидация конфигурации.
 func (conf *Config) Validate() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
 	return
 }

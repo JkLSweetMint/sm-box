@@ -2,16 +2,16 @@ package main
 
 import (
 	"fmt"
-	"sm-box/src/internal/app"
-	"sm-box/src/pkg/core/addons/encryption_keys"
-	"sm-box/src/pkg/core/components/tracer"
-	"sm-box/src/pkg/core/env"
-	env_mode "sm-box/src/pkg/core/env/mode"
+	"sm-box/internal/app"
+	"sm-box/pkg/core/addons/encryption_keys"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
+	env_mode "sm-box/pkg/core/env/mode"
 )
 
 func init() {
 	env.Vars.SystemName = "box"
-	env.Version = "24.0.11"
+	env.Version = "24.0.12"
 
 	if env.Mode == env_mode.Dev {
 		if err := tracer.Init(); err != nil {

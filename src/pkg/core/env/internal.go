@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	env_mode "sm-box/pkg/core/env/mode"
 	"strings"
 	"testing"
 )
@@ -58,7 +59,7 @@ func initSystemDir() (err error) {
 }
 
 // getSystemLocation - получение местоположения системы.
-func getSystemLocation(testSystemLocation string) (location string, err error) {
+func getSystemLocation() (location string, err error) {
 	defer func() {
 		if location == "" && err == nil {
 			err = ErrSystemLocationNotFound
@@ -67,8 +68,8 @@ func getSystemLocation(testSystemLocation string) (location string, err error) {
 
 	// Test mode
 	{
-		if testing.Testing() {
-			location = testSystemLocation
+		if testing.Testing() || Mode == env_mode.Dev {
+			location = devSystemLocation
 
 			return
 		}

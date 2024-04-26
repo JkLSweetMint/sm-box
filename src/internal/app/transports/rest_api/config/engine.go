@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/gofiber/fiber/v3"
+	"sm-box/pkg/core/components/tracer"
 	"time"
 )
 
@@ -206,25 +207,41 @@ type Engine struct {
 	EnableSplittingOnParsers bool `json:"enable_splitting_on_parsers" yaml:"EnableSplittingOnParsers" xml:"EnableSplittingOnParsers"`
 
 	// Адрес сервера.
-	Addr string `json:"addr" yaml:"Addr" xml:"Addr"`
+	Addr string `json:"addr" yaml:"Addr" xml:"addr,attr"`
 
 	// Название сервера.
-	Name string `json:"name" yaml:"Name" xml:"Name"`
+	Name string `json:"name" yaml:"Name" xml:"name,attr"`
 
 	// Версия сервера
-	Version string `json:"version" yaml:"Version" xml:"Version"`
+	Version string `json:"version" yaml:"Version" xml:"version,attr"`
 
 	// Домены сервера
-	Domains []string `json:"domains" yaml:"Domains" xml:"Domains"`
+	Domains []string `json:"domains" yaml:"Domains" xml:"domains,attr"`
 }
 
 // FillEmptyFields - заполнение обязательных пустых полей конфигурации
 func (conf *Engine) FillEmptyFields() *Engine {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	return conf
 }
 
 // Default - запись стандартной конфигурации.
 func (conf *Engine) Default() *Engine {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(conf) }()
+	}
+
 	conf.ServerHeader = "Sm-Box rest api"
 	conf.StrictRouting = true
 	conf.CaseSensitive = false
@@ -264,6 +281,14 @@ func (conf *Engine) Default() *Engine {
 
 // Validate - валидация конфигурации.
 func (conf *Engine) Validate() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
 	return
 }
 

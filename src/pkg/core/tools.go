@@ -1,8 +1,8 @@
 package core
 
 import (
-	"sm-box/src/pkg/core/tools/closer"
-	"sm-box/src/pkg/core/tools/task_scheduler"
+	"sm-box/pkg/core/tools/closer"
+	"sm-box/pkg/core/tools/task_scheduler"
 )
 
 // Tools - описание внутренних инструментов ядра системы.

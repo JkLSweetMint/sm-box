@@ -3,7 +3,7 @@ package tracer
 import (
 	"encoding/json"
 	"reflect"
-	"sm-box/src/pkg/core/components/tracer/logger"
+	"sm-box/pkg/core/components/tracer/logger"
 	"time"
 )
 

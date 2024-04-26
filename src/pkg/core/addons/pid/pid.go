@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"sm-box/src/pkg/core/components/tracer"
-	"sm-box/src/pkg/core/env"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
 	"strconv"
 )
 
@@ -17,7 +17,7 @@ func NewFile() (err error) {
 		var trc = tracer.New(tracer.LevelCoreAddon)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	var p = path.Join(env.Paths.SystemLocation, env.Paths.Var.Run, fmt.Sprintf("%s.pid", env.Vars.SystemName))
@@ -56,7 +56,7 @@ func RemoveFile() (err error) {
 		var trc = tracer.New(tracer.LevelCoreAddon)
 
 		trc.FunctionCall()
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	var p = path.Join(env.Paths.SystemLocation, env.Paths.Var.Run, fmt.Sprintf("%s.pid", env.Vars.SystemName))

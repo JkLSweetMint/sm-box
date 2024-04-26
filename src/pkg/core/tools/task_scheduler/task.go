@@ -2,7 +2,7 @@ package task_scheduler
 
 import (
 	"context"
-	"sm-box/src/pkg/core/components/tracer"
+	"sm-box/pkg/core/components/tracer"
 )
 
 const (
@@ -71,7 +71,7 @@ func (t *Task) Exec(ctx context.Context) (err error) {
 		var trc = tracer.New(tracer.LevelCoreTool)
 
 		trc.FunctionCall(ctx)
-		trc.Error(err).FunctionCallFinished()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	return t.Func(ctx)
