@@ -17,6 +17,9 @@ func (eng *engine) initBaseRoutes() {
 		defer func() { trc.FunctionCallFinished() }()
 	}
 
+	eng.components.Logger.Info().
+		Text("Starting initialization of basic http rest api routes... ").Write()
+
 	// /sys
 	{
 		var router = eng.router.Group("/sys")
@@ -50,4 +53,7 @@ func (eng *engine) initBaseRoutes() {
 			return http_io.WriteError(ctx.Status(fiber.StatusInternalServerError), errors.New("Test. "))
 		})
 	}
+
+	eng.components.Logger.Info().
+		Text("The basic http rest api routes are initialized. ").Write()
 }

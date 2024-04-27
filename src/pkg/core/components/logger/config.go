@@ -19,7 +19,7 @@ type Config struct {
 	Files    ConfigFilesLog     `json:"files"    yaml:"Files"    xml:"Files>File"` // Конфигурация файлов.
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации.
+// FillEmptyFields - заполнение пустых полей конфигурации.
 func (conf *Config) FillEmptyFields() *Config {
 	// tracer
 	{

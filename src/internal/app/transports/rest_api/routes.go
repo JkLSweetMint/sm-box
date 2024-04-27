@@ -12,12 +12,18 @@ func (eng *engine) initRoutes() {
 		defer func() { trc.FunctionCallFinished() }()
 	}
 
-	var router = eng.router.Group("/", eng.components.SystemAccess.Middleware)
+	eng.components.Logger.Info().
+		Text("Starting initialization of http rest api routes... ").Write()
+
+	var router = eng.router.Group("/", eng.components.AccessSystem.Middleware)
 
 	// /users
 	{
 		var router = router.Group("/users")
 
-		router.Post("/auth", eng.components.SystemAccess.BasicAuth)
+		router.Post("/auth", eng.components.AccessSystem.BasicUserAuth)
 	}
+
+	eng.components.Logger.Info().
+		Text("Http rest api routes are initialized. ").Write()
 }

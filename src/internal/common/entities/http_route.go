@@ -1,6 +1,8 @@
-package models
+package entities
 
-import "sm-box/internal/common/types"
+import (
+	"sm-box/internal/common/types"
+)
 
 type (
 	// HttpRoute - http маршрут системы.
@@ -22,3 +24,21 @@ type (
 		*Role
 	}
 )
+
+// ActiveInt - получение числового представления булевого типа в поле Active.
+func (entity *HttpRoute) ActiveInt() (v int) {
+	if entity.Active {
+		v = 1
+	}
+
+	return
+}
+
+// FillEmptyFields - заполнение пустых полей сущности.
+func (entity *HttpRoute) FillEmptyFields() *HttpRoute {
+	if entity.Accesses == nil {
+		entity.Accesses = make(HttpRouteAccesses, 0)
+	}
+
+	return entity
+}

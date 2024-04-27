@@ -1,4 +1,4 @@
-package sqlite3_connector
+package sqlite3
 
 import "errors"
 

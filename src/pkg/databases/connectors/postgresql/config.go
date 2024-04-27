@@ -1,4 +1,4 @@
-package postgresql_connector
+package postgresql
 
 import (
 	"fmt"
@@ -47,7 +47,7 @@ type ConfigAuth struct {
 	Password string `json:"password" yaml:"Password" xml:"password,attr"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *Config) FillEmptyFields() *Config {
 	// tracer
 	{
@@ -70,7 +70,7 @@ func (conf *Config) FillEmptyFields() *Config {
 	return conf
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *ConfigAuth) FillEmptyFields() *ConfigAuth {
 	// tracer
 	{

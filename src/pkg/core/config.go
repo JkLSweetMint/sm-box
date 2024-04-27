@@ -21,7 +21,7 @@ type ConfigTools struct {
 	Closer *closer.Config `json:"closer" yaml:"Closer" xml:"Closer"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *Config) FillEmptyFields() *Config {
 	// tracer
 	{
@@ -40,7 +40,7 @@ func (conf *Config) FillEmptyFields() *Config {
 	return conf
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *ConfigTools) FillEmptyFields() *ConfigTools {
 	// tracer
 	{

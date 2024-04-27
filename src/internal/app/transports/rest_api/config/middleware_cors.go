@@ -60,7 +60,7 @@ type MiddlewareCors struct {
 	AllowPrivateNetwork bool `json:"allow_private_network" yaml:"AllowPrivateNetwork" xml:"AllowPrivateNetwork"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *MiddlewareCors) FillEmptyFields() *MiddlewareCors {
 	// tracer
 	{

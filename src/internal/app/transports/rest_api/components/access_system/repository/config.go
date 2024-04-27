@@ -1,12 +1,18 @@
-package system_access
+package repository
 
-import "sm-box/pkg/core/components/tracer"
+import (
+	"path"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
+	"sm-box/pkg/databases/connectors/sqlite3"
+)
 
-// Config - конфигурация компонента системы доступа.
+// Config - конфигурация репозитория.
 type Config struct {
+	Connector *sqlite3.Config `json:"connector" yaml:"Connector" xml:"Connector"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *Config) FillEmptyFields() *Config {
 	// tracer
 	{
@@ -15,6 +21,12 @@ func (conf *Config) FillEmptyFields() *Config {
 		trc.FunctionCall()
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
+
+	if conf.Connector == nil {
+		conf.Connector = new(sqlite3.Config)
+	}
+
+	conf.Connector.FillEmptyFields()
 
 	return conf
 }
@@ -29,6 +41,10 @@ func (conf *Config) Default() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
+	conf.Connector = new(sqlite3.Config).Default()
+
+	conf.Connector.Database = path.Join(env.Paths.Var.Lib, "system.db")
+
 	return conf
 }
 
@@ -40,6 +56,10 @@ func (conf *Config) Validate() (err error) {
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	if err = conf.Connector.Validate(); err != nil {
+		return
 	}
 
 	return

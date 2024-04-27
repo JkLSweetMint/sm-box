@@ -1,11 +1,11 @@
-package sqlite3_connector
+package sqlite3
 
 import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Connector - описание коннектора для sqlite3 базы данных.

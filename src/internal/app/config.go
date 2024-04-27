@@ -21,7 +21,7 @@ type ConfigTransports struct {
 	RestAPI *rest_api_conf.Config `json:"rest_api" yaml:"RestAPI" xml:"RestAPI"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *Config) FillEmptyFields() *Config {
 	// tracer
 	{
@@ -40,7 +40,7 @@ func (conf *Config) FillEmptyFields() *Config {
 	return conf
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *ConfigTransports) FillEmptyFields() *ConfigTransports {
 	// tracer
 	{

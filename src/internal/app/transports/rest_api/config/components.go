@@ -1,16 +1,16 @@
 package config
 
 import (
-	"sm-box/internal/app/transports/rest_api/components/system_access"
+	"sm-box/internal/app/transports/rest_api/components/access_system"
 	"sm-box/pkg/core/components/tracer"
 )
 
 // Components - конфигурация компонентов http rest api.
 type Components struct {
-	SystemAccess *system_access.Config `json:"system_access" yaml:"SystemAccess" xml:"SystemAccess"`
+	AccessSystem *access_system.Config `json:"access_system" yaml:"AccessSystem" xml:"AccessSystem"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *Components) FillEmptyFields() *Components {
 	// tracer
 	{
@@ -20,11 +20,11 @@ func (conf *Components) FillEmptyFields() *Components {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	if conf.SystemAccess == nil {
-		conf.SystemAccess = new(system_access.Config)
+	if conf.AccessSystem == nil {
+		conf.AccessSystem = new(access_system.Config)
 	}
 
-	conf.SystemAccess.FillEmptyFields()
+	conf.AccessSystem.FillEmptyFields()
 
 	return conf
 }
@@ -39,7 +39,7 @@ func (conf *Components) Default() *Components {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.SystemAccess = new(system_access.Config).Default()
+	conf.AccessSystem = new(access_system.Config).Default()
 
 	return conf
 }
@@ -54,7 +54,7 @@ func (conf *Components) Validate() (err error) {
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	if err = conf.SystemAccess.Validate(); err != nil {
+	if err = conf.AccessSystem.Validate(); err != nil {
 		return
 	}
 

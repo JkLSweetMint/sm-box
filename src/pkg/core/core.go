@@ -93,7 +93,7 @@ func New() (cr Core, err error) {
 
 			// Closer
 			{
-				if ref.tools.closer, ref.ctx = closer.New(ref.conf.Tools.Closer, ref.ctx); err != nil {
+				if ref.tools.closer, ref.ctx = closer.New(ref.ctx, ref.conf.Tools.Closer); err != nil {
 					return
 				}
 			}

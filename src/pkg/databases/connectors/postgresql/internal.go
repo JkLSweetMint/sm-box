@@ -1,4 +1,4 @@
-package postgresql_connector
+package postgresql
 
 import (
 	"context"
@@ -21,12 +21,12 @@ type connector struct {
 }
 
 // New - создание нового коннектора.
-func New(conf *Config, ctx context.Context) (conn Connector, err error) {
+func New(ctx context.Context, conf *Config) (conn Connector, err error) {
 	// tracer
 	{
 		var trace = tracer.New(tracer.LevelMain, tracer.LevelDatabaseConnector)
 
-		trace.FunctionCall(conf, ctx)
+		trace.FunctionCall(ctx, conf)
 		defer func() { trace.Error(err).FunctionCallFinished(conn) }()
 	}
 

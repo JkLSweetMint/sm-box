@@ -18,6 +18,10 @@ func (eng *engine) initFiberApp() (err error) {
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
+	eng.components.Logger.Info().
+		Text("Starting the initialization of the fiber http server... ").
+		Field("config", eng.conf.Engine.ToFiberConfig()).Write()
+
 	eng.app = fiber.New(eng.conf.Engine.ToFiberConfig())
 
 	// Маршрутизатор
@@ -62,6 +66,9 @@ func (eng *engine) initFiberApp() (err error) {
 	if err = eng.app.ShutdownWithContext(eng.ctx); err != nil {
 		return
 	}
+
+	eng.components.Logger.Info().
+		Text("The fiber http server has been initialized. ").Write()
 
 	return
 }

@@ -20,7 +20,7 @@ type MiddlewareCompress struct {
 	Level compress_middleware.Level `json:"level" yaml:"Level" xml:"Level"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *MiddlewareCompress) FillEmptyFields() *MiddlewareCompress {
 	// tracer
 	{

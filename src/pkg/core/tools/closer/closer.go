@@ -13,12 +13,12 @@ type Closer interface {
 }
 
 // New - создание инструмента ядра системы отвечающий за корректное завершение работы системы.
-func New(conf *Config, ctx context.Context) (cl Closer, ct context.Context) {
+func New(ctx context.Context, conf *Config) (cl Closer, ct context.Context) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCoreTool)
 
-		trc.FunctionCall(conf, ctx)
+		trc.FunctionCall(ctx, conf)
 		defer func() { trc.FunctionCallFinished(cl, ct) }()
 	}
 

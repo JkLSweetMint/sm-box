@@ -3,7 +3,7 @@ package rest_api
 import (
 	"context"
 	"github.com/gofiber/fiber/v3"
-	"sm-box/internal/app/transports/rest_api/components/system_access"
+	"sm-box/internal/app/transports/rest_api/components/access_system"
 	"sm-box/internal/app/transports/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -26,7 +26,7 @@ type engine struct {
 // components - компоненты движка http rest api коробки.
 type components struct {
 	Logger       logger.Logger
-	SystemAccess system_access.SystemAccess
+	AccessSystem access_system.AccessSystem
 }
 
 // Listen - запуск движка.
@@ -73,7 +73,7 @@ func (eng *engine) Listen() (err error) {
 
 		// Система доступа
 		{
-			if err = eng.components.SystemAccess.RegisterRoutes(list...); err != nil {
+			if err = eng.components.AccessSystem.RegisterRoutes(list...); err != nil {
 				eng.components.Logger.Error().
 					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
 				return

@@ -11,7 +11,7 @@ import (
 
 func init() {
 	env.Vars.SystemName = "box"
-	env.Version = "24.0.13"
+	env.Version = "24.0.14"
 
 	if env.Mode == env_mode.Dev {
 		if err := tracer.Init(); err != nil {

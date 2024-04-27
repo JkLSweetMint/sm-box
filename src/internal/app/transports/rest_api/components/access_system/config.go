@@ -1,20 +1,13 @@
-package closer
+package access_system
 
 import (
+	"sm-box/internal/app/transports/rest_api/components/access_system/repository"
 	"sm-box/pkg/core/components/tracer"
-	"syscall"
 )
 
-var defaultSignals = []syscall.Signal{
-	syscall.SIGINT,
-	syscall.SIGTERM,
-	syscall.SIGQUIT,
-	syscall.SIGKILL,
-}
-
-// Config - конфигурация инструмента ядра системы отвечающий за корректное завершение работы системы.
+// Config - конфигурация компонента системы доступа.
 type Config struct {
-	Signals []syscall.Signal `json:"signals" yaml:"Signals" xml:"Signals>Signal"`
+	Repository *repository.Config `json:"repository" yaml:"Repository" xml:"Repository"`
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации
@@ -27,9 +20,11 @@ func (conf *Config) FillEmptyFields() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	if conf.Signals == nil {
-		conf.Signals = make([]syscall.Signal, 0)
+	if conf.Repository == nil {
+		conf.Repository = new(repository.Config)
 	}
+
+	conf.Repository.FillEmptyFields()
 
 	return conf
 }
@@ -44,7 +39,7 @@ func (conf *Config) Default() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.Signals = defaultSignals
+	conf.Repository = new(repository.Config).Default()
 
 	return conf
 }
@@ -57,6 +52,10 @@ func (conf *Config) Validate() (err error) {
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	if err = conf.Repository.Validate(); err != nil {
+		return
 	}
 
 	return

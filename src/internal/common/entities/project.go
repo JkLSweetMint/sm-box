@@ -1,4 +1,4 @@
-package models
+package entities
 
 import "sm-box/internal/common/types"
 
@@ -21,3 +21,12 @@ type (
 		*User
 	}
 )
+
+// FillEmptyFields - заполнение пустых полей сущности.
+func (entity *Project) FillEmptyFields() *Project {
+	if entity.Owners == nil {
+		entity.Owners = make(ProjectOwners, 0)
+	}
+
+	return entity
+}

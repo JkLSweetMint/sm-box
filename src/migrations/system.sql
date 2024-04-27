@@ -1,10 +1,11 @@
 create table
-    if not exists projects (
-        id integer not null
-            constraint projects_pk
-                primary key autoincrement,
-        title text not null,
-        description text
+    if not exists projects
+(
+    id          integer not null
+        constraint projects_pk
+            primary key autoincrement,
+    title       text    not null,
+    description text
 );
 
 create table
@@ -24,13 +25,39 @@ create table
 );
 
 create table
-    if not exists system_access_roles_inheritance (
-        parent integer not null
-            references system_access_roles(id),
-        heir integer not null
-            references system_access_roles(id)
+    if not exists system_access_roles_inheritance
+(
+    parent integer not null
+        references system_access_roles (id),
+    heir   integer not null
+        references system_access_roles (id)
+        check (parent != heir)
+);
 
-        check(parent != heir)
+create table
+    if not exists system_access_jwt_tokens
+(
+    id         integer not null
+        constraint system_access_jwt_tokens_pk
+            primary key autoincrement,
+    user_id    integer not null
+        references users (id),
+    data       varchar(4096),
+
+    created_at text    not null default (datetime('now', 'localtime')),
+    expired_at text    not null default (datetime('now', 'localtime', '+8 hours'))
+);
+
+create table
+    if not exists system_access_jwt_token_params
+(
+    token_id    integer     not null
+        references system_access_jwt_tokens (id) unique,
+    remote_addr varchar(21) not null,
+    user_agent  text        not null,
+
+    constraint check_remote_addr
+        check (remote_addr regexp '^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5})$')
 );
 
 insert into
@@ -49,74 +76,78 @@ values
     (1, 2);
 
 create table
-    if not exists users (
-        id integer not null
-            constraint users_pk primary key autoincrement,
-        project_id integer not null
-            references projects(id),
-        email text not null
-            constraint users_email_un unique,
-        username text not null
-            constraint users_username_un unique,
-        password text not null
+    if not exists users
+(
+    id         integer not null
+        constraint users_pk primary key autoincrement,
+    project_id integer not null
+        references projects (id),
+    email      text    not null
+        constraint users_email_un unique,
+    username   text    not null
+        constraint users_username_un unique,
+    password   text    not null
 
         constraint check_username
-            check(username regexp '^[0-9a-za-z-_]{3,16}$'),
+            check (username regexp '^[0-9a-za-z-_]{3,16}$'),
 
-        constraint check_email
-            check(email regexp '^[a-za-z0-9._%+-]+@[a-za-z0-9.-]+\.[a-za-z]{2,}$')
+    constraint check_email
+        check (email regexp '^[a-za-z0-9._%+-]+@[a-za-z0-9.-]+\.[a-za-z]{2,}$')
 );
 
 create table
-    if not exists user_accesses (
-        user_id integer not null
-            references users(id),
-        role_id integer not null
-            references system_access_roles(id),
+    if not exists user_accesses
+(
+    user_id integer not null
+        references users (id),
+    role_id integer not null
+        references system_access_roles (id),
 
-        unique(user_id, role_id)
+    unique (user_id, role_id)
 );
 
 create table
-    if not exists projects_owners (
-        project_id integer not null
-            references projects(id) unique,
-        owner_id integer not null
-            references users(id),
+    if not exists projects_owners
+(
+    project_id integer not null
+        references projects (id) unique,
+    owner_id   integer not null
+        references users (id),
 
-        unique(project_id, owner_id)
+    unique (project_id, owner_id)
 );
 
 create table
-    if not exists transports_http_routes (
-        id integer not null
-           constraint transports_http_routes_pk
-               primary key autoincrement,
-        active integer default 0 not null,
-        method text not null,
-        path   text not null,
+    if not exists transports_http_routes
+(
+    id     integer           not null
+        constraint transports_http_routes_pk
+            primary key autoincrement,
+    active integer default 0 not null,
+    method text              not null,
+    path   text              not null,
 
 
-        constraint check_active
-           check (active = 0 or active = 1),
+    constraint check_active
+        check (active = 0 or active = 1),
 
-        constraint check_method
-           check (
-                  method = 'GET'
-               or method = 'HEAD'
-               or method = 'POST'
-               or method = 'PUT'
-               or method = 'DELETE'
-               or method = 'CONNECT'
-               or method = 'OPTIONS'
-               or method = 'TRACE'
-               or method = 'PATCH'
-           ),
+    constraint check_method
+        check (
+            method = 'GET'
+                or method = 'HEAD'
+                or method = 'POST'
+                or method = 'PUT'
+                or method = 'DELETE'
+                or method = 'CONNECT'
+                or method = 'OPTIONS'
+                or method = 'TRACE'
+                or method = 'PATCH'
+            ),
 
-        constraint check_path
-            check (path regexp '^(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$'),
+    constraint check_path
+        check (path regexp '^(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$'),
 
-        unique(method, path)
+    unique (method, path)
 );
 
 create trigger
@@ -135,11 +166,12 @@ create trigger
     end;
 
 create table
-    if not exists transports_http_route_accesses (
-        route_id integer not null
-           references transports_http_routes(id),
-        role_id integer not null
-           references system_access_roles(id),
+    if not exists transports_http_route_accesses
+(
+    route_id integer not null
+        references transports_http_routes (id),
+    role_id  integer not null
+        references system_access_roles (id),
 
-        unique(route_id, role_id)
+    unique (route_id, role_id)
 )

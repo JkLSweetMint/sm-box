@@ -1,4 +1,4 @@
-package mysql_connector
+package mysql
 
 import (
 	"encoding/xml"

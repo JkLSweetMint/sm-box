@@ -1,4 +1,4 @@
-package postgresql_connector
+package postgresql
 
 import "errors"
 

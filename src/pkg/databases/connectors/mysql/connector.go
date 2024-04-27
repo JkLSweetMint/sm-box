@@ -1,11 +1,11 @@
-package mysql_connector
+package mysql
 
 import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 )
 
 // Connector - описание коннектора для mysql базы данных.

@@ -219,7 +219,7 @@ type Engine struct {
 	Domains []string `json:"domains" yaml:"Domains" xml:"domains,attr"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *Engine) FillEmptyFields() *Engine {
 	// tracer
 	{

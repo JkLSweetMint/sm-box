@@ -9,7 +9,7 @@ type Middlewares struct {
 	Cors     *MiddlewareCors     `json:"cors"     yaml:"Cors"     xml:"Cors"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *Middlewares) FillEmptyFields() *Middlewares {
 	// tracer
 	{

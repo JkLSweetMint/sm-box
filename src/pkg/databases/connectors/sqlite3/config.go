@@ -1,4 +1,4 @@
-package sqlite3_connector
+package sqlite3
 
 import (
 	"sm-box/pkg/core/components/tracer"
@@ -8,7 +8,7 @@ import (
 // Config - конфигурация коннектора к базе данных.
 type Config struct {
 	// Database - путь к файлу базы данных.
-	Database string `json:"database" yaml:"Database" xml:"database>attr"`
+	Database string `json:"database" yaml:"Database" xml:"database,attr"`
 
 	// MaxOpenConns - макс. кол-во. подключений к бд.
 	MaxOpenConns int `json:"max_open_conns"    yaml:"MaxOpenConns"    xml:"MaxOpenConns"`
@@ -20,7 +20,7 @@ type Config struct {
 	ConnMaxLifetime time.Duration `json:"conn_max_lifetime" yaml:"ConnMaxLifetime" xml:"ConnMaxLifetime"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *Config) FillEmptyFields() *Config {
 	// tracer
 	{

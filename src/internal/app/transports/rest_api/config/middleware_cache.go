@@ -49,7 +49,7 @@ type MiddlewareCache struct {
 	Methods []string `json:"methods" yaml:"Methods" xml:"Methods>Method"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *MiddlewareCache) FillEmptyFields() *MiddlewareCache {
 	// tracer
 	{

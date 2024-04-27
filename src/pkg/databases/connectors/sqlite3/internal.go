@@ -1,8 +1,9 @@
-package sqlite3_connector
+package sqlite3
 
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
+	"path"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	driverName      = "sqlite3"
+	driverName      = "sqlite3_with_go_func"
 	loggerInitiator = "pkg-[databases]-[connector]=sqlite3"
 )
 
@@ -21,12 +22,12 @@ type connector struct {
 }
 
 // New - создание нового коннектора.
-func New(conf *Config, ctx context.Context) (conn Connector, err error) {
+func New(ctx context.Context, conf *Config) (conn Connector, err error) {
 	// tracer
 	{
 		var trace = tracer.New(tracer.LevelMain, tracer.LevelDatabaseConnector)
 
-		trace.FunctionCall(conf, ctx)
+		trace.FunctionCall(ctx, conf)
 		defer func() { trace.Error(err).FunctionCallFinished(conn) }()
 	}
 
@@ -56,6 +57,8 @@ func New(conf *Config, ctx context.Context) (conn Connector, err error) {
 			}
 		}
 	}
+
+	ref.conf.Database = path.Join(env.Paths.SystemLocation, ref.conf.Database)
 
 	if err = ref.connect(); err != nil {
 		ref.Components.Logger.Error().

@@ -2,7 +2,7 @@ package rest_api
 
 import (
 	"context"
-	"sm-box/internal/app/transports/rest_api/components/system_access"
+	"sm-box/internal/app/transports/rest_api/components/access_system"
 	"sm-box/internal/app/transports/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -51,9 +51,9 @@ func New(ctx context.Context, conf *config.Config) (eng Engine, err error) {
 			}
 		}
 
-		// SystemAccess
+		// AccessSystem
 		{
-			if ref.components.SystemAccess, err = system_access.New(ref.ctx, ref.conf.Components.SystemAccess); err != nil {
+			if ref.components.AccessSystem, err = access_system.New(ref.ctx, ref.conf.Components.AccessSystem); err != nil {
 				return
 			}
 		}

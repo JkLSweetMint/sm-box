@@ -16,7 +16,7 @@ type Config struct {
 	Logger *logger.Config `json:"logger" yaml:"Logger" xml:"Logger"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *Config) FillEmptyFields() *Config {
 	if conf.Levels == nil {
 		conf.Levels = make([]Level, 0)

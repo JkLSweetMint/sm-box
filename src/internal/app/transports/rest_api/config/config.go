@@ -9,7 +9,7 @@ type Config struct {
 	Middlewares *Middlewares `json:"middlewares" yaml:"Middlewares" xml:"Middlewares"`
 }
 
-// FillEmptyFields - заполнение обязательных пустых полей конфигурации
+// FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *Config) FillEmptyFields() *Config {
 	// tracer
 	{
