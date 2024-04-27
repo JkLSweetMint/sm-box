@@ -3,6 +3,9 @@ package system_access
 import (
 	"context"
 	"github.com/gofiber/fiber/v3"
+	"sm-box/internal/common"
+	"sm-box/internal/entities/transports/rest_api/route"
+	"sm-box/internal/entities/transports/rest_api/token"
 	"sm-box/pkg/core/components/logger"
 )
 
@@ -12,6 +15,14 @@ type systemAccess struct {
 
 	components *components
 	repository interface {
+		UserInfo(ctx context.Context, id uint64) (us *common.User, err error)
+		BasicAuth(ctx context.Context, username, password string) (us *common.User, tok *token.Token, err error)
+
+		RouteInfo(ctx context.Context, method, path string) (info *route.Info, err error)
+		RegisterRoute(ctx context.Context, info *route.Info) (err error)
+
+		TokenInfo(ctx context.Context, data []byte) (tok *token.Token, err error)
+		RegisterToken(ctx context.Context, tok *token.Token) (err error)
 	}
 }
 

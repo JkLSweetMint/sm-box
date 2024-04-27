@@ -52,6 +52,8 @@ create table
     if not exists users (
         id integer not null
             constraint users_pk primary key autoincrement,
+        project_id integer not null
+            references projects(id),
         email text not null
             constraint users_email_un unique,
         username text not null
@@ -78,7 +80,7 @@ create table
 create table
     if not exists projects_owners (
         project_id integer not null
-            references projects(id),
+            references projects(id) unique,
         owner_id integer not null
             references users(id),
 
@@ -86,9 +88,9 @@ create table
 );
 
 create table
-    if not exists transports_http_requests (
+    if not exists transports_http_routes (
         id integer not null
-           constraint transports_http_requests_pk
+           constraint transports_http_routes_pk
                primary key autoincrement,
         active integer default 0 not null,
         method text not null,
@@ -118,12 +120,12 @@ create table
 );
 
 create trigger
-    if not exists transports_http_requests_to_upper_method
-        after insert on transports_http_requests
+    if not exists transports_http_routes_to_upper_method
+        after insert on transports_http_routes
     begin
         insert into
-            transports_http_request_accesses(
-                 request_id,
+            transports_http_route_accesses(
+                 route_id,
                  role_id
             )
         values (
@@ -133,11 +135,11 @@ create trigger
     end;
 
 create table
-    if not exists transports_http_request_accesses (
-        request_id integer not null
-           references transports_http_requests(id),
+    if not exists transports_http_route_accesses (
+        route_id integer not null
+           references transports_http_routes(id),
         role_id integer not null
            references system_access_roles(id),
 
-        unique(request_id, role_id)
+        unique(route_id, role_id)
 )
