@@ -2,6 +2,7 @@ package access_system
 
 import (
 	"context"
+	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"sm-box/internal/common/entities"
 	"sm-box/internal/common/types"
@@ -20,7 +21,7 @@ type accessSystem struct {
 		GetUser(ctx context.Context, id types.ID) (us *entities.User, err error)
 		BasicAuth(ctx context.Context, username, password string) (us *entities.User, tok *entities.JwtToken, err error)
 
-		GetRoute(ctx context.Context, method, path string) (info *entities.HttpRoute, err error)
+		GetRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error)
 		RegisterRoute(ctx context.Context, route *entities.HttpRoute) (err error)
 		SetInactiveRoutes(ctx context.Context) (err error)
 
@@ -37,7 +38,11 @@ type components struct {
 
 // Middleware - промежуточное программное обеспечение для проверки доступа к маршруту.
 func (acc *accessSystem) Middleware(ctx fiber.Ctx) (err error) {
-	return
+	var route, _ = acc.repository.GetRoute(ctx.Context(), string(ctx.Request().Header.Method()), string(ctx.Request().URI().Path()))
+
+	fmt.Printf("%+v\n", route)
+
+	return ctx.Next()
 }
 
 // RegisterRoutes - регистрация маршрутов в системе.
@@ -59,7 +64,7 @@ func (acc *accessSystem) RegisterRoutes(list ...*fiber.Route) (err error) {
 
 		if err = acc.repository.RegisterRoute(acc.ctx, route); err != nil {
 			acc.components.Logger.Error().
-				Format("Failed to register http rest api route: '%s'. ", err)
+				Format("Failed to register http rest api route: '%s'. ", err).Write()
 			return
 		}
 	}

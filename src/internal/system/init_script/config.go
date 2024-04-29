@@ -1,15 +1,17 @@
-package repository
+package init_script
 
 import (
-	"path"
+	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/env"
-	"sm-box/pkg/databases/connectors/sqlite3"
 )
 
-// Config - конфигурация репозитория.
+var confProfile = configurator.PrivateProfile{
+	Dir:      "/system/",
+	Filename: "init_script.xml",
+}
+
+// Config - конфигурация скрипта инициализации.
 type Config struct {
-	Connector *sqlite3.Config `json:"connector" yaml:"Connector" xml:"Connector"`
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации
@@ -21,12 +23,6 @@ func (conf *Config) FillEmptyFields() *Config {
 		trc.FunctionCall()
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
-
-	if conf.Connector == nil {
-		conf.Connector = new(sqlite3.Config)
-	}
-
-	conf.Connector.FillEmptyFields()
 
 	return conf
 }
@@ -41,10 +37,6 @@ func (conf *Config) Default() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.Connector = new(sqlite3.Config).Default()
-
-	conf.Connector.Database = path.Join(env.Paths.Var.Lib, env.Files.Var.Lib.SystemDB)
-
 	return conf
 }
 
@@ -56,10 +48,6 @@ func (conf *Config) Validate() (err error) {
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
-	}
-
-	if err = conf.Connector.Validate(); err != nil {
-		return
 	}
 
 	return

@@ -1,6 +1,9 @@
 package models
 
-import "sm-box/internal/common/types"
+import (
+	"sm-box/internal/common/types"
+	"time"
+)
 
 type (
 	// HttpRouteInfo - модель с информацией о http маршруте системы.
@@ -11,7 +14,8 @@ type (
 		Method string `json:"method" yaml:"Method" xml:"method,attr"`
 		Path   string `json:"path"   yaml:"Path"   xml:"path,attr"`
 
-		Accesses HttpRouteInfoAccesses `json:"accesses,omitempty" yaml:"Accesses,omitempty" xml:"Accesses,omitempty>Access"`
+		RegisterTime time.Time             `json:"register_time"      yaml:"RegisterTime"       xml:"register_time,attr"`
+		Accesses     HttpRouteInfoAccesses `json:"accesses,omitempty" yaml:"Accesses,omitempty" xml:"Accesses,omitempty>Access"`
 	}
 
 	// HttpRouteInfoAccesses - модель с информацией о доступах к маршруту.

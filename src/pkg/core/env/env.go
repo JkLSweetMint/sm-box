@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"runtime"
+	env_files "sm-box/pkg/core/env/files"
 	env_mode "sm-box/pkg/core/env/mode"
 	env_paths "sm-box/pkg/core/env/paths"
 	env_synchronization "sm-box/pkg/core/env/synchronization"
@@ -26,6 +27,9 @@ var (
 
 	// Paths - хранилища путей системы.
 	Paths = new(env_paths.Dev).Build(env_paths.BuildOptions{ID: Vars.ID})
+
+	// Files - хранилища файлов системы.
+	Files = new(env_files.Dev).Build()
 
 	// Synchronization - инструменты синхронизации системы.
 	Synchronization = new(env_synchronization.Dev).Build()

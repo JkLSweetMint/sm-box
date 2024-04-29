@@ -10,18 +10,18 @@ create table
 
 create table
     if not exists system_access_roles (
-      id integer not null
-          constraint system_access_roles_pk
-              primary key autoincrement,
-      project_id integer
-          references projects(id),
-      title text not null
+                                          id integer not null
+                                              constraint system_access_roles_pk
+                                                  primary key autoincrement,
+                                          project_id integer
+                                              references projects(id),
+                                          title text not null
 
-          check (
-              id > 2
-                  or (id = 1 and title = 'root')
-                  or (id = 2 and title = 'user')
-              )
+                                              check (
+                                                  id > 2
+                                                      or (id = 1 and title = 'root')
+                                                      or (id = 2 and title = 'user')
+                                                  )
 );
 
 create table
@@ -88,8 +88,8 @@ create table
         constraint users_username_un unique,
     password   varchar(512) not null
 
-    constraint check_username
-        check (username regexp '^[0-9a-za-z-_]{3,16}$'),
+        constraint check_username
+            check (username regexp '^[0-9a-za-z-_]{3,16}$'),
 
     constraint check_email
         check (email is null or email regexp '^[a-za-z0-9._%+-]+@[a-za-z0-9.-]+\.[a-za-z]{2,}$')

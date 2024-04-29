@@ -68,7 +68,7 @@ For:
 						defer env.Synchronization.WaitGroup.Done()
 
 						s.components.Logger.Info().
-							Format("Task '%s' with type '%s' started... ", task.Name, task.Type)
+							Format("Task '%s' with type '%s' started... ", task.Name, task.Type).Write()
 
 						if err := task.Exec(context.Background()); err != nil {
 							s.components.Logger.Error().
@@ -80,7 +80,7 @@ For:
 						}
 
 						s.components.Logger.Info().
-							Format("Task '%s' with type '%s' completed. ", task.Name, task.Type)
+							Format("Task '%s' with type '%s' completed. ", task.Name, task.Type).Write()
 					}()
 				}
 

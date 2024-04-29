@@ -114,7 +114,7 @@ func (conn *connector) connect() (err error) {
 
 	if conn.DB, err = sqlx.Open(driverName, conn.conf.ConnectionString()); err != nil {
 		conn.Components.Logger.Error().
-			Format("An error occurred while connecting to the database: '%s'. ", err)
+			Format("An error occurred while connecting to the database: '%s'. ", err).Write()
 		return
 	}
 

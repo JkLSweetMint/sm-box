@@ -2,6 +2,7 @@ package entities
 
 import (
 	"sm-box/internal/common/types"
+	"time"
 )
 
 type (
@@ -13,7 +14,8 @@ type (
 		Method string
 		Path   string
 
-		Accesses HttpRouteAccesses
+		RegisterTime time.Time
+		Accesses     HttpRouteAccesses
 	}
 
 	// HttpRouteAccesses - доступы к http маршруту системы.

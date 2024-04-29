@@ -58,6 +58,10 @@ func (eng *engine) initFiberApp() (err error) {
 			eng.conf.Middlewares.Cors.Enable {
 			eng.app.Use(cors_middleware.New(eng.conf.Middlewares.Cors.ToFiberConfig()))
 		}
+
+		if eng.components.AccessSystem != nil {
+			eng.app.Use(eng.components.AccessSystem.Middleware)
+		}
 	}
 
 	eng.initBaseRoutes()
