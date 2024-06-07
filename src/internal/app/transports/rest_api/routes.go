@@ -15,7 +15,7 @@ func (eng *engine) initRoutes() {
 	eng.components.Logger.Info().
 		Text("Starting initialization of http rest api routes... ").Write()
 
-	var router = eng.router.Group("/", eng.components.AccessSystem.Middleware)
+	var router = eng.router
 
 	// /users
 	{

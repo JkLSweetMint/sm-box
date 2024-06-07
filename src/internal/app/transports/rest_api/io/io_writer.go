@@ -1,41 +1,23 @@
-package http_io
+package rest_api_io
 
 import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"gopkg.in/yaml.v3"
+	c_errors "sm-box/pkg/errors"
 	http_tools "sm-box/pkg/tools/http"
 )
 
-type ResponseWrapper struct {
-	XMLName xml.Name
-
-	Code        int    `json:"code"         xml:"code,attr"         yaml:"Code"`
-	CodeMessage string `json:"code_message" xml:"code_message,attr" yaml:"CodeMessage"`
-	Data        any    `json:"data"         xml:"Data"              yaml:"Data"`
-	Status      string `json:"status"       xml:"status,attr"       yaml:"Status"`
+// ResponseWrapper - описание обертки данных ответа.
+type ResponseWrapper interface {
+	Body() (body []byte)
 }
 
-type ResponseErrorWrapper struct {
-	XMLName xml.Name
-
-	Code        int    `json:"code"         xml:"code,attr"         yaml:"Code"`
-	CodeMessage string `json:"code_message" xml:"code_message,attr" yaml:"CodeMessage"`
-	Status      string `json:"status"       xml:"status,attr"       yaml:"Status"`
-
-	Error *struct {
-		Lang string `json:"lang" xml:"lang,attr" yaml:"Lang"`
-
-		Message string `json:"message" xml:"message,attr" yaml:"Message"`
-		Code    int    `json:"code"    xml:"code,attr"    yaml:"Code"`
-	}
-}
-
+// Write - запись ответа.
 func Write(ctx fiber.Ctx, resp any) (err error) {
-	var wrapper = &ResponseWrapper{
+	var wrapper = &ResponseDataWrapper{
 		XMLName: xml.Name{
 			Space: "",
 			Local: "Response",
@@ -54,7 +36,10 @@ func Write(ctx fiber.Ctx, resp any) (err error) {
 	return
 }
 
-func WriteError(ctx fiber.Ctx, e error) (err error) {
+// WriteError - запись ошибки.
+func WriteError(ctx fiber.Ctx, cErr c_errors.RestAPI) (err error) {
+	ctx.Status(cErr.StatusCode())
+
 	var wrapper = &ResponseErrorWrapper{
 		XMLName: xml.Name{
 			Space: "",
@@ -65,16 +50,7 @@ func WriteError(ctx fiber.Ctx, e error) (err error) {
 		CodeMessage: httpStatusToString(ctx.Response().StatusCode()),
 		Status:      statusFromStatusCode(ctx.Response().StatusCode()),
 
-		Error: &struct {
-			Lang string `json:"lang" xml:"lang,attr" yaml:"Lang"`
-
-			Message string `json:"message" xml:"message,attr" yaml:"Message"`
-			Code    int    `json:"code"    xml:"code,attr"    yaml:"Code"`
-		}{
-			Lang:    "",
-			Message: e.Error(),
-			Code:    -1,
-		},
+		Error: cErr,
 	}
 
 	if err = write(ctx, wrapper); err != nil {
@@ -84,7 +60,8 @@ func WriteError(ctx fiber.Ctx, e error) (err error) {
 	return
 }
 
-func write(ctx fiber.Ctx, wrapper any) (err error) {
+// write - внутренняя функция для записи данных через обертку.
+func write(ctx fiber.Ctx, wrapper ResponseWrapper) (err error) {
 	var data []byte
 
 	switch {
@@ -136,10 +113,18 @@ func write(ctx fiber.Ctx, wrapper any) (err error) {
 				return
 			}
 		}
+	case acceptMimeType(ctx, []byte(http_tools.MIMEAll)):
+		{
+			ctx.Response().Header.SetContentType(http_tools.MIMEApplicationJSON)
+
+			if data, err = json.Marshal(wrapper); err != nil {
+				return
+			}
+		}
 	default:
 		ctx.Response().Header.SetContentType(http_tools.MIMETextPlain)
 
-		data = []byte(fmt.Sprintf("%s", wrapper))
+		data = wrapper.Body()
 	}
 
 	if _, err = ctx.Write(data); err != nil {
@@ -149,6 +134,7 @@ func write(ctx fiber.Ctx, wrapper any) (err error) {
 	return
 }
 
+// acceptMimeType - проверить является ли кодировка принимаемой.
 func acceptMimeType(ctx fiber.Ctx, acceptEncoding []byte) (accepted bool) {
 	for _, ae := range ctx.Request().Header.PeekAll("Accept") {
 		if bytes.Index(ae, acceptEncoding) >= 0 {
@@ -160,6 +146,7 @@ func acceptMimeType(ctx fiber.Ctx, acceptEncoding []byte) (accepted bool) {
 	return
 }
 
+// httpStatusToString - конвертация http статус кода в строку.
 func httpStatusToString(code int) (value string) {
 	var (
 		unknownStatusCode = "Unknown Status Code"
@@ -244,6 +231,7 @@ func httpStatusToString(code int) (value string) {
 	return unknownStatusCode
 }
 
+// statusFromStatusCode - получение статуса запрсоа на основе http статус кода.
 func statusFromStatusCode(code int) (value string) {
 	if code >= 100 && code < 400 {
 		value = "success"

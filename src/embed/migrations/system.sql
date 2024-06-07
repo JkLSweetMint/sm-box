@@ -40,12 +40,13 @@ create table
     id         integer not null
         constraint system_access_jwt_tokens_pk
             primary key autoincrement,
-    user_id    integer not null
+    user_id    integer
         references users (id),
     data       varchar(4096),
 
-    created_at text    not null default (datetime('now', 'localtime')),
-    expired_at text    not null default (datetime('now', 'localtime', '+8 hours'))
+    issued_at  text    not null default (datetime('now', 'localtime')),
+    not_before text    not null default (datetime('now', 'localtime')),
+    expires_at text    not null default (datetime('now', 'localtime', '+8 hours'))
 );
 
 create table
@@ -78,18 +79,18 @@ values
 create table
     if not exists users
 (
-    id         integer      not null
+    id         integer       not null
         constraint users_pk primary key autoincrement,
     project_id integer
         references projects (id),
     email      text
         constraint users_email_un unique,
-    username   text         not null
+    username   text          not null
         constraint users_username_un unique,
-    password   varchar(512) not null
+    password   varchar(1024) not null,
 
-        constraint check_username
-            check (username regexp '^[0-9a-za-z-_]{3,16}$'),
+    constraint check_username
+        check (username regexp '^[0-9a-za-z-_]{3,16}$'),
 
     constraint check_email
         check (email is null or email regexp '^[a-za-z0-9._%+-]+@[a-za-z0-9.-]+\.[a-za-z]{2,}$')
@@ -120,17 +121,20 @@ create table
 create table
     if not exists transports_http_routes
 (
-    id            integer           not null
+    id            integer not null
         constraint transports_http_routes_pk
             primary key autoincrement,
-    active        integer default 0 not null,
-    method        text              not null,
-    path          text              not null,
-    register_time text              not null default (datetime('now', 'localtime')),
-
+    method        text    not null,
+    path          text    not null,
+    register_time text    not null default (datetime('now', 'localtime')),
+    active        text    not null default 'off',
+    authorize     text    not null default 'off',
 
     constraint check_active
-        check (active = 0 or active = 1),
+        check (active = 'on' or active = 'off'),
+
+    constraint check_authorize
+        check (authorize = 'on' or authorize = 'off'),
 
     constraint check_method
         check (

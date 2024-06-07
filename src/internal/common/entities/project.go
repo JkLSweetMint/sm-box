@@ -1,6 +1,9 @@
 package entities
 
-import "sm-box/internal/common/types"
+import (
+	"sm-box/internal/common/types"
+	"sm-box/pkg/core/components/tracer"
+)
 
 type (
 	// Project - проект.
@@ -24,6 +27,14 @@ type (
 
 // FillEmptyFields - заполнение пустых полей сущности.
 func (entity *Project) FillEmptyFields() *Project {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(entity) }()
+	}
+
 	if entity.Owners == nil {
 		entity.Owners = make(ProjectOwners, 0)
 	}

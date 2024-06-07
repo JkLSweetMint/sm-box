@@ -7,8 +7,9 @@ import (
 type (
 	// HttpRoute - модель http маршрута система для базы данных.
 	HttpRoute struct {
-		ID     types.ID `db:"id"`
-		Active bool     `db:"active"`
+		ID        types.ID `db:"id"`
+		Active    string   `db:"active"`
+		Authorize string   `db:"authorize"`
 
 		Method string `db:"method"`
 		Path   string `db:"path"`

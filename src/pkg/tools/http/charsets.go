@@ -1,4 +1,4 @@
-package http_tools
+package http
 
 const (
 	CharsetUTF8 = "utf-8"

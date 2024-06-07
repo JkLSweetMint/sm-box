@@ -1,15 +1,19 @@
 package entities
 
 import (
+	"sm-box/internal/common/db_models"
 	"sm-box/internal/common/types"
+	"sm-box/pkg/core/components/tracer"
+	"strings"
 	"time"
 )
 
 type (
 	// HttpRoute - http маршрут системы.
 	HttpRoute struct {
-		ID     types.ID
-		Active bool
+		ID        types.ID
+		Active    bool
+		Authorize bool
 
 		Method string
 		Path   string
@@ -27,20 +31,52 @@ type (
 	}
 )
 
-// ActiveInt - получение числового представления булевого типа в поле Active.
-func (entity *HttpRoute) ActiveInt() (v int) {
-	if entity.Active {
-		v = 1
-	}
-
-	return
-}
-
 // FillEmptyFields - заполнение пустых полей сущности.
 func (entity *HttpRoute) FillEmptyFields() *HttpRoute {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(entity) }()
+	}
+
 	if entity.Accesses == nil {
 		entity.Accesses = make(HttpRouteAccesses, 0)
 	}
 
 	return entity
+}
+
+// DbModel - получение модели базы данных.
+func (entity *HttpRoute) DbModel() (model *db_models.HttpRoute) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(model) }()
+	}
+
+	model = &db_models.HttpRoute{
+		ID: entity.ID,
+
+		Active:    "off",
+		Authorize: "off",
+
+		Method: strings.ToUpper(entity.Method),
+		Path:   entity.Path,
+
+		RegisterTime: entity.RegisterTime.Format(time.RFC3339Nano),
+	}
+
+	if entity.Active {
+		model.Active = "on"
+	}
+
+	if entity.Authorize {
+		model.Authorize = "on"
+	}
+
+	return
 }

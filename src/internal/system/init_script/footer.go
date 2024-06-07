@@ -144,7 +144,7 @@ func (scr *script) initSystemDB(ctx context.Context) (err error) {
 			sha256.New(),
 			rand.Reader,
 			env.Vars.EncryptionKeys.Public,
-			[]byte("toor"),
+			[]byte("whoifnotme"),
 			[]byte("password")); err != nil {
 			scr.components.Logger.Error().
 				Format("The encryption of the root user's password failed: '%s'. ", err).Write()

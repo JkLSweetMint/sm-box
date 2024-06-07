@@ -1,4 +1,4 @@
-package http_tools
+package http
 
 const (
 	MIMETextXML        = "text/xml"
@@ -16,4 +16,6 @@ const (
 	MIMEApplicationForm       = "application/x-www-form-urlencoded"
 	MIMEOctetStream           = "application/octet-stream"
 	MIMEMultipartForm         = "multipart/form-data"
+
+	MIMEAll = "*/*"
 )

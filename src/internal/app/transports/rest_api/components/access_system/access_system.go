@@ -14,10 +14,12 @@ const (
 
 // AccessSystem - описание компонента системы доступа http rest api.
 type AccessSystem interface {
-	Middleware(ctx fiber.Ctx) (err error)
-	RegisterRoutes(list ...*fiber.Route) (err error)
+	AuthenticationMiddleware(ctx fiber.Ctx) (err error)
+	IdentificationMiddleware(ctx fiber.Ctx) (err error)
 
 	BasicUserAuth(ctx fiber.Ctx) (err error)
+
+	RegisterRoutes(list ...*fiber.Route) (err error)
 }
 
 // New - создание компонента системы доступа http rest api.

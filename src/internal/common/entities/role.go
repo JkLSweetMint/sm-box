@@ -1,6 +1,9 @@
 package entities
 
-import "sm-box/internal/common/types"
+import (
+	"sm-box/internal/common/types"
+	"sm-box/pkg/core/components/tracer"
+)
 
 type (
 	// Role - роль пользователя в системе.
@@ -23,6 +26,14 @@ type (
 
 // FillEmptyFields - заполнение пустых полей сущности.
 func (entity *Role) FillEmptyFields() *Role {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(entity) }()
+	}
+
 	if entity.Inheritances == nil {
 		entity.Inheritances = make(RoleInheritances, 0)
 	}

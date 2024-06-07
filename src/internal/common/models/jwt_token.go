@@ -13,8 +13,9 @@ type (
 
 		Data string `json:"data" yaml:"Data" xml:"Data"`
 
-		CreatedAt time.Time `json:"created_at" yaml:"CreatedAt" xml:"created_at,attr"`
-		ExpiredAt time.Time `json:"expired_at" yaml:"ExpiredAt" xml:"expired_at,attr"`
+		ExpiresAt time.Time `json:"expires_at" yaml:"ExpiresAt" xml:"expires_at,attr"`
+		NotBefore time.Time `json:"not_before" yaml:"NotBefore" xml:"not_before,attr"`
+		IssuedAt  time.Time `json:"issued_at"  yaml:"IssuedAt"  xml:"issued_at,attr"`
 
 		Params *JwtTokenInfoParams `json:"params" yaml:"Params" xml:"Params>Param"`
 	}

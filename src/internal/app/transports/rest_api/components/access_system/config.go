@@ -7,6 +7,8 @@ import (
 
 // Config - конфигурация компонента системы доступа.
 type Config struct {
+	CookieKeyForToken string `json:"cookie_key_for_token" yaml:"CookieKeyForToken" xml:"CookieKeyForToken"`
+
 	Repository *repository.Config `json:"repository" yaml:"Repository" xml:"Repository"`
 }
 
@@ -38,6 +40,8 @@ func (conf *Config) Default() *Config {
 		trc.FunctionCall()
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
+
+	conf.CookieKeyForToken = "token"
 
 	conf.Repository = new(repository.Config).Default()
 

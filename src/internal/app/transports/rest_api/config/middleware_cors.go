@@ -150,6 +150,14 @@ func (conf *MiddlewareCors) Validate() (err error) {
 
 // ToFiberConfig - преобразовать конфигурацию в формат cors.Config.
 func (conf *MiddlewareCors) ToFiberConfig() (c cors_middleware.Config) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(c) }()
+	}
+
 	c = cors_middleware.Config{
 		Next:                nil,
 		AllowOriginsFunc:    nil,

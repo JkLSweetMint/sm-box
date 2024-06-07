@@ -64,6 +64,14 @@ func (conf *MiddlewareCompress) Validate() (err error) {
 
 // ToFiberConfig - преобразовать конфигурацию в формат compress.Config.
 func (conf *MiddlewareCompress) ToFiberConfig() (c compress_middleware.Config) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(c) }()
+	}
+
 	c = compress_middleware.Config{
 		Level: conf.Level,
 	}

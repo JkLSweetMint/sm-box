@@ -294,6 +294,14 @@ func (conf *Engine) Validate() (err error) {
 
 // ToFiberConfig - преобразовать конфигурацию в формат fiber.Config.
 func (conf *Engine) ToFiberConfig() (c fiber.Config) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(c) }()
+	}
+
 	c = fiber.Config{
 		ServerHeader:                 conf.ServerHeader,
 		StrictRouting:                conf.StrictRouting,
@@ -339,6 +347,14 @@ func (conf *Engine) ToFiberConfig() (c fiber.Config) {
 
 // ToFiberListenConfig - преобразовать конфигурацию в формат fiber.ListenConfig.
 func (conf *Engine) ToFiberListenConfig() (c fiber.ListenConfig) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(c) }()
+	}
+
 	c = fiber.ListenConfig{
 		DisableStartupMessage: true,
 	}

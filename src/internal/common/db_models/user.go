@@ -10,7 +10,7 @@ type (
 
 		Email    string `db:"email"`
 		Username string `db:"username"`
-		Password string `db:"password"`
+		Password []byte `db:"password"`
 	}
 
 	// UserAccess - модель доступа пользователя для базы данных.

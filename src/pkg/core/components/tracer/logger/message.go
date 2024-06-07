@@ -37,7 +37,7 @@ func (msg *message) Text(text string) Message {
 	return msg
 }
 
-// Format - установить текст сообщения с форматированием, под аналогии с fmt.Sprintf.
+// Format - установить текст сообщения с форматированием, по аналогии с fmt.Sprintf.
 func (msg *message) Format(format string, a ...any) Message {
 	msg.text = fmt.Sprintf(format, a...)
 	return msg

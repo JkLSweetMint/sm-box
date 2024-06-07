@@ -41,6 +41,10 @@ func (eng *engine) initFiberApp() (err error) {
 
 	// Промежуточные слои
 	{
+		if eng.components.AccessSystem != nil {
+			eng.app.Use(eng.components.AccessSystem.IdentificationMiddleware)
+		}
+
 		if eng.conf.Middlewares != nil &&
 			eng.conf.Middlewares.Compress != nil &&
 			eng.conf.Middlewares.Compress.Enable {
@@ -60,7 +64,7 @@ func (eng *engine) initFiberApp() (err error) {
 		}
 
 		if eng.components.AccessSystem != nil {
-			eng.app.Use(eng.components.AccessSystem.Middleware)
+			eng.app.Use(eng.components.AccessSystem.AuthenticationMiddleware)
 		}
 	}
 

@@ -98,6 +98,14 @@ func (conf *MiddlewareCache) Validate() (err error) {
 
 // ToFiberConfig - преобразовать конфигурацию в формат cache.Config.
 func (conf *MiddlewareCache) ToFiberConfig() (c cache_middleware.Config) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(c) }()
+	}
+
 	c = cache_middleware.Config{
 		Next:         nil,
 		Expiration:   conf.Expiration,

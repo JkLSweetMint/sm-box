@@ -2,7 +2,6 @@ package db_models
 
 import (
 	"sm-box/internal/common/types"
-	"time"
 )
 
 type (
@@ -13,8 +12,9 @@ type (
 
 		Data string `db:"data"`
 
-		CreatedAt time.Time `db:"created_at"`
-		ExpiredAt time.Time `db:"expired_at"`
+		ExpiresAt string `db:"expires_at"`
+		NotBefore string `db:"not_before"`
+		IssuedAt  string `db:"issued_at"`
 	}
 
 	// JwtTokenParams - модель с параметрами jwt токена системы доступа для базы данных.

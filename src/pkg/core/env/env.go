@@ -36,7 +36,7 @@ var (
 )
 
 const (
-	devSystemLocation = "F:/projects/SweetMint/sm-box/box"
+	devSystemLocation = "F:\\projects\\SweetMint\\sm-box\\box"
 )
 
 // init - инициализация окружения системы.
