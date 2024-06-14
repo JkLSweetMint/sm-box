@@ -53,8 +53,6 @@ func New() (cr Core, err error) {
 
 	once.Do(func() {
 		var ref = &core{
-			channels: new(channels),
-
 			ctx: context.Background(),
 		}
 
@@ -100,7 +98,7 @@ func New() (cr Core, err error) {
 
 			// TaskScheduler
 			{
-				if ref.tools.taskScheduler, ref.channels.taskScheduler, err = task_scheduler.New(ref.ctx); err != nil {
+				if ref.tools.taskScheduler, err = task_scheduler.New(ref.ctx); err != nil {
 					return
 				}
 			}
@@ -122,7 +120,9 @@ func New() (cr Core, err error) {
 
 		// Вызов задачи планировщика - 'BeforeNew'.
 		{
-			ref.channels.taskScheduler <- task_scheduler.TaskBeforeNew
+			if err = ref.tools.taskScheduler.Call(task_scheduler.EventBeforeNew); err != nil {
+				return
+			}
 		}
 
 		created = true

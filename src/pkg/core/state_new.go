@@ -10,7 +10,6 @@ import (
 type stateNew struct {
 	components *components
 	tools      *tools
-	channels   *channels
 
 	ctx  context.Context
 	conf *Config
@@ -29,7 +28,11 @@ func (c *stateNew) Boot() (err error) {
 
 	// Вызов задачи планировщика - 'BeforeBoot'.
 	{
-		c.channels.taskScheduler <- task_scheduler.TaskBeforeBoot
+		if err = c.tools.taskScheduler.Call(task_scheduler.EventBeforeBoot); err != nil {
+			c.Components().Logger().Error().
+				Format("An error occurred during the execution of the scheduler tasks: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	c.Components().Logger().Info().
@@ -37,7 +40,11 @@ func (c *stateNew) Boot() (err error) {
 
 	// Вызов задачи планировщика - 'Boot'.
 	{
-		c.channels.taskScheduler <- task_scheduler.TaskBoot
+		if err = c.tools.taskScheduler.Call(task_scheduler.EventBoot); err != nil {
+			c.Components().Logger().Error().
+				Format("An error occurred during the execution of the scheduler tasks: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	// Изменение состояния
@@ -54,7 +61,11 @@ func (c *stateNew) Boot() (err error) {
 
 	// Вызов задачи планировщика - 'AfterBoot'.
 	{
-		c.channels.taskScheduler <- task_scheduler.TaskAfterBoot
+		if err = c.tools.taskScheduler.Call(task_scheduler.EventAfterBoot); err != nil {
+			c.Components().Logger().Error().
+				Format("An error occurred during the execution of the scheduler tasks: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	return

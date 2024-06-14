@@ -9,7 +9,6 @@ import (
 type stateOff struct {
 	components *components
 	tools      *tools
-	channels   *channels
 
 	ctx  context.Context
 	conf *Config

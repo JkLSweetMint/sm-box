@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	TaskInitEncryptionKeys = task_scheduler.Task{
-		Name: "Init encryption keys",
-		Type: task_scheduler.TaskBeforeBoot,
+	TaskInitEncryptionKeys = &task_scheduler.ImmediateTask{
+		Name:     "Init encryption keys",
+		Event:    task_scheduler.EventBeforeBoot,
+		Priority: uint8(254),
 		Func: func(ctx context.Context) (err error) {
 
 			if err = Init(); err != nil {

@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"regexp"
+	error_list "sm-box/internal/app/errors"
+	entities2 "sm-box/internal/app/infrastructure/objects/entities"
+	"sm-box/internal/app/infrastructure/types"
 	rest_api_io "sm-box/internal/app/transports/rest_api/io"
-	"sm-box/internal/common/entities"
-	error_list "sm-box/internal/common/errors"
-	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"strings"
@@ -24,16 +24,16 @@ type accessSystem struct {
 
 	components *components
 	repository interface {
-		GetUser(ctx context.Context, id types.ID) (us *entities.User, err error)
-		BasicAuth(ctx context.Context, username, password string) (us *entities.User, err error)
+		GetUser(ctx context.Context, id types.ID) (us *entities2.User, err error)
+		BasicAuth(ctx context.Context, username, password string) (us *entities2.User, err error)
 
-		GetRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error)
-		GetActiveRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error)
-		RegisterRoute(ctx context.Context, route *entities.HttpRoute) (err error)
+		GetRoute(ctx context.Context, method, path string) (route *entities2.HttpRoute, err error)
+		GetActiveRoute(ctx context.Context, method, path string) (route *entities2.HttpRoute, err error)
+		RegisterRoute(ctx context.Context, route *entities2.HttpRoute) (err error)
 		SetInactiveRoutes(ctx context.Context) (err error)
 
-		GetToken(ctx context.Context, data string) (tok *entities.JwtToken, err error)
-		RegisterToken(ctx context.Context, tok *entities.JwtToken) (err error)
+		GetToken(ctx context.Context, data string) (tok *entities2.JwtToken, err error)
+		RegisterToken(ctx context.Context, tok *entities2.JwtToken) (err error)
 		SetTokenOwner(ctx context.Context, tokenID, ownerID types.ID) (err error)
 	}
 }
@@ -54,7 +54,7 @@ func (acc *accessSystem) RegisterRoutes(list ...*fiber.Route) (err error) {
 	}
 
 	for _, r := range list {
-		var route = new(entities.HttpRoute).FillEmptyFields()
+		var route = new(entities2.HttpRoute).FillEmptyFields()
 
 		route.Active = true
 		route.Method = strings.ToUpper(r.Method)
@@ -107,8 +107,8 @@ func (acc *accessSystem) BasicUserAuth(ctx fiber.Ctx) (err error) {
 	// Обработка
 	{
 		var (
-			us    *entities.User
-			token *entities.JwtToken
+			us    *entities2.User
+			token *entities2.JwtToken
 		)
 
 		// Получение данных пользователя

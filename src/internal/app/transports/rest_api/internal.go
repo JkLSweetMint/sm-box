@@ -2,11 +2,17 @@ package rest_api
 
 import (
 	"context"
+	"fmt"
 	"github.com/gofiber/fiber/v3"
+	"os"
+	"path"
 	"sm-box/internal/app/transports/rest_api/components/access_system"
 	"sm-box/internal/app/transports/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
+	"sm-box/pkg/http/postman"
+	"sm-box/pkg/tools/file"
 	"strings"
 	"sync"
 	"time"
@@ -21,6 +27,8 @@ type engine struct {
 	ctx  context.Context
 
 	components *components
+
+	postman *postman.Collection
 }
 
 // components - компоненты движка http rest api коробки.
@@ -78,6 +86,55 @@ func (eng *engine) Listen() (err error) {
 					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
 				return
 			}
+		}
+	}
+
+	// Postman
+	{
+		var (
+			p    = path.Join(env.Paths.SystemLocation, env.Paths.System.Path, "postman")
+			name = fmt.Sprintf("box.%s@%s.json", eng.conf.Engine.Name, eng.conf.Engine.Version)
+		)
+
+		// Проверка наличия файла
+		{
+			var exist bool
+
+			if exist, err = file.Exists(path.Join(p, name)); err != nil {
+				eng.components.Logger.Error().
+					Format("Could not verify the existence of the postman collection file: '%s'. ", err).Write()
+				return
+			}
+
+			if exist {
+				if err = os.Remove(path.Join(p, name)); err != nil {
+					eng.components.Logger.Error().
+						Format("The postman collection file could not be deleted: '%s'. ", err).Write()
+					return
+				}
+			} else {
+				if err = os.MkdirAll(p, 0666); err != nil {
+					eng.components.Logger.Error().
+						Format("Failed to create a directory for the postman collection file: '%s'. ", err).Write()
+					return
+				}
+			}
+		}
+
+		var fl *os.File
+
+		if fl, err = os.Create(path.Join(p, name)); err != nil {
+			eng.components.Logger.Error().
+				Format("Failed to create a file for the postman collection: '%s'. ", err).Write()
+			return
+		}
+
+		defer fl.Close()
+
+		if err = eng.postman.Write(fl, postman.V210); err != nil {
+			eng.components.Logger.Error().
+				Format("Failed to write postman collection data: '%s'. ", err).Write()
+			return
 		}
 	}
 

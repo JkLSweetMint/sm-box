@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/env"
 	"sm-box/pkg/core/tools/task_scheduler"
 )
 
@@ -11,7 +10,6 @@ import (
 type stateServed struct {
 	components *components
 	tools      *tools
-	channels   *channels
 
 	ctx  context.Context
 	conf *Config
@@ -76,7 +74,11 @@ func (c *stateServed) Shutdown() (err error) {
 
 	// Вызов задачи планировщика - 'BeforeShutdown'.
 	{
-		c.channels.taskScheduler <- task_scheduler.TaskBeforeShutdown
+		if err = c.tools.taskScheduler.Call(task_scheduler.EventBeforeShutdown); err != nil {
+			c.Components().Logger().Error().
+				Format("An error occurred during the execution of the scheduler tasks: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	c.Components().Logger().Info().
@@ -84,7 +86,11 @@ func (c *stateServed) Shutdown() (err error) {
 
 	// Вызов задачи планировщика - 'Shutdown'.
 	{
-		c.channels.taskScheduler <- task_scheduler.TaskShutdown
+		if err = c.tools.taskScheduler.Call(task_scheduler.EventShutdown); err != nil {
+			c.Components().Logger().Error().
+				Format("An error occurred during the execution of the scheduler tasks: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	// Завершение работы
@@ -106,10 +112,12 @@ func (c *stateServed) Shutdown() (err error) {
 
 	// Вызов задачи планировщика - 'AfterShutdown'.
 	{
-		c.channels.taskScheduler <- task_scheduler.TaskAfterShutdown
+		if err = c.tools.taskScheduler.Call(task_scheduler.EventAfterShutdown); err != nil {
+			c.Components().Logger().Error().
+				Format("An error occurred during the execution of the scheduler tasks: '%s'. ", err).Write()
+			return
+		}
 	}
-
-	env.Synchronization.WaitGroup.Wait()
 
 	return
 }

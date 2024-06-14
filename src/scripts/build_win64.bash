@@ -1,5 +1,5 @@
-go env -w GOOS=linux
+go env -w GOOS=windows
 
-go build -o F:/projects/SweetMint/sm-box/box/bin/box ./cmd/app
+go build -o F:/projects/SweetMint/sm-box/box/bin/box.exe ./cmd/app
 
-go build -o F:/projects/SweetMint/sm-box/box/sbin/init ./cmd/system/init_script
+go build -o F:/projects/SweetMint/sm-box/box/sbin/init.exe ./cmd/system/init_script

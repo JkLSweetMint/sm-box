@@ -7,9 +7,9 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"regexp"
+	error_list "sm-box/internal/app/errors"
+	entities2 "sm-box/internal/app/infrastructure/objects/entities"
 	"sm-box/internal/app/transports/rest_api/io"
-	"sm-box/internal/common/entities"
-	error_list "sm-box/internal/common/errors"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	"time"
@@ -18,8 +18,8 @@ import (
 // AuthenticationMiddleware - промежуточное программное обеспечение для аутентификации пользователя.
 func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 	var (
-		route *entities.HttpRoute
-		token *entities.JwtToken
+		route *entities2.HttpRoute
+		token *entities2.JwtToken
 	)
 
 	// Получение маршрута
@@ -86,7 +86,7 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 	// Проверка доступа к маршруту, если требуется авторизация
 	{
 		if route.Authorize {
-			var us *entities.User
+			var us *entities2.User
 
 			// Получение данных пользователя
 			{
@@ -140,19 +140,19 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 
 // IdentificationMiddleware - промежуточное программное обеспечение для идентификации клиента.
 func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
-	var token *entities.JwtToken
+	var token *entities2.JwtToken
 
 	// Получение токена, если нет, то создаём
 	{
 		if data := ctx.Cookies(acc.conf.CookieKeyForToken); data == "" {
-			token = &entities.JwtToken{
+			token = &entities2.JwtToken{
 				ID:        0,
 				UserID:    0,
 				Data:      "",
 				ExpiresAt: time.Now().Add(time.Hour * 8),
 				NotBefore: time.Now(),
 				IssuedAt:  time.Now(),
-				Params: &entities.JwtTokenParams{
+				Params: &entities2.JwtTokenParams{
 					RemoteAddr: fmt.Sprintf("%s:%s", ctx.IP(), ctx.Port()),
 					UserAgent:  string(ctx.Request().Header.UserAgent()),
 				},
@@ -207,14 +207,14 @@ func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
 		// Срок действия уже закончился, пересоздаём
 		{
 			if tm.After(token.ExpiresAt) {
-				token = &entities.JwtToken{
+				token = &entities2.JwtToken{
 					ID:        0,
 					UserID:    0,
 					Data:      "",
 					ExpiresAt: time.Now().Add(time.Hour * 8),
 					NotBefore: time.Now(),
 					IssuedAt:  time.Now(),
-					Params: &entities.JwtTokenParams{
+					Params: &entities2.JwtTokenParams{
 						RemoteAddr: fmt.Sprintf("%s:%s", ctx.IP(), ctx.Port()),
 						UserAgent:  string(ctx.Request().Header.UserAgent()),
 					},
@@ -233,7 +233,7 @@ func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
 }
 
 // generateToken - генерация токена.
-func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *entities.JwtToken) (err error) {
+func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *entities2.JwtToken) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelComponentInternal)

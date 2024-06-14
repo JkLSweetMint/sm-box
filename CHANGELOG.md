@@ -1,5 +1,85 @@
 # ChangeLog:
 
+### v24.0.17:
+- Доработки [ядра системы](src/pkg/core/core.go);
+- Доработки [компонента для корректного завершения работы ядра системы](src/pkg/core/tools/closer/closer.go);
+- Доработки [инструмента для управления задачами ядра системы](src/pkg/core/tools/task_scheduler/task_scheduler.go);
+- Доработки [системного скрипта для инициализации коробки;](src/internal/system/init_script);
+
+---
+
+### v24.0.16:
+- Доработки [инструментов для работы с http](src/pkg/http);
+- Доработка архитектуры проекта;
+- Доработки архитектуры базы данных;
+- Доработки по компоненту [системы доступа http rest api](src/internal/app/transports/rest_api/components/access_system);
+- Добавлена [система ошибок](src/pkg/errors/errors.go);
+
+---
+
+### v24.0.15:
+- Разработан [скрипт для инициализации системы](src/internal/system/init/script.go) (первый запуск если);
+- Доработка архитектуры проекта;
+- Доработки архитектуры базы данных;
+- Доработки по компоненту [системы доступа http rest api](src/internal/app/transports/rest_api/components/access_system);
+- Добавлено [хранилище файлов системы](src/pkg/core/env/files/files.go) в [окружение](src/pkg/core/env/env.go);
+
+---
+
+### v24.0.14:
+- Разработаны модели базы данных:
+  - [JWT токен](src/internal/common/db_models/jwt_token.go);
+- Разработаны модели:
+  - [JWT токен](src/internal/common/models/jwt_token.go);
+- Разработаны сущности:
+  - [JWT токен](src/internal/common/entities/jwt_token.go);
+- Доработка архитектуры проекта;
+- Доработки архитектуры базы данных;
+- Доработки по компоненту [системы доступа http rest api](src/internal/app/transports/rest_api/components/access_system);
+- Доработки [коннектора для sqlite3 баз данных](src/pkg/databases/connectors/sqlite3/connector.go);
+- Доработки [коннектора для postgresql баз данных](src/pkg/databases/connectors/postgresql/connector.go);
+- Доработки [коннектора для mysql баз данных](src/pkg/databases/connectors/mysql/connector.go);
+
+---
+
+### v24.0.13:
+- Разработаны модели базы данных:
+  - [Проект](src/internal/common/db_models/project.go);
+  - [Роль](src/internal/common/db_models/role.go);
+  - [Http Маршрут](src/internal/common/db_models/http_route.go);
+  - [Пользователь](src/internal/common/db_models/user.go);
+- Разработаны модели:
+  - [Проект](src/internal/common/models/project.go);
+  - [Роль](src/internal/common/models/role.go);
+  - [Http Маршрут](src/internal/common/models/http_route.go);
+  - [Пользователь](src/internal/common/models/user.go);
+- Разработаны сущности:
+  - [Проект](src/internal/common/entities/project.go);
+  - [Роль](src/internal/common/entities/role.go);
+  - [Http Маршрут](src/internal/common/entities/http_route.go);
+  - [Пользователь](src/internal/common/entities/user.go);
+- Добавлен тип данных [ID](src/internal/common/types/id.go) для сущностей и моделей; 
+- Доработка архитектуры проекта;
+- Доработки архитектуры базы данных;
+
+---
+
+### v24.0.12:
+- Доработки компонента [управления конфигурациями проекта](src/pkg/core/components/configurator/configurator.go);
+- Доработки основы [коробки](src/internal/app/box.go);
+- Доработка архитектуры проекта;
+- Доработка [http rest api коробки](src/internal/app/transports/rest_api/engine.go);
+- Доработка системный базы данных коробки;
+- Убрал все тесты для дальнейшей переработки;
+- Добавлен уровень ведения журнала трессировки для коннекторов баз данных и конфигураций в компоненте [ведения журнала трессировки вызовов](src/pkg/core/components/tracer/tracer.go);
+- Доработки по вызову компонента [ведения журнала трессировки вызовов](src/pkg/core/components/tracer/tracer.go) во всё проекте;
+- Разработан [универсальный коннектор для sql баз данных](src/pkg/databases/connectors/universal_sqlx/connector.go);
+- Разработан [коннектор для sqlite3 баз данных](src/pkg/databases/connectors/sqlite3/connector.go);
+- Разработан [коннектор для postgresql баз данных](src/pkg/databases/connectors/postgresql/connector.go);
+- Разработан [коннектор для mysql баз данных](src/pkg/databases/connectors/mysql/connector.go);
+
+---
+
 ### v24.0.11:
 - Доработка архитектуры проекта;
 - Доработки основы [коробки](src/internal/app/box.go);

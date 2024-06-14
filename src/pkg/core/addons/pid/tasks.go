@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	TaskCreatePIDFile = task_scheduler.Task{
-		Name: "Create PID file",
-		Type: task_scheduler.TaskBeforeBoot,
+	TaskCreatePIDFile = &task_scheduler.ImmediateTask{
+		Name:     "Create PID file",
+		Event:    task_scheduler.EventBeforeBoot,
+		Priority: uint8(255),
 		Func: func(ctx context.Context) (err error) {
 
 			if err = NewFile(); err != nil {
@@ -18,9 +19,10 @@ var (
 			return
 		},
 	}
-	TaskRemovePIDFile = task_scheduler.Task{
-		Name: "Remove PID file",
-		Type: task_scheduler.TaskAfterShutdown,
+	TaskRemovePIDFile = &task_scheduler.ImmediateTask{
+		Name:     "Remove PID file",
+		Event:    task_scheduler.EventAfterShutdown,
+		Priority: uint8(255),
 		Func: func(ctx context.Context) (err error) {
 
 			if err = RemoveFile(); err != nil {

@@ -3,7 +3,7 @@ package task_scheduler
 // iterator - описание итератора для коллекции по хранению задач планировщика.
 type iterator interface {
 	Index() int
-	Value() *Task
+	Value() Task
 	Has() bool
 	Len() (l int)
 	Next()
@@ -25,7 +25,7 @@ func (iter *baseIterator) Index() int {
 }
 
 // Value - получение текущего элемента из коллекции.
-func (iter *baseIterator) Value() (t *Task) {
+func (iter *baseIterator) Value() (t Task) {
 	if iter.index < 0 || len(iter.shelf.Tasks) <= iter.index {
 		return
 	}

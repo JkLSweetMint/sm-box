@@ -3,14 +3,12 @@ package core
 import (
 	"context"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/tools/task_scheduler"
 )
 
 // core - ядро системы.
 type core struct {
 	components *components
 	tools      *tools
-	channels   *channels
 
 	ctx  context.Context
 	conf *Config
@@ -22,11 +20,6 @@ type core struct {
 
 		State() (state State)
 	}
-}
-
-// channels - каналы ядра системы.
-type channels struct {
-	taskScheduler chan<- task_scheduler.TaskType
 }
 
 // Boot - загрузка ядра, построение системы, создание компонентов.
@@ -155,7 +148,6 @@ func (c *core) updateState(state State) (err error) {
 				c.state = &stateNew{
 					components: c.components,
 					tools:      c.tools,
-					channels:   c.channels,
 
 					ctx:  c.ctx,
 					conf: c.conf,
@@ -169,7 +161,6 @@ func (c *core) updateState(state State) (err error) {
 				c.state = &stateBooted{
 					components: c.components,
 					tools:      c.tools,
-					channels:   c.channels,
 
 					ctx:  c.ctx,
 					conf: c.conf,
@@ -183,7 +174,6 @@ func (c *core) updateState(state State) (err error) {
 				c.state = &stateServed{
 					components: c.components,
 					tools:      c.tools,
-					channels:   c.channels,
 
 					ctx:  c.ctx,
 					conf: c.conf,
@@ -197,7 +187,6 @@ func (c *core) updateState(state State) (err error) {
 				c.state = &stateOff{
 					components: c.components,
 					tools:      c.tools,
-					channels:   c.channels,
 
 					ctx:  c.ctx,
 					conf: c.conf,

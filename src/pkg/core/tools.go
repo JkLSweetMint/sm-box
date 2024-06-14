@@ -7,7 +7,9 @@ import (
 
 // Tools - описание внутренних инструментов ядра системы.
 type Tools interface {
-	TaskScheduler() task_scheduler.Scheduler
+	TaskScheduler() interface {
+		Register(t task_scheduler.Task) (err error)
+	}
 }
 
 // tools - внутренние инструменты ядра системы.
@@ -17,6 +19,8 @@ type tools struct {
 }
 
 // TaskScheduler - получение инструмента планировщика задач.
-func (t *tools) TaskScheduler() task_scheduler.Scheduler {
+func (t *tools) TaskScheduler() interface {
+	Register(t task_scheduler.Task) (err error)
+} {
 	return t.taskScheduler
 }

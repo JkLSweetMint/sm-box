@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"gopkg.in/yaml.v3"
 	c_errors "sm-box/pkg/errors"
-	http_tools "sm-box/pkg/tools/http"
+	http_tools "sm-box/pkg/http"
 )
 
 // ResponseWrapper - описание обертки данных ответа.

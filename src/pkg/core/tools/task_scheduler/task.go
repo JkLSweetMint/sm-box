@@ -6,36 +6,36 @@ import (
 )
 
 const (
-	minTaskType TaskType = iota
+	minEvent Event = iota
 
-	// TaskBeforeNew - вызов после создания ядра системы.
-	TaskBeforeNew
+	// EventBeforeNew - вызов после создания ядра системы.
+	EventBeforeNew
 
-	// TaskBeforeBoot - вызов перед запуском загрузки ядра системы.
-	TaskBeforeBoot
-	// TaskBoot - вызов одновременно с запуском загрузки ядра системы.
-	TaskBoot
-	// TaskAfterBoot - вызов после завершения загрузки ядра системы.
-	TaskAfterBoot
+	// EventBeforeBoot - вызов перед запуском загрузки ядра системы.
+	EventBeforeBoot
+	// EventBoot - вызов одновременно с запуском загрузки ядра системы.
+	EventBoot
+	// EventAfterBoot - вызов после завершения загрузки ядра системы.
+	EventAfterBoot
 
-	// TaskBeforeServe - вызов перед запуском обслуживания системы ядром.
-	TaskBeforeServe
-	// TaskServe - вызов одновременно c запуском обслуживания системы ядром.
-	TaskServe
-	// TaskAfterServe - вызов после запуском обслуживания системы ядром.
-	TaskAfterServe
+	// EventBeforeServe - вызов перед запуском обслуживания системы ядром.
+	EventBeforeServe
+	// EventServe - вызов одновременно c запуском обслуживания системы ядром.
+	EventServe
+	// EventAfterServe - вызов после запуском обслуживания системы ядром.
+	EventAfterServe
 
-	// TaskBeforeShutdown - вызов перед завершением обслуживания системы ядром.
-	TaskBeforeShutdown
-	// TaskShutdown - вызов одновременно c завершением обслуживания системы ядром.
-	TaskShutdown
-	// TaskAfterShutdown - вызов после завершения обслуживания системы ядром.
-	TaskAfterShutdown
+	// EventBeforeShutdown - вызов перед завершением обслуживания системы ядром.
+	EventBeforeShutdown
+	// EventShutdown - вызов одновременно c завершением обслуживания системы ядром.
+	EventShutdown
+	// EventAfterShutdown - вызов после завершения обслуживания системы ядром.
+	EventAfterShutdown
 
-	maxTaskType
+	maxEvent
 )
 
-var taskTypesList = [...]string{
+var taskEventList = [...]string{
 	"BeforeNew",
 
 	"BeforeBoot",
@@ -46,26 +46,53 @@ var taskTypesList = [...]string{
 	"Serve",
 	"AfterServe",
 
-	"BeforeBoot",
-	"Boot",
+	"BeforeShutdown",
+	"Shutdown",
 	"AfterShutdown",
 }
 
-// TaskType - тип задачи.
-type TaskType int
+// Event - событие.
+type Event int
 
 // TaskFunc - функция задачи.
 type TaskFunc func(ctx context.Context) (err error)
 
 // Task - задача планировщика.
-type Task struct {
-	Name string
-	Type TaskType
-	Func TaskFunc
+type Task interface {
+	Exec(ctx context.Context) (err error)
 }
 
-// Exec - запуск выполнения задачи планировщика.
-func (t *Task) Exec(ctx context.Context) (err error) {
+// BackgroundTask - фоновая задача планировщика.
+type BackgroundTask struct {
+	Name     string
+	Event    Event
+	Priority uint8
+	Func     TaskFunc
+}
+
+// ImmediateTask - задача планировщика.
+type ImmediateTask struct {
+	Name     string
+	Event    Event
+	Priority uint8
+	Func     TaskFunc
+}
+
+// Exec - запуск выполнения задачи.
+func (t *BackgroundTask) Exec(ctx context.Context) (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelCoreTool)
+
+		trc.FunctionCall(ctx)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	return t.Func(ctx)
+}
+
+// Exec - запуск выполнения задачи.
+func (t *ImmediateTask) Exec(ctx context.Context) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelCoreTool)
@@ -78,9 +105,9 @@ func (t *Task) Exec(ctx context.Context) (err error) {
 }
 
 // String - получение строкового представления типа задачи системы.
-func (e TaskType) String() (val string) {
-	if e > minTaskType && int(e) <= len(taskTypesList) {
-		return taskTypesList[e-1]
+func (e Event) String() (val string) {
+	if e > minEvent && int(e) <= len(taskEventList) {
+		return taskEventList[e-1]
 	}
 
 	return

@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
-	"sm-box/internal/common/db_models"
-	"sm-box/internal/common/entities"
-	"sm-box/internal/common/types"
+	"sm-box/internal/app/infrastructure/objects/db_models"
+	"sm-box/internal/app/infrastructure/objects/entities"
+	"sm-box/internal/app/infrastructure/types"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/databases/connectors/sqlite3"
 	"time"

@@ -6,6 +6,7 @@ import (
 	"sm-box/internal/app/transports/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/http/postman"
 )
 
 const (
@@ -57,6 +58,11 @@ func New(ctx context.Context, conf *config.Config) (eng Engine, err error) {
 				return
 			}
 		}
+	}
+
+	// Postman
+	{
+		ref.postman = postman.NewCollection(conf.Engine.AppName, "")
 	}
 
 	// fiber

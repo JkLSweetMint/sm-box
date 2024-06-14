@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
-	"sm-box/internal/common/db_models"
-	"sm-box/internal/common/entities"
+	"sm-box/internal/app/infrastructure/objects/db_models"
+	entities2 "sm-box/internal/app/infrastructure/objects/entities"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/databases/connectors/sqlite3"
 	"strings"
@@ -21,7 +21,7 @@ type httpRoutesRepository struct {
 }
 
 // GetRoute - получение http маршрута.
-func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error) {
+func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path string) (route *entities2.HttpRoute, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -32,7 +32,7 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 
 	// Подготовка
 	{
-		route = new(entities.HttpRoute).FillEmptyFields()
+		route = new(entities2.HttpRoute).FillEmptyFields()
 		method = strings.ToUpper(method)
 	}
 
@@ -152,27 +152,27 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 			list = append(list, model)
 		}
 
-		var writeInheritance func(parent *entities.HttpRouteAccess)
+		var writeInheritance func(parent *entities2.HttpRouteAccess)
 
-		writeInheritance = func(parent *entities.HttpRouteAccess) {
+		writeInheritance = func(parent *entities2.HttpRouteAccess) {
 			for _, model := range list {
 				if model.Parent == parent.ID {
 					var (
-						role = &entities.Role{
+						role = &entities2.Role{
 							ID:        model.ID,
 							ProjectID: model.ProjectID,
 							Title:     model.Title,
 
-							Inheritances: make(entities.RoleInheritances, 0),
+							Inheritances: make(entities2.RoleInheritances, 0),
 						}
 					)
 					role.FillEmptyFields()
 
-					parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
+					parent.Inheritances = append(parent.Inheritances, &entities2.RoleInheritance{
 						Role: role,
 					})
 
-					writeInheritance(&entities.HttpRouteAccess{
+					writeInheritance(&entities2.HttpRouteAccess{
 						Role: role,
 					})
 				}
@@ -182,14 +182,14 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 		for _, model := range list {
 			if model.Parent == 0 {
 				var (
-					role = &entities.Role{
+					role = &entities2.Role{
 						ID:        model.ID,
 						ProjectID: model.ProjectID,
 						Title:     model.Title,
 
-						Inheritances: make(entities.RoleInheritances, 0),
+						Inheritances: make(entities2.RoleInheritances, 0),
 					}
-					acc = &entities.HttpRouteAccess{
+					acc = &entities2.HttpRouteAccess{
 						Role: role.FillEmptyFields(),
 					}
 				)
@@ -204,7 +204,7 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 }
 
 // GetActiveRoute - получение активного http маршрута.
-func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error) {
+func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, path string) (route *entities2.HttpRoute, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -215,7 +215,7 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 
 	// Подготовка
 	{
-		route = new(entities.HttpRoute).FillEmptyFields()
+		route = new(entities2.HttpRoute).FillEmptyFields()
 		method = strings.ToUpper(method)
 	}
 
@@ -336,27 +336,27 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 			list = append(list, model)
 		}
 
-		var writeInheritance func(parent *entities.HttpRouteAccess)
+		var writeInheritance func(parent *entities2.HttpRouteAccess)
 
-		writeInheritance = func(parent *entities.HttpRouteAccess) {
+		writeInheritance = func(parent *entities2.HttpRouteAccess) {
 			for _, model := range list {
 				if model.Parent == parent.ID {
 					var (
-						role = &entities.Role{
+						role = &entities2.Role{
 							ID:        model.ID,
 							ProjectID: model.ProjectID,
 							Title:     model.Title,
 
-							Inheritances: make(entities.RoleInheritances, 0),
+							Inheritances: make(entities2.RoleInheritances, 0),
 						}
 					)
 					role.FillEmptyFields()
 
-					parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
+					parent.Inheritances = append(parent.Inheritances, &entities2.RoleInheritance{
 						Role: role,
 					})
 
-					writeInheritance(&entities.HttpRouteAccess{
+					writeInheritance(&entities2.HttpRouteAccess{
 						Role: role,
 					})
 				}
@@ -366,14 +366,14 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 		for _, model := range list {
 			if model.Parent == 0 {
 				var (
-					role = &entities.Role{
+					role = &entities2.Role{
 						ID:        model.ID,
 						ProjectID: model.ProjectID,
 						Title:     model.Title,
 
-						Inheritances: make(entities.RoleInheritances, 0),
+						Inheritances: make(entities2.RoleInheritances, 0),
 					}
-					acc = &entities.HttpRouteAccess{
+					acc = &entities2.HttpRouteAccess{
 						Role: role.FillEmptyFields(),
 					}
 				)
@@ -388,7 +388,7 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 }
 
 // RegisterRoute - регистрация http маршрута.
-func (repo *httpRoutesRepository) RegisterRoute(ctx context.Context, route *entities.HttpRoute) (err error) {
+func (repo *httpRoutesRepository) RegisterRoute(ctx context.Context, route *entities2.HttpRoute) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)

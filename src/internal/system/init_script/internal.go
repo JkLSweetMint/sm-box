@@ -19,8 +19,8 @@ type components struct {
 	Logger logger.Logger
 }
 
-// Run - запуск скрипта.
-func (scr *script) Run() (err error) {
+// Exec - выполнить скрипт.
+func (scr *script) Exec() (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelMain)

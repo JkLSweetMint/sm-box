@@ -10,7 +10,8 @@ import (
 	"os"
 	"path"
 	"slices"
-	"sm-box/embed"
+	glob_embed "sm-box/embed"
+	"sm-box/internal/system/init_script/embed"
 	"sm-box/pkg/core/env"
 	env_mode "sm-box/pkg/core/env/mode"
 )
@@ -68,7 +69,7 @@ func Init() (err error) {
 			{
 				var dir []fs.DirEntry
 
-				if dir, err = embed.Dir.ReadDir("."); err != nil {
+				if dir, err = glob_embed.Dir.ReadDir("."); err != nil {
 					return
 				}
 

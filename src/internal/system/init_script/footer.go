@@ -9,10 +9,14 @@ import (
 	"github.com/jmoiron/sqlx"
 	"os"
 	"path"
-	"sm-box/embed"
+	"sm-box/internal/system/init_script/embed"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	"sm-box/pkg/databases/connectors/sqlite3"
+)
+
+const (
+	initFileName = "system.init"
 )
 
 // serve - внутренний метод для запуска скрипта.
@@ -24,6 +28,7 @@ func (scr *script) serve(ctx context.Context) (err error) {
 		trc.FunctionCall(ctx)
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
+
 	// Завершение работы
 	{
 		defer func() {
@@ -44,42 +49,52 @@ func (scr *script) serve(ctx context.Context) (err error) {
 	}
 
 	scr.components.Logger.Info().
-		Format("Starting the '%s'... ", env.Vars.SystemName).Write()
+		Format("Starting initialization '%s'... ", env.Vars.SystemName).Write()
+
+	// Проверка что уже инициализировано (существует init файл)
+	{
+		var fl = path.Join(env.Paths.SystemLocation, env.Paths.Var.Path, initFileName)
+
+		if _, err = os.Stat(fl); errors.Is(err, os.ErrNotExist) {
+			err = nil
+		} else {
+			if err == nil {
+				scr.components.Logger.Info().
+					Text("The system is initialized, no reinitialization is required. ").Write()
+			} else {
+				scr.components.Logger.Error().
+					Format("Failed to initialize '%s': '%s'. ", env.Vars.SystemName, err).Write()
+			}
+
+			return
+		}
+	}
 
 	// Логика
 	{
-		// Проверки что уже инициализировано
+		// База данных
 		{
-			if _, err = os.Stat(path.Join(env.Paths.SystemLocation, env.Paths.Var.Lib, env.Files.Var.Lib.SystemDB)); errors.Is(err, os.ErrNotExist) {
-				err = nil
-			} else {
-				if err == nil {
-					scr.components.Logger.Info().
-						Format("'%s' is initialized, no reinitialization is required. ", env.Vars.SystemName).Write()
-				} else {
-					scr.components.Logger.Error().
-						Format("Failed to initialize '%s': '%s'. ", env.Vars.SystemName, err).Write()
-				}
-
+			if err = scr.initSystemDB(ctx); err != nil {
+				scr.components.Logger.Error().
+					Format("Failed to initialize the system database: '%s'. ", err).Write()
 				return
 			}
 		}
+	}
 
-		scr.components.Logger.Info().
-			Format("Starting initialization '%s'... ", env.Vars.SystemName).Write()
+	// Создание init файла
+	{
+		var fl = path.Join(env.Paths.SystemLocation, env.Paths.Var.Path, initFileName)
 
-		if err = scr.initSystemDB(ctx); err != nil {
+		if err = os.WriteFile(fl, []byte{}, 0666); err != nil {
 			scr.components.Logger.Error().
-				Format("Failed to initialize the system database: '%s'. ", err).Write()
+				Format("Failed to initialize system: '%s'. ", err).Write()
 			return
 		}
-
-		scr.components.Logger.Info().
-			Format("The initialization '%s' has been successfully finished. ", env.Vars.SystemName).Write()
 	}
 
 	scr.components.Logger.Info().
-		Format("The '%s' has been successfully started. ", env.Vars.SystemName).Write()
+		Format("The initialization '%s' has been successfully finished. ", env.Vars.SystemName).Write()
 
 	return
 }

@@ -13,7 +13,7 @@ import (
 
 // Script - описание функционала скрипта.
 type Script interface {
-	Run() (err error)
+	Exec() (err error)
 }
 
 // New - создание скрипта.
@@ -64,7 +64,7 @@ func New() (scr Script, err error) {
 		}
 	}
 
-	// Регистрация скрипта
+	// Регистрация задач
 	{
 		// Дополнения ядра
 		{
@@ -86,10 +86,10 @@ func New() (scr Script, err error) {
 
 		// Основные
 		{
-			if err = ref.core.Tools().TaskScheduler().Register(task_scheduler.Task{
-				Name: "Starting the server maintenance. ",
-				Type: task_scheduler.TaskServe,
-				Func: ref.serve,
+			if err = ref.core.Tools().TaskScheduler().Register(&task_scheduler.ImmediateTask{
+				Name:  "Starting the script maintenance. ",
+				Event: task_scheduler.EventAfterServe,
+				Func:  ref.serve,
 			}); err != nil {
 				ref.components.Logger.Error().
 					Format("Failed to register a task in task scheduler: '%s'. ", err).Write()

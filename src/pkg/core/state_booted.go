@@ -10,7 +10,6 @@ import (
 type stateBooted struct {
 	components *components
 	tools      *tools
-	channels   *channels
 
 	ctx  context.Context
 	conf *Config
@@ -52,7 +51,11 @@ func (c *stateBooted) Serve() (err error) {
 
 	// Вызов задачи планировщика - 'BeforeServe'.
 	{
-		c.channels.taskScheduler <- task_scheduler.TaskBeforeServe
+		if err = c.tools.taskScheduler.Call(task_scheduler.EventBeforeServe); err != nil {
+			c.Components().Logger().Error().
+				Format("An error occurred during the execution of the scheduler tasks: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	c.Components().Logger().Info().
@@ -60,7 +63,11 @@ func (c *stateBooted) Serve() (err error) {
 
 	// Вызов задачи планировщика - 'Serve'.
 	{
-		c.channels.taskScheduler <- task_scheduler.TaskServe
+		if err = c.tools.taskScheduler.Call(task_scheduler.EventServe); err != nil {
+			c.Components().Logger().Error().
+				Format("An error occurred during the execution of the scheduler tasks: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	// Изменение состояния
@@ -77,7 +84,11 @@ func (c *stateBooted) Serve() (err error) {
 
 	// Вызов задачи планировщика - 'AfterServe'.
 	{
-		c.channels.taskScheduler <- task_scheduler.TaskAfterServe
+		if err = c.tools.taskScheduler.Call(task_scheduler.EventAfterServe); err != nil {
+			c.Components().Logger().Error().
+				Format("An error occurred during the execution of the scheduler tasks: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	c.tools.closer.Wait()

@@ -5,12 +5,12 @@ import (
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
+	"sync"
 )
 
 // scheduler - инструмент ядра системы для выполнения запланированных задач.
 type scheduler struct {
 	aggregate aggregate
-	channel   chan TaskType
 
 	components *components
 }
@@ -30,8 +30,26 @@ func (s *scheduler) Register(t Task) (err error) {
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	if t.Type <= minTaskType || t.Type >= maxTaskType {
-		err = ErrInvalidTaskType
+	var e Event
+
+	switch v := t.(type) {
+	case *BackgroundTask:
+		{
+			e = v.Event
+		}
+	case *ImmediateTask:
+		{
+			e = v.Event
+		}
+	default:
+		{
+			err = ErrInvalidEvent
+			return
+		}
+	}
+
+	if e <= minEvent || e >= maxEvent {
+		err = ErrInvalidEvent
 		return
 	}
 
@@ -40,55 +58,139 @@ func (s *scheduler) Register(t Task) (err error) {
 	return
 }
 
-// tracking - запуск фонового процесса для отслеживания сигнала для вызова задач из планировщика.
-func (s *scheduler) tracking(ctx context.Context) {
+// Call - вызов события.
+func (s *scheduler) Call(e Event) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelCoreTool)
 
-		trc.FunctionCall(ctx)
-		defer func() { trc.FunctionCallFinished() }()
+		trc.FunctionCall(e)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-For:
-	for {
-		select {
-		case tt := <-s.channel:
+	var wg = new(sync.WaitGroup)
+
+	for iter := s.aggregate.Iterator(e); iter.Has(); iter.Next() {
+		var (
+			task      = iter.Value()
+			priority  uint8
+			processes bool
+		)
+
+		if err != nil {
+			break
+		}
+
+		if task == nil {
+			continue
+		}
+
+		switch t := task.(type) {
+		case *BackgroundTask:
 			{
-				for iter := s.aggregate.Iterator(tt); iter.Has(); iter.Next() {
-					var task = iter.Value()
+				if !processes {
+					priority = t.Priority
+				}
 
-					if task == nil {
-						continue
+				switch {
+				case t.Priority == priority:
+					{
+						env.Synchronization.WaitGroup.Add(1)
+
+						go func() {
+							defer func() {
+								env.Synchronization.WaitGroup.Done()
+							}()
+
+							s.components.Logger.Info().
+								Format("Task '%s' with event '%s' and priority '%d' started... ",
+									t.Name,
+									t.Event,
+									t.Priority).Write()
+
+							if err_ := task.Exec(context.Background()); err_ != nil {
+								s.components.Logger.Error().
+									Format("An error occurred during the execution of the task '%s' of event '%s' and priority '%d': '%s'. ",
+										t.Name,
+										t.Event,
+										t.Priority,
+										err_).Write()
+								return
+							}
+
+							s.components.Logger.Info().
+								Format("Task '%s' with event '%s' and priority '%d' completed. ",
+									t.Name,
+									t.Event,
+									t.Priority).Write()
+						}()
 					}
+				}
+			}
+		case *ImmediateTask:
+			{
+				if !processes {
+					priority = t.Priority
+					processes = true
+				}
 
-					env.Synchronization.WaitGroup.Add(1)
+				switch {
+				case t.Priority == priority:
+					{
+						wg.Add(1)
+						env.Synchronization.WaitGroup.Add(1)
 
-					go func() {
-						defer env.Synchronization.WaitGroup.Done()
+						go func() {
+							defer func() {
+								env.Synchronization.WaitGroup.Done()
+								wg.Done()
+							}()
 
-						s.components.Logger.Info().
-							Format("Task '%s' with type '%s' started... ", task.Name, task.Type).Write()
+							s.components.Logger.Info().
+								Format("Task '%s' with event '%s' and priority '%d' started... ",
+									t.Name,
+									t.Event,
+									t.Priority).Write()
 
-						if err := task.Exec(context.Background()); err != nil {
-							s.components.Logger.Error().
-								Format("An error occurred during the execution of the task '%s' of type '%s': '%s'. ",
-									task.Name,
-									task.Type,
-									err).Write()
+							if err_ := task.Exec(context.Background()); err_ != nil {
+								err = err_
+
+								s.components.Logger.Error().
+									Format("An error occurred during the execution of the task '%s' of event '%s' and priority '%d': '%s'. ",
+										t.Name,
+										t.Event,
+										t.Priority,
+										err_).Write()
+								return
+							}
+
+							s.components.Logger.Info().
+								Format("Task '%s' with event '%s' and priority '%d' completed. ",
+									t.Name,
+									t.Event,
+									t.Priority).Write()
+						}()
+					}
+				case t.Priority != priority:
+					{
+						wg.Wait()
+
+						if err != nil {
 							return
 						}
 
-						s.components.Logger.Info().
-							Format("Task '%s' with type '%s' completed. ", task.Name, task.Type).Write()
-					}()
-				}
-
-				if tt == TaskAfterShutdown {
-					break For
+						processes = false
+						priority = 0
+					}
 				}
 			}
 		}
+	}
+
+	wg.Wait()
+
+	if err != nil {
+		return
 	}
 
 	return

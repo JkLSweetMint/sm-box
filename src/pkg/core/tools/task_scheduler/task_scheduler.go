@@ -4,7 +4,6 @@ import (
 	"context"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/env"
 	"sync"
 )
 
@@ -15,24 +14,24 @@ const (
 // Scheduler - описание инструмента ядра системы для выполнения запланированных задач.
 type Scheduler interface {
 	Register(t Task) (err error)
+	Call(e Event) (err error)
 }
 
 // New - создание инструмента ядра системы для выполнения запланированных задач.
-func New(ctx context.Context) (sc Scheduler, c chan<- TaskType, err error) {
+func New(ctx context.Context) (sc Scheduler, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelCoreTool)
 
 		trc.FunctionCall(ctx)
-		defer func() { trc.Error(err).FunctionCallFinished(sc, c) }()
+		defer func() { trc.Error(err).FunctionCallFinished(sc) }()
 	}
 
 	var s = &scheduler{
 		aggregate: &baseShelf{
-			Tasks: make([]*Task, 0),
+			Tasks: make([]Task, 0),
 			rwMx:  new(sync.RWMutex),
 		},
-		channel: make(chan TaskType, 1),
 	}
 
 	// Компоненты
@@ -47,16 +46,7 @@ func New(ctx context.Context) (sc Scheduler, c chan<- TaskType, err error) {
 		}
 	}
 
-	c = s.channel
 	sc = s
-
-	env.Synchronization.WaitGroup.Add(1)
-
-	go func() {
-		defer env.Synchronization.WaitGroup.Done()
-
-		s.tracking(ctx)
-	}()
 
 	return
 }

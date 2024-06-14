@@ -10,7 +10,7 @@ import (
 
 func init() {
 	env.Vars.SystemName = "init-script"
-	env.Version = "24.0.16"
+	env.Version = "24.0.17"
 
 	if env.Mode == env_mode.Dev {
 		if err := tracer.Init(); err != nil {
@@ -21,17 +21,17 @@ func init() {
 
 func main() {
 	var (
-		src script.Script
+		scr script.Script
 		err error
 	)
 
-	if src, err = script.New(); err != nil {
+	if scr, err = script.New(); err != nil {
 		panic(fmt.Sprintf("An error occurred during the creation of the '%s' instance: '%s'. ",
 			env.Vars.SystemName,
 			err))
 	}
 
-	if err = src.Run(); err != nil {
+	if err = scr.Exec(); err != nil {
 		panic(fmt.Sprintf("An error occurred when starting maintenance of the '%s': '%s'. ",
 			env.Vars.SystemName,
 			err))
