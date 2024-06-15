@@ -11,7 +11,7 @@ import (
 	"path"
 	"slices"
 	glob_embed "sm-box/embed"
-	"sm-box/internal/system/init_script/embed"
+	"sm-box/internal/system/init_cli/embed"
 	"sm-box/pkg/core/env"
 	env_mode "sm-box/pkg/core/env/mode"
 )

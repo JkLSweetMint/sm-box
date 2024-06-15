@@ -7,11 +7,17 @@
 
 ---
 
+### v24.0.18:
+- [x] Переработка [системного скрипта для инициализации коробки](src/internal/system/init_script) в [CLI для инициализации коробки](src/internal/system/init_cli);
+- [x] Добавление [CLI для управления проектами](src/internal/system/project_cli);
+
+---
+
 ### v24.0.17:
 - [x] Доработки [ядра системы](src/pkg/core/core.go);
 - [x] Доработки [компонента для корректного завершения работы ядра системы](src/pkg/core/tools/closer/closer.go);
 - [x] Доработки [инструмента для управления задачами ядра системы](src/pkg/core/tools/task_scheduler/task_scheduler.go);
-- [x] Доработки [системного скрипта для инициализации коробки;](src/internal/system/init_script);
+- [x] Доработки [системного скрипта для инициализации коробки](src/internal/system/init_script);
 
 ---
 

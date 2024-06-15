@@ -1,5 +1,11 @@
 # ChangeLog:
 
+### v24.0.18:
+- Переработка [системного скрипта для инициализации коробки](src/internal/system/init_script) в [CLI для инициализации коробки](src/internal/system/init_cli);
+- Добавление [CLI для управления проектами](src/internal/system/project_cli);;
+
+---
+
 ### v24.0.17:
 - Доработки [ядра системы](src/pkg/core/core.go);
 - Доработки [компонента для корректного завершения работы ядра системы](src/pkg/core/tools/closer/closer.go);

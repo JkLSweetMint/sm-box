@@ -73,13 +73,6 @@ func New() (box_ Box, err error) {
 		}
 	}
 
-	// Инициализация
-	{
-		if err = ref.init(); err != nil {
-			return
-		}
-	}
-
 	// Контроллеры
 	{
 		ref.controllers = new(controllers)
@@ -111,19 +104,19 @@ func New() (box_ Box, err error) {
 
 		// Основные
 		{
-			if err = ref.core.Tools().TaskScheduler().Register(task_scheduler.Task{
-				Name: "Starting the server maintenance. ",
-				Type: task_scheduler.EventServe,
-				Func: ref.serve,
+			if err = ref.core.Tools().TaskScheduler().Register(&task_scheduler.ImmediateTask{
+				Name:  "Starting the server maintenance. ",
+				Event: task_scheduler.EventServe,
+				Func:  ref.serve,
 			}); err != nil {
 				ref.Components().Logger().Error().
 					Format("Failed to register a task in task scheduler: '%s'. ", err).Write()
 			}
 
-			if err = ref.core.Tools().TaskScheduler().Register(task_scheduler.Task{
-				Name: "Completion of server maintenance. ",
-				Type: task_scheduler.EventShutdown,
-				Func: ref.shutdown,
+			if err = ref.core.Tools().TaskScheduler().Register(&task_scheduler.ImmediateTask{
+				Name:  "Completion of server maintenance. ",
+				Event: task_scheduler.EventShutdown,
+				Func:  ref.shutdown,
 			}); err != nil {
 				ref.Components().Logger().Error().
 					Format("Failed to register a task in task scheduler: '%s'. ", err).Write()

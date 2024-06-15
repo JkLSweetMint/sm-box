@@ -2,19 +2,19 @@
 <Config>
  <Terminal>
   <Levels>
-   <Debug enable="true">
+   <Debug enable="false">
     <Options encoder="raw" format="capital_color" enable_trace="true" />
    </Debug>
-   <Info enable="true">
+   <Info enable="false">
     <Options encoder="raw" format="capital_color" enable_trace="false" />
    </Info>
-   <Warn enable="true">
+   <Warn enable="false">
     <Options encoder="raw" format="capital_color" enable_trace="true" />
    </Warn>
    <Error enable="true">
     <Options encoder="raw" format="capital_color" enable_trace="true" />
    </Error>
-   <DPanic enable="true">
+   <DPanic enable="false">
     <Options encoder="raw" format="capital_color" enable_trace="true" />
    </DPanic>
    <Panic enable="true">
