@@ -20,23 +20,24 @@ type Engine interface {
 }
 
 // New - создание движка http rest api коробки.
-func New(ctx context.Context, conf *config.Config) (eng Engine, err error) {
+func New(ctx context.Context) (eng Engine, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelMain, tracer.LevelTransport)
 
-		trc.FunctionCall(ctx, conf)
+		trc.FunctionCall(ctx)
 		defer func() { trc.Error(err).FunctionCallFinished(eng) }()
 	}
 
 	var ref = &engine{
-		conf: conf,
-		ctx:  ctx,
+		ctx: ctx,
 	}
 
 	// Конфигурация
 	{
-		if err = ref.conf.FillEmptyFields().Validate(); err != nil {
+		ref.conf = new(config.Config).Default()
+
+		if err = ref.conf.Read(); err != nil {
 			return
 		}
 	}
@@ -62,7 +63,7 @@ func New(ctx context.Context, conf *config.Config) (eng Engine, err error) {
 
 	// Postman
 	{
-		ref.postman = postman.NewCollection(conf.Engine.AppName, "")
+		ref.postman = postman.NewCollection(ref.conf.Engine.AppName, "")
 	}
 
 	// fiber

@@ -7,7 +7,7 @@ import (
 	"sm-box/pkg/core/env"
 )
 
-// cli - реализация скрипта для управления проектами.
+// cli - реализация инструмента для управления проектами.
 type cli struct {
 	conf *Config
 	core core.Core
@@ -15,12 +15,12 @@ type cli struct {
 	components *components
 }
 
-// components - компоненты скрипта.
+// components - компоненты cli.
 type components struct {
 	Logger logger.Logger
 }
 
-// Exec - выполнить скрипт.
+// Exec - выполнить cli.
 func (cli_ *cli) Exec() (err error) {
 	// tracer
 	{

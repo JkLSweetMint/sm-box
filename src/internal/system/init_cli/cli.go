@@ -1,10 +1,10 @@
 package init_cli
 
 import (
+	controller_initialization "sm-box/internal/system/init_cli/infrastructure/controllers/initialization"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/encryption_keys"
 	"sm-box/pkg/core/addons/pid"
-	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -30,17 +30,9 @@ func New() (cli_ CLI, err error) {
 
 	// Конфигурация
 	{
-		var c configurator.Configurator[*Config]
-
 		ref.conf = new(Config).Default()
 
-		if c, err = configurator.New[*Config](ref.conf); err != nil {
-			return
-		} else if err = c.Private().Profile(confProfile).Init(); err != nil {
-			return
-		}
-
-		if err = ref.conf.FillEmptyFields().Validate(); err != nil {
+		if err = ref.conf.Read(); err != nil {
 			return
 		}
 	}
@@ -59,6 +51,18 @@ func New() (cli_ CLI, err error) {
 		// Logger
 		{
 			if ref.components.Logger, err = logger.New(env.Vars.SystemName); err != nil {
+				return
+			}
+		}
+	}
+
+	// Контроллеры
+	{
+		ref.controllers = new(controllers)
+
+		// Initialization
+		{
+			if ref.controllers.Initialization, err = controller_initialization.New(ref.core.Ctx()); err != nil {
 				return
 			}
 		}

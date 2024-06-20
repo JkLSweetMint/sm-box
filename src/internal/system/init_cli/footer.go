@@ -2,16 +2,10 @@ package init_cli
 
 import (
 	"context"
-	"errors"
 	"github.com/spf13/cobra"
 	"os"
-	"path"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
-)
-
-var (
-	initFile = path.Join(env.Paths.SystemLocation, env.Paths.System.Path, ".init")
 )
 
 // exec - внутренний метод для запуска CLI.
@@ -72,71 +66,30 @@ Initial initialization of the system.
 `,
 				Args: cobra.NoArgs,
 				Run: func(cmd *cobra.Command, args []string) {
-
-					cli_.components.Logger.Info().
-						Format("Starting initialization '%s' CLI... ", env.Vars.SystemName).Write()
-
-					// Проверка что уже инициализировано (существует init файл)
+					// Очистка (если требуется)
 					{
-						if _, err = os.Stat(initFile); errors.Is(err, os.ErrNotExist) {
-							err = nil
-						} else {
-							if err == nil {
-								cli_.components.Logger.Info().
-									Text("The system is initialized, no reinitialization is required. ").Write()
-							} else {
+						if ok, err := cmd.Flags().GetBool("clear"); err != nil {
+							cli_.components.Logger.Error().
+								Format("An error occurred while executing the command: '%s'. ", err).Write()
+							return
+						} else if ok {
+							if cErr := cli_.controllers.Initialization.Clear(ctx); cErr != nil {
 								cli_.components.Logger.Error().
-									Format("Failed to initialize '%s' CLI: '%s'. ", env.Vars.SystemName, err).Write()
+									Format("An error occurred while executing the command: '%s'. ", cErr).Write()
+								return
 							}
-
-							return
 						}
 					}
 
-					// Логика
-					{
-						if err = cli_.initSystemDB(ctx); err != nil {
-							cli_.components.Logger.Error().
-								Format("Failed to initialize the system database: '%s'. ", err).Write()
-							return
-						}
-					}
-
-					// Создание init файла
-					{
-						if err = os.WriteFile(initFile, []byte{}, 0666); err != nil {
-							cli_.components.Logger.Error().
-								Format("Failed to initialize system: '%s'. ", err).Write()
-							return
-						}
-					}
-
-					cli_.components.Logger.Info().
-						Format("The initialization '%s' CLI has been successfully finished. ", env.Vars.SystemName).Write()
-				},
-			}
-
-			root.AddCommand(cmd)
-		}
-
-		// clean
-		{
-			var cmd = &cobra.Command{
-				Use:   "clean",
-				Short: "Clean initialization of the system. ",
-				Long: `
-Clean initialization of the system, 
-the system will be returned to its original form.
-`,
-				Args: cobra.NoArgs,
-				Run: func(cmd *cobra.Command, args []string) {
-					if err = cli_.initSystemDB(ctx); err != nil {
+					if cErr := cli_.controllers.Initialization.Initialize(ctx); cErr != nil {
 						cli_.components.Logger.Error().
-							Format("Failed to initialize the system database: '%s'. ", err).Write()
+							Format("An error occurred while executing the command: '%s'. ", cErr).Write()
 						return
 					}
 				},
 			}
+
+			cmd.Flags().Bool("clear", false, "cleaning the system before initialization")
 
 			root.AddCommand(cmd)
 		}

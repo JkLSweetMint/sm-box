@@ -5,7 +5,6 @@ import (
 	"sm-box/internal/app/transports/rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
-	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -39,17 +38,9 @@ func New() (box_ Box, err error) {
 
 	// Конфигурация
 	{
-		var c configurator.Configurator[*Config]
-
 		ref.conf = new(Config).Default()
 
-		if c, err = configurator.New[*Config](ref.conf); err != nil {
-			return
-		} else if err = c.Private().Profile(confProfile).Init(); err != nil {
-			return
-		}
-
-		if err = ref.conf.FillEmptyFields().Validate(); err != nil {
+		if err = ref.conf.Read(); err != nil {
 			return
 		}
 	}
@@ -82,7 +73,7 @@ func New() (box_ Box, err error) {
 	{
 		ref.transports = new(transports)
 
-		if ref.transports.restApi, err = rest_api.New(ref.Ctx(), ref.conf.Transports.RestAPI); err != nil {
+		if ref.transports.restApi, err = rest_api.New(ref.Ctx()); err != nil {
 			return
 		}
 	}

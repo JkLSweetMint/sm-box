@@ -3,8 +3,8 @@ package rest_api
 import (
 	"errors"
 	"github.com/gofiber/fiber/v3"
+	"sm-box/internal/app/errors"
 	"sm-box/internal/app/transports/rest_api/io"
-	"sm-box/internal/common/errors"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	c_errors "sm-box/pkg/errors"

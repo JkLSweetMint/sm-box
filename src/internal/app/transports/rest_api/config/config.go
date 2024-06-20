@@ -1,6 +1,11 @@
 package config
 
-import "sm-box/pkg/core/components/tracer"
+import (
+	"path"
+	"sm-box/pkg/core/components/configurator"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
+)
 
 // Config - конфигурация http rest api.
 type Config struct {
@@ -8,6 +13,37 @@ type Config struct {
 	Components  *Components  `json:"components"  yaml:"Components"  xml:"Components"`
 	Middlewares *Middlewares `json:"middlewares" yaml:"Middlewares" xml:"Middlewares"`
 	Postman     *Postman     `json:"postman"     yaml:"Postman"     xml:"Postman"`
+}
+
+// Read - чтение конфигурации.
+func (conf *Config) Read() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var (
+		c       configurator.Configurator[*Config]
+		profile = configurator.PrivateProfile{
+			Dir:      path.Join(env.Vars.SystemName, "/transports"),
+			Filename: "rest_api.xml",
+		}
+	)
+
+	if c, err = configurator.New[*Config](conf); err != nil {
+		return
+	} else if err = c.Private().Profile(profile).Init(); err != nil {
+		return
+	}
+
+	if err = conf.FillEmptyFields().Validate(); err != nil {
+		return
+	}
+
+	return
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации

@@ -1,24 +1,50 @@
 package app
 
 import (
+	"path"
 	rest_api_conf "sm-box/internal/app/transports/rest_api/config"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
 )
 
-var confProfile = configurator.PrivateProfile{
-	Dir:      "/",
-	Filename: "box.xml",
-}
-
 // Config - конфигурация коробки.
-type Config struct {
-	Transports *ConfigTransports `json:"transports" yaml:"Transports" xml:"Transports"`
-}
+type Config struct{}
 
 // ConfigTransports - конфигурация транспортной части коробки
 type ConfigTransports struct {
 	RestAPI *rest_api_conf.Config `json:"rest_api" yaml:"RestAPI" xml:"RestAPI"`
+}
+
+// Read - чтение конфигурации.
+func (conf *Config) Read() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var (
+		c       configurator.Configurator[*Config]
+		profile = configurator.PrivateProfile{
+			Dir:      path.Join(env.Vars.SystemName, "/"),
+			Filename: "box.xml",
+		}
+	)
+
+	if c, err = configurator.New[*Config](conf); err != nil {
+		return
+	} else if err = c.Private().Profile(profile).Init(); err != nil {
+		return
+	}
+
+	if err = conf.FillEmptyFields().Validate(); err != nil {
+		return
+	}
+
+	return
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации
@@ -30,31 +56,6 @@ func (conf *Config) FillEmptyFields() *Config {
 		trc.FunctionCall()
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
-
-	if conf.Transports == nil {
-		conf.Transports = new(ConfigTransports)
-	}
-
-	conf.Transports.FillEmptyFields()
-
-	return conf
-}
-
-// FillEmptyFields - заполнение пустых полей конфигурации
-func (conf *ConfigTransports) FillEmptyFields() *ConfigTransports {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelConfig)
-
-		trc.FunctionCall()
-		defer func() { trc.FunctionCallFinished(conf) }()
-	}
-
-	if conf.RestAPI == nil {
-		conf.RestAPI = new(rest_api_conf.Config)
-	}
-
-	conf.RestAPI.FillEmptyFields()
 
 	return conf
 }
@@ -69,23 +70,6 @@ func (conf *Config) Default() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.Transports = new(ConfigTransports).Default()
-
-	return conf
-}
-
-// Default - ConfigTransports стандартной конфигурации.
-func (conf *ConfigTransports) Default() *ConfigTransports {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelConfig)
-
-		trc.FunctionCall()
-		defer func() { trc.FunctionCallFinished(conf) }()
-	}
-
-	conf.RestAPI = new(rest_api_conf.Config).Default()
-
 	return conf
 }
 
@@ -97,27 +81,6 @@ func (conf *Config) Validate() (err error) {
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
-	}
-
-	if err = conf.Transports.Validate(); err != nil {
-		return
-	}
-
-	return
-}
-
-// Validate - валидация конфигурации.
-func (conf *ConfigTransports) Validate() (err error) {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelConfig)
-
-		trc.FunctionCall()
-		defer func() { trc.Error(err).FunctionCallFinished() }()
-	}
-
-	if err = conf.RestAPI.Validate(); err != nil {
-		return
 	}
 
 	return

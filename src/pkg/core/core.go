@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/tools/closer"
@@ -58,17 +57,9 @@ func New() (cr Core, err error) {
 
 		// Конфигурация
 		{
-			var c configurator.Configurator[*Config]
-
 			ref.conf = new(Config).Default()
 
-			if c, err = configurator.New[*Config](ref.conf); err != nil {
-				return
-			} else if err = c.Private().Profile(confProfile).Init(); err != nil {
-				return
-			}
-
-			if err = ref.conf.FillEmptyFields().Validate(); err != nil {
+			if err = ref.conf.Read(); err != nil {
 				return
 			}
 		}

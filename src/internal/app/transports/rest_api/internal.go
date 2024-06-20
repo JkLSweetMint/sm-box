@@ -92,7 +92,7 @@ func (eng *engine) Listen() (err error) {
 	// Postman
 	{
 		var (
-			p    = path.Join(env.Paths.SystemLocation, env.Paths.System.Path, "postman")
+			p    = path.Join(env.Paths.SystemLocation, env.Paths.System.Path, env.Vars.SystemName, "/transports/postman")
 			name = fmt.Sprintf("box.%s@%s.json", eng.conf.Engine.Name, eng.conf.Engine.Version)
 		)
 

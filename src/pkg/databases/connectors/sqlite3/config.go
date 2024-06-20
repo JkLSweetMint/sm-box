@@ -11,10 +11,10 @@ type Config struct {
 	Database string `json:"database" yaml:"Database" xml:"database,attr"`
 
 	// MaxOpenConns - макс. кол-во. подключений к бд.
-	MaxOpenConns int `json:"max_open_conns"    yaml:"MaxOpenConns"    xml:"MaxOpenConns"`
+	MaxOpenConns int `json:"max_open_conns" yaml:"MaxOpenConns" xml:"MaxOpenConns"`
 
 	// MaxIdleConns - макс. ожидаемых подключений к бд.
-	MaxIdleConns int `json:"max_idle_conns"    yaml:"MaxIdleConns"    xml:"MaxIdleConns"`
+	MaxIdleConns int `json:"max_idle_conns" yaml:"MaxIdleConns" xml:"MaxIdleConns"`
 
 	// ConnMaxLifetime - макс. время жизни соединения.
 	ConnMaxLifetime time.Duration `json:"conn_max_lifetime" yaml:"ConnMaxLifetime" xml:"ConnMaxLifetime"`

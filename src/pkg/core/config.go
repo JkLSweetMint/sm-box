@@ -1,15 +1,12 @@
 package core
 
 import (
+	"path"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
 	"sm-box/pkg/core/tools/closer"
 )
-
-var confProfile = configurator.PrivateProfile{
-	Dir:      "/",
-	Filename: "core.xml",
-}
 
 // Config - конфигурация ядра системы.
 type Config struct {
@@ -19,6 +16,37 @@ type Config struct {
 // ConfigTools - конфигурация инструментов ядра системы.
 type ConfigTools struct {
 	Closer *closer.Config `json:"closer" yaml:"Closer" xml:"Closer"`
+}
+
+// Read - чтение конфигурации.
+func (conf *Config) Read() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var (
+		c       configurator.Configurator[*Config]
+		profile = configurator.PrivateProfile{
+			Dir:      path.Join(env.Vars.SystemName, "/"),
+			Filename: "core.xml",
+		}
+	)
+
+	if c, err = configurator.New[*Config](conf); err != nil {
+		return
+	} else if err = c.Private().Profile(profile).Init(); err != nil {
+		return
+	}
+
+	if err = conf.FillEmptyFields().Validate(); err != nil {
+		return
+	}
+
+	return
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации

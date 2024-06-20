@@ -1,26 +1,37 @@
 package init_cli
 
 import (
+	"context"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
+	c_errors "sm-box/pkg/errors"
 )
 
-// cli - реализация скрипта для инициализации системы.
+// cli - реализация инструмента для инициализации системы.
 type cli struct {
 	conf *Config
 	core core.Core
 
-	components *components
+	controllers *controllers
+	components  *components
 }
 
-// components - компоненты скрипта.
+// components - компоненты cli.
 type components struct {
 	Logger logger.Logger
 }
 
-// Exec - выполнить скрипт.
+// controllers - контроллеры коробки.
+type controllers struct {
+	Initialization interface {
+		Initialize(ctx context.Context) (cErr c_errors.Error)
+		Clear(ctx context.Context) (cErr c_errors.Error)
+	}
+}
+
+// Exec - выполнить cli.
 func (cli_ *cli) Exec() (err error) {
 	// tracer
 	{
