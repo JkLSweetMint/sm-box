@@ -5,7 +5,10 @@ create table
         on conflict replace
             constraint env_pk
                 primary key,
-    value text not null default ''
+    value text not null default '',
+
+    constraint check_uuid
+        check (key regexp '^([0-9a-zA-Z_]+)$')
 );
 
 insert into env (key, value) values

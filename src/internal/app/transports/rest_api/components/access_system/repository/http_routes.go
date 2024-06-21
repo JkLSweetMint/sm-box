@@ -131,7 +131,7 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 				from
 					cte_roles;
 			`
-			list = make([]*Model, 0, 10)
+			models = make([]*Model, 0, 10)
 		)
 
 		if rows, err = repo.connector.QueryxContext(ctx, query, method, path); err != nil {
@@ -149,13 +149,13 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 				return
 			}
 
-			list = append(list, model)
+			models = append(models, model)
 		}
 
 		var writeInheritance func(parent *entities2.HttpRouteAccess)
 
 		writeInheritance = func(parent *entities2.HttpRouteAccess) {
-			for _, model := range list {
+			for _, model := range models {
 				if model.Parent == parent.ID {
 					var (
 						role = &entities2.Role{
@@ -179,7 +179,7 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 			}
 		}
 
-		for _, model := range list {
+		for _, model := range models {
 			if model.Parent == 0 {
 				var (
 					role = &entities2.Role{
@@ -315,7 +315,7 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 				from
 					cte_roles;
 			`
-			list = make([]*Model, 0, 10)
+			models = make([]*Model, 0, 10)
 		)
 
 		if rows, err = repo.connector.QueryxContext(ctx, query, method, path); err != nil {
@@ -333,13 +333,13 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 				return
 			}
 
-			list = append(list, model)
+			models = append(models, model)
 		}
 
 		var writeInheritance func(parent *entities2.HttpRouteAccess)
 
 		writeInheritance = func(parent *entities2.HttpRouteAccess) {
-			for _, model := range list {
+			for _, model := range models {
 				if model.Parent == parent.ID {
 					var (
 						role = &entities2.Role{
@@ -363,7 +363,7 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 			}
 		}
 
-		for _, model := range list {
+		for _, model := range models {
 			if model.Parent == 0 {
 				var (
 					role = &entities2.Role{

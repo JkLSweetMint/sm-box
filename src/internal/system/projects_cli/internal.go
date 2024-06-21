@@ -2,6 +2,7 @@ package projects_cli
 
 import (
 	"context"
+	"sm-box/internal/common/entities"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -22,7 +23,11 @@ type cli struct {
 type controllers struct {
 	Projects interface {
 		Create(ctx context.Context, title, version, description string) (cErr c_errors.Error)
+		GetAll(ctx context.Context) (projects []*entities.Project, cErr c_errors.Error)
 		Remove(ctx context.Context, id string) (cErr c_errors.Error)
+
+		SetEnv(ctx context.Context, id string, key, value string) (cErr c_errors.Error)
+		GetEnv(ctx context.Context, id string) (env entities.ProjectEnv, cErr c_errors.Error)
 	}
 }
 

@@ -4,11 +4,16 @@ import (
 	"context"
 	"fmt"
 	terminal_table "github.com/aquasecurity/table"
-	"github.com/liamg/tml"
 	"github.com/spf13/cobra"
 	"os"
+	"regexp"
+	"sm-box/internal/common/entities"
+	error_list "sm-box/internal/common/errors"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
+	c_errors "sm-box/pkg/errors"
+	"strconv"
+	"strings"
 )
 
 // exec - внутренний метод для запуска CLI.
@@ -81,7 +86,7 @@ with initial configuration.
 						description = projectDescription
 					}
 
-					if cErr := cli_.controllers.Projects.Create(context.Background(), name, version, description); cErr != nil {
+					if cErr := cli_.controllers.Projects.Create(context.Background(), name, description, version); cErr != nil {
 						cli_.components.Logger.Error().
 							Format("An error occurred while executing the command: '%s'. ", cErr).Write()
 
@@ -110,7 +115,7 @@ Getting a list of projects.
 					var table = terminal_table.New(os.Stdout)
 
 					table.SetDividers(terminal_table.UnicodeRoundedDividers)
-					table.SetLineStyle(terminal_table.StyleCyan)
+					table.SetLineStyle(terminal_table.StyleBrightBlack)
 
 					table.SetHeaders("id", "uuid", "name", "version", "owner", "description")
 					table.AddHeaders("id", "uuid", "name", "version", "id", "name", "description")
@@ -118,14 +123,36 @@ Getting a list of projects.
 					table.SetHeaderColSpans(0, 1, 1, 1, 1, 2, 1)
 					table.SetAutoMergeHeaders(true)
 
-					table.AddRow(
-						tml.Sprintf("<magenta>5</magenta>"),
-						tml.Sprintf("<magenta>507b73d7-cc15-40a1-9c58-f3018acb0b73</magenta>"),
-						tml.Sprintf("<green>Test</green>"),
-						tml.Sprintf("<yellow>2.0.0</yellow>"),
-						tml.Sprintf("<blue>1</blue>"),
-						tml.Sprintf("<blue>root</blue>"),
-						tml.Sprintf("<lightgrey>Test description</lightgrey>"))
+					var projects []*entities.Project
+
+					// Получение проектов
+					{
+						var cErr c_errors.Error
+
+						if projects, cErr = cli_.controllers.Projects.GetAll(context.Background()); cErr != nil {
+							cli_.components.Logger.Error().
+								Format("An error occurred while executing the command: '%s'. ", cErr).Write()
+
+							fmt.Println(cErr.Message())
+							return
+						}
+					}
+
+					for _, project := range projects {
+						var items = make([]string, 0, 7)
+
+						items = append(items, strconv.Itoa(int(project.ID)))
+						items = append(items, project.UUID.String())
+						items = append(items, project.Name)
+						items = append(items, project.Version)
+
+						items = append(items, strconv.Itoa(int(project.Owner.ID)))
+						items = append(items, project.Owner.Username)
+
+						items = append(items, project.Description)
+
+						table.AddRow(items...)
+					}
 
 					table.Render()
 				},
@@ -141,6 +168,101 @@ Getting a list of projects.
 
 			root.AddCommand(cmd1)
 			root.AddCommand(cmd2)
+		}
+
+		// env
+		{
+			var setEnv string
+
+			var cmd = &cobra.Command{
+				Use:   "env [project id or uuid]",
+				Short: "Project Environment Management. ",
+				Long: `
+Project Environment Management.
+`,
+				Args: cobra.MinimumNArgs(1),
+				Run: func(cmd *cobra.Command, args []string) {
+					var id string
+
+					// Сбор аргументов
+					{
+						id = args[0]
+					}
+
+					// Установить значение (если такой флаг указан)
+					{
+						if setEnv != "" {
+							if matched, _ := regexp.MatchString(`^([0-9a-zA-Z_]+=[\s\S]+)$`, setEnv); matched {
+								var (
+									splitFlag = strings.Split(setEnv, "=")
+									key       = splitFlag[0]
+									value     = splitFlag[1]
+								)
+
+								if cErr := cli_.controllers.Projects.SetEnv(context.Background(), id, key, value); cErr != nil {
+									cli_.components.Logger.Error().
+										Format("An error occurred while executing the command: '%s'. ", cErr).Write()
+
+									fmt.Println(cErr.Message())
+									return
+								}
+							} else {
+								var cErr = error_list.InvalidFlag()
+
+								cli_.components.Logger.Error().
+									Format("An error occurred while executing the command: '%s'. ", cErr).Write()
+
+								fmt.Println(cErr.Message())
+								return
+							}
+
+							return
+						}
+					}
+
+					// Отображение окружения
+					{
+						var (
+							env  entities.ProjectEnv
+							cErr c_errors.Error
+						)
+
+						// Получение данных
+						{
+							if env, cErr = cli_.controllers.Projects.GetEnv(context.Background(), id); cErr != nil {
+								cli_.components.Logger.Error().
+									Format("An error occurred while executing the command: '%s'. ", cErr).Write()
+
+								fmt.Println(cErr.Message())
+								return
+							}
+						}
+
+						// Отображение
+						{
+							var table = terminal_table.New(os.Stdout)
+
+							table.SetDividers(terminal_table.UnicodeRoundedDividers)
+							table.SetLineStyle(terminal_table.StyleBrightBlack)
+
+							table.SetHeaders("ENVIRONMENT")
+							table.AddHeaders("KEY", "VALUE")
+
+							table.SetHeaderColSpans(0, 2)
+
+							for _, v := range env {
+								table.AddRow(v.Key, v.Value)
+							}
+
+							table.Render()
+						}
+					}
+				},
+			}
+
+			cmd.Flags().StringVarP(&setEnv, "set", "s", "", "set the value of the environment variable")
+
+			root.AddCommand(cmd)
 		}
 
 		// remove/rm

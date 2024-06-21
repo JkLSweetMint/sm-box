@@ -91,6 +91,18 @@ var (
 	}).Build()
 )
 
+// E-000300
+var (
+	InvalidFlag = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-100010",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("Invalid flag value. "),
+	}.Build()
+)
+
 // E-100000
 var (
 	UserNotFound_RestAPI = c_errors.Constructor[c_errors.RestAPI]{
@@ -171,5 +183,41 @@ var (
 
 		Message: new(messages.TextMessage).
 			Text("The project was not found. "),
+	}.Build()
+)
+
+// E-100007
+var (
+	ReceivingTheProjects = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-100007",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("An error occurred while receiving the projects. "),
+	}.Build()
+)
+
+// E-100008
+var (
+	FailedSetProjectEnv = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-100008",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("An error occurred while deleting the project. "),
+	}.Build()
+)
+
+// E-100009
+var (
+	FailedGetProjectEnv = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-100009",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("An error occurred while retrieving the values of the project environment variables. "),
 	}.Build()
 )

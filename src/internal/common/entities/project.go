@@ -23,6 +23,15 @@ type (
 	ProjectOwner struct {
 		*User
 	}
+
+	// ProjectEnvVar - переменная окружения проекта
+	ProjectEnvVar struct {
+		Key   string
+		Value string
+	}
+
+	// ProjectEnv - переменные окружения проекта
+	ProjectEnv []*ProjectEnvVar
 )
 
 // FillEmptyFields - заполнение пустых полей сущности.

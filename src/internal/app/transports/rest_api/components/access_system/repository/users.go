@@ -126,7 +126,7 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 				from
 					cte_roles;
 			`
-			list = make([]*Model, 0, 10)
+			models = make([]*Model, 0, 10)
 		)
 
 		if rows, err = repo.connector.QueryxContext(ctx, query, us.ID); err != nil {
@@ -144,13 +144,13 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 				return
 			}
 
-			list = append(list, model)
+			models = append(models, model)
 		}
 
 		var writeInheritance func(parent *entities.UserAccess)
 
 		writeInheritance = func(parent *entities.UserAccess) {
-			for _, model := range list {
+			for _, model := range models {
 				if model.Parent == parent.ID {
 					var (
 						role = &entities.Role{
@@ -174,7 +174,7 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 			}
 		}
 
-		for _, model := range list {
+		for _, model := range models {
 			if model.Parent == 0 {
 				var (
 					role = &entities.Role{
@@ -327,7 +327,7 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 					cte_roles;
 
 			`
-			list = make([]*Model, 0, 10)
+			models = make([]*Model, 0, 10)
 		)
 
 		if rows, err = repo.connector.QueryxContext(ctx, query, us.ID); err != nil {
@@ -345,13 +345,13 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 				return
 			}
 
-			list = append(list, model)
+			models = append(models, model)
 		}
 
 		var writeInheritance func(parent *entities.UserAccess)
 
 		writeInheritance = func(parent *entities.UserAccess) {
-			for _, model := range list {
+			for _, model := range models {
 				if model.Parent == parent.ID {
 					var (
 						role = &entities.Role{
@@ -375,7 +375,7 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 			}
 		}
 
-		for _, model := range list {
+		for _, model := range models {
 			if model.Parent == 0 {
 				var (
 					role = &entities.Role{

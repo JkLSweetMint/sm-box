@@ -19,4 +19,10 @@ type (
 		ProjectID types.ID `db:"project_id"`
 		OwnerID   types.ID `db:"owner_id"`
 	}
+
+	// ProjectEnvVar - переменная окружения проекта
+	ProjectEnvVar struct {
+		Key   string `db:"key"`
+		Value string `db:"value"`
+	}
 )

@@ -3,6 +3,7 @@ package projects
 import (
 	"context"
 	g_uuid "github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"sm-box/internal/common/db_models"
 	"sm-box/internal/common/entities"
 	"sm-box/internal/common/types"
@@ -90,9 +91,9 @@ func (repo *Repository) Create(ctx context.Context, uuid, name, description, ver
 			insert into 
 				projects (
 						uuid, 
-						name, 
-						version,
-					    description
+						name,
+					    description, 
+						version
 					) values (
 						$1,
 						$2,
@@ -124,27 +125,123 @@ func (repo *Repository) Create(ctx context.Context, uuid, name, description, ver
 	return
 }
 
-// RemoveByUUID - удаление проекта по UUID.
-func (repo *Repository) RemoveByUUID(ctx context.Context, uuid string) (err error) {
+// GetAll - получение всех проектов системы.
+func (repo *Repository) GetAll(ctx context.Context) (projects []*entities.Project, err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelRepository)
+		var trace = tracer.New(tracer.LevelRepository)
 
-		trc.FunctionCall(ctx, uuid)
-		defer func() { trc.Error(err).FunctionCallFinished() }()
+		trace.FunctionCall(ctx)
+
+		defer func() { trace.Error(err).FunctionCallFinished(projects) }()
 	}
 
-	var query = `
-		delete from
-			projects
-		where
-		    uuid = $1
-	`
+	var models = make([]*db_models.Project, 0, 10)
 
-	if _, err = repo.connector.ExecContext(ctx, query, uuid); err != nil {
-		repo.components.Logger.Error().
-			Format("Error when deleting an item from the database: '%s'. ", err).Write()
-		return
+	// Получение данных
+	{
+		var (
+			rows  *sqlx.Rows
+			query = `
+				select
+					projects.id,
+					projects.uuid,
+					projects.owner_id,
+					projects.name,
+					projects.description,
+					projects.version
+				from
+				    projects
+				order by id
+			`
+		)
+
+		if rows, err = repo.connector.QueryxContext(ctx, query); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+			return
+		}
+
+		for rows.Next() {
+			var model = new(db_models.Project)
+
+			if err = rows.StructScan(model); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+
+			models = append(models, model)
+		}
+	}
+
+	// Перенос в сущности
+	{
+		for _, model := range models {
+			var project = new(entities.Project)
+			project.FillEmptyFields()
+
+			project.ID = model.ID
+
+			if project.UUID, err = g_uuid.Parse(model.UUID); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+
+			project.Owner.ID = model.OwnerID
+
+			project.Name = model.Name
+			project.Description = model.Description
+			project.Version = model.Version
+
+			projects = append(projects, project)
+		}
+	}
+
+	// Получение данных владельцев
+	{
+		for _, project := range projects {
+			var model = new(db_models.User)
+
+			// Получение данных
+			{
+				var query = `
+			select
+				users.id,
+				coalesce(users.project_id, 0) as project_id,
+				coalesce(users.email, '') as email,
+				users.username
+			from
+				users
+			where
+				users.id = $1
+		`
+
+				var row = repo.connector.QueryRowxContext(ctx, query, project.Owner.ID)
+
+				if err = row.Err(); err != nil {
+					repo.components.Logger.Error().
+						Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+					return
+				}
+
+				if err = row.StructScan(model); err != nil {
+					repo.components.Logger.Error().
+						Format("Error while reading item data from the database:: '%s'. ", err).Write()
+					return
+				}
+			}
+
+			// Перенос в сущность
+			{
+				project.Owner.ID = model.ID
+				project.Owner.ProjectID = model.ProjectID
+
+				project.Owner.Email = model.Email
+				project.Owner.Username = model.Username
+			}
+		}
 	}
 
 	return
@@ -157,7 +254,7 @@ func (repo *Repository) GetByID(ctx context.Context, id types.ID) (project *enti
 		var trc = tracer.New(tracer.LevelRepository)
 
 		trc.FunctionCall(ctx, id)
-		defer func() { trc.Error(err).FunctionCallFinished() }()
+		defer func() { trc.Error(err).FunctionCallFinished(project) }()
 	}
 
 	// Основные данные
@@ -269,7 +366,7 @@ func (repo *Repository) GetByUUID(ctx context.Context, uuid string) (project *en
 		var trc = tracer.New(tracer.LevelRepository)
 
 		trc.FunctionCall(ctx, uuid)
-		defer func() { trc.Error(err).FunctionCallFinished() }()
+		defer func() { trc.Error(err).FunctionCallFinished(project) }()
 	}
 
 	// Основные данные
@@ -368,6 +465,329 @@ func (repo *Repository) GetByUUID(ctx context.Context, uuid string) (project *en
 
 			project.Owner.Email = model.Email
 			project.Owner.Username = model.Username
+		}
+	}
+
+	return
+}
+
+// RemoveByUUID - удаление проекта по UUID.
+func (repo *Repository) RemoveByUUID(ctx context.Context, uuid string) (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, uuid)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var query = `
+		delete from
+			projects
+		where
+		    uuid = $1
+	`
+
+	if _, err = repo.connector.ExecContext(ctx, query, uuid); err != nil {
+		repo.components.Logger.Error().
+			Format("Error when deleting an item from the database: '%s'. ", err).Write()
+		return
+	}
+
+	return
+}
+
+// GetEnvByID - получить переменные окружения проекта по ID.
+func (repo *Repository) GetEnvByID(ctx context.Context, id types.ID) (env entities.ProjectEnv, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, id)
+		defer func() { trc.Error(err).FunctionCallFinished(env) }()
+	}
+
+	var uuid g_uuid.UUID
+
+	// Получение uuid
+	{
+		var model string
+
+		var query = `
+			select
+				projects.uuid
+			from
+				projects
+			where
+				projects.id = $1
+		`
+
+		var row = repo.connector.QueryRowxContext(ctx, query, id)
+
+		if err = row.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+			return
+		}
+
+		if err = row.Scan(&model); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
+
+		if uuid, err = g_uuid.Parse(model); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	var connector sqlite3.Connector
+
+	// Получение коннектора
+	{
+		if connector, err = repo.connectorByProject(ctx, uuid); err != nil {
+			repo.components.Logger.Error().
+				Format("Failed to create a connector for the project database: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	var models = make([]*db_models.ProjectEnvVar, 0, 10)
+
+	// Получение данных
+	{
+		var (
+			rows  *sqlx.Rows
+			query = `
+				select
+					env.key,
+					env.value
+				from
+				    env
+			`
+		)
+
+		if rows, err = connector.QueryxContext(ctx, query); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+			return
+		}
+
+		for rows.Next() {
+			var model = new(db_models.ProjectEnvVar)
+
+			if err = rows.StructScan(model); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+
+			models = append(models, model)
+		}
+	}
+
+	// Перенос в сущности
+	{
+		env = make(entities.ProjectEnv, 0)
+
+		for _, model := range models {
+			env = append(env, &entities.ProjectEnvVar{
+				Key:   model.Key,
+				Value: model.Value,
+			})
+		}
+	}
+
+	return
+}
+
+// GetEnvByUUID - получить переменные окружения проекта по UUID.
+func (repo *Repository) GetEnvByUUID(ctx context.Context, uuid g_uuid.UUID) (env entities.ProjectEnv, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, uuid)
+		defer func() { trc.Error(err).FunctionCallFinished(env) }()
+	}
+
+	var connector sqlite3.Connector
+
+	// Получение коннектора
+	{
+		if connector, err = repo.connectorByProject(ctx, uuid); err != nil {
+			repo.components.Logger.Error().
+				Format("Failed to create a connector for the project database: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	var models = make([]*db_models.ProjectEnvVar, 0, 10)
+
+	// Получение данных
+	{
+		var (
+			rows  *sqlx.Rows
+			query = `
+				select
+					env.key,
+					env.value
+				from
+				    env
+				order by env.id
+			`
+		)
+
+		if rows, err = connector.QueryxContext(ctx, query); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+			return
+		}
+
+		for rows.Next() {
+			var model = new(db_models.ProjectEnvVar)
+
+			if err = rows.StructScan(model); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+
+			models = append(models, model)
+		}
+	}
+
+	// Перенос в сущности
+	{
+		env = make(entities.ProjectEnv, 0)
+
+		for _, model := range models {
+			env = append(env, &entities.ProjectEnvVar{
+				Key:   model.Key,
+				Value: model.Value,
+			})
+		}
+	}
+
+	return
+}
+
+// SetEnvByID - установить значение переменной окружения проекта по ID.
+func (repo *Repository) SetEnvByID(ctx context.Context, id types.ID, key, value string) (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, id, key, value)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var uuid g_uuid.UUID
+
+	// Получение uuid
+	{
+		var model string
+
+		var query = `
+			select
+				projects.uuid
+			from
+				projects
+			where
+				projects.id = $1
+		`
+
+		var row = repo.connector.QueryRowxContext(ctx, query, id)
+
+		if err = row.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+			return
+		}
+
+		if err = row.Scan(&model); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
+
+		if uuid, err = g_uuid.Parse(model); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	var connector sqlite3.Connector
+
+	// Получение коннектора
+	{
+		if connector, err = repo.connectorByProject(ctx, uuid); err != nil {
+			repo.components.Logger.Error().
+				Format("Failed to create a connector for the project database: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	// Обновление данных
+	{
+		var query = `
+				update 
+					env
+				set
+				    value=$1
+				where
+				    key=$2
+			`
+
+		if _, err = connector.ExecContext(ctx, query, value, key); err != nil {
+			repo.components.Logger.Error().
+				Format("Error updating an item from the database: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	return
+}
+
+// SetEnvByUUID - установить значение переменной окружения проекта по UUID.
+func (repo *Repository) SetEnvByUUID(ctx context.Context, uuid g_uuid.UUID, key, value string) (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, uuid, key, value)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var connector sqlite3.Connector
+
+	// Получение коннектора
+	{
+		if connector, err = repo.connectorByProject(ctx, uuid); err != nil {
+			repo.components.Logger.Error().
+				Format("Failed to create a connector for the project database: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	// Обновление данных
+	{
+		var query = `
+				update 
+					env
+				set
+				    value=$1
+				where
+				    key=$2
+			`
+
+		if _, err = connector.ExecContext(ctx, query, value, key); err != nil {
+			repo.components.Logger.Error().
+				Format("Error updating an item from the database: '%s'. ", err).Write()
+			return
 		}
 	}
 

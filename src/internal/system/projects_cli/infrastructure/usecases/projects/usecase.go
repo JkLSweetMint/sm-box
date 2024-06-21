@@ -7,7 +7,6 @@ import (
 	"fmt"
 	g_uuid "github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"os"
 	"path"
 	"sm-box/internal/common/entities"
 	error_list "sm-box/internal/common/errors"
@@ -35,9 +34,15 @@ type UseCase struct {
 type repositories struct {
 	Projects interface {
 		Create(ctx context.Context, uuid, name, description, version string) (id types.ID, err error)
-		RemoveByUUID(ctx context.Context, uuid string) (err error)
+		GetAll(ctx context.Context) (projects []*entities.Project, err error)
 		GetByID(ctx context.Context, id types.ID) (project *entities.Project, err error)
 		GetByUUID(ctx context.Context, id string) (project *entities.Project, err error)
+		RemoveByUUID(ctx context.Context, uuid string) (err error)
+
+		GetEnvByID(ctx context.Context, id types.ID) (env entities.ProjectEnv, err error)
+		GetEnvByUUID(ctx context.Context, uuid g_uuid.UUID) (env entities.ProjectEnv, err error)
+		SetEnvByID(ctx context.Context, id types.ID, key, value string) (err error)
+		SetEnvByUUID(ctx context.Context, uuid g_uuid.UUID, key, value string) (err error)
 	}
 }
 
@@ -275,6 +280,36 @@ func (usecase *UseCase) Create(ctx context.Context, name, description, version s
 	return
 }
 
+// GetAll - получение всех проектов системы.
+func (usecase *UseCase) GetAll(ctx context.Context) (projects []*entities.Project, cErr c_errors.Error) {
+	// tracer
+	{
+		var trace = tracer.New(tracer.LevelUseCase)
+
+		trace.FunctionCall(ctx)
+
+		defer func() { trace.Error(cErr).FunctionCallFinished(projects) }()
+	}
+
+	var err error
+
+	if projects, err = usecase.repositories.Projects.GetAll(ctx); err != nil {
+		usecase.components.Logger.Error().
+			Format("It was not possible to get data on system projects: '%s'. ", err).Write()
+
+		cErr = error_list.ReceivingTheProjects()
+		cErr.SetError(err)
+
+		return
+	}
+
+	if projects == nil {
+		projects = make([]*entities.Project, 0)
+	}
+
+	return
+}
+
 // RemoveByID - удаление проекта по ID.
 func (usecase *UseCase) RemoveByID(ctx context.Context, id types.ID) (cErr c_errors.Error) {
 	// tracer
@@ -288,7 +323,7 @@ func (usecase *UseCase) RemoveByID(ctx context.Context, id types.ID) (cErr c_err
 
 	if project, err := usecase.repositories.Projects.GetByID(ctx, id); err != nil {
 		usecase.components.Logger.Error().
-			Format("The project data could not be retrieved to the database: '%s'. ", err).Write()
+			Format("Project data could not be retrieved from the database: '%s'. ", err).Write()
 
 		if errors.Is(err, sql.ErrNoRows) {
 			cErr = error_list.ProjectNotFound()
@@ -305,7 +340,7 @@ func (usecase *UseCase) RemoveByID(ctx context.Context, id types.ID) (cErr c_err
 		err = errors.New("project == nil")
 
 		usecase.components.Logger.Error().
-			Format("The project data could not be retrieved to the database: '%s'. ", err).Write()
+			Format("Project data could not be retrieved from the database: '%s'. ", err).Write()
 
 		cErr = error_list.ProjectNotFound()
 		cErr.SetError(err)
@@ -335,7 +370,7 @@ func (usecase *UseCase) RemoveByUUID(ctx context.Context, uuid g_uuid.UUID) (cEr
 
 	if project, err := usecase.repositories.Projects.GetByUUID(ctx, uuid.String()); err != nil {
 		usecase.components.Logger.Error().
-			Format("The project data could not be retrieved to the database: '%s'. ", err).Write()
+			Format("Project data could not be retrieved from the database: '%s'. ", err).Write()
 
 		if errors.Is(err, sql.ErrNoRows) {
 			cErr = error_list.ProjectNotFound()
@@ -352,7 +387,7 @@ func (usecase *UseCase) RemoveByUUID(ctx context.Context, uuid g_uuid.UUID) (cEr
 		err = errors.New("project == nil")
 
 		usecase.components.Logger.Error().
-			Format("The project data could not be retrieved to the database: '%s'. ", err).Write()
+			Format("Project data could not be retrieved from the database: '%s'. ", err).Write()
 
 		cErr = error_list.ProjectNotFound()
 		cErr.SetError(err)
@@ -369,39 +404,109 @@ func (usecase *UseCase) RemoveByUUID(ctx context.Context, uuid g_uuid.UUID) (cEr
 	return
 }
 
-// remove - удаление проекта.
-func (usecase *UseCase) remove(ctx context.Context, project *entities.Project) (cErr c_errors.Error) {
+// SetEnvByID - установить значение переменной окружения проекта по ID.
+func (usecase *UseCase) SetEnvByID(ctx context.Context, id types.ID, key, value string) (cErr c_errors.Error) {
 	// tracer
 	{
 		var trace = tracer.New(tracer.LevelUseCase)
 
-		trace.FunctionCall(ctx, project)
+		trace.FunctionCall(ctx, id, key, value)
 
 		defer func() { trace.Error(cErr).FunctionCallFinished() }()
 	}
 
-	// Удаление из системной базы данных
-	{
-		if err := usecase.repositories.Projects.RemoveByUUID(ctx, project.UUID.String()); err != nil {
-			cErr = error_list.FailedRemoveProject()
-			cErr.SetError(err)
+	if err := usecase.repositories.Projects.SetEnvByID(ctx, id, key, value); err != nil {
+		usecase.components.Logger.Error().
+			Format("The value of the project environment variable could not be set: '%s'. ", err).Write()
 
-			usecase.components.Logger.Error().
-				Format("The project could not be deleted from the database: '%s'. ", cErr).Write()
-			return
-		}
+		cErr = error_list.FailedSetProjectEnv()
+		cErr.SetError(err)
+
+		return
 	}
 
-	// Удаление базы данных проекта
-	{
-		if err := os.Remove(path.Join(env.Paths.SystemLocation, env.Paths.Var.Lib.Projects, fmt.Sprintf("%s.db", project.UUID.String()))); err != nil {
-			cErr = error_list.FailedRemoveProject()
-			cErr.SetError(err)
+	return
+}
 
-			usecase.components.Logger.Error().
-				Format("The project database could not be deleted: '%s'. ", err).Write()
-			return
-		}
+// SetEnvByUUID - установить значение переменной окружения проекта по UUID.
+func (usecase *UseCase) SetEnvByUUID(ctx context.Context, uuid g_uuid.UUID, key, value string) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trace = tracer.New(tracer.LevelUseCase)
+
+		trace.FunctionCall(ctx, uuid, key, value)
+
+		defer func() { trace.Error(cErr).FunctionCallFinished() }()
+	}
+
+	if err := usecase.repositories.Projects.SetEnvByUUID(ctx, uuid, key, value); err != nil {
+		usecase.components.Logger.Error().
+			Format("The value of the project environment variable could not be set: '%s'. ", err).Write()
+
+		cErr = error_list.FailedSetProjectEnv()
+		cErr.SetError(err)
+
+		return
+	}
+
+	return
+}
+
+// GetEnvByID - получить переменные окружения проекта по ID.
+func (usecase *UseCase) GetEnvByID(ctx context.Context, id types.ID) (env entities.ProjectEnv, cErr c_errors.Error) {
+	// tracer
+	{
+		var trace = tracer.New(tracer.LevelUseCase)
+
+		trace.FunctionCall(ctx, id)
+
+		defer func() { trace.Error(cErr).FunctionCallFinished() }()
+	}
+
+	var err error
+
+	if env, err = usecase.repositories.Projects.GetEnvByID(ctx, id); err != nil {
+		usecase.components.Logger.Error().
+			Format("Failed to get the project environment variables: '%s'. ", err).Write()
+
+		cErr = error_list.FailedGetProjectEnv()
+		cErr.SetError(err)
+
+		return
+	}
+
+	if env == nil {
+		env = make(entities.ProjectEnv, 0)
+	}
+
+	return
+}
+
+// GetEnvByUUID - получить переменные окружения проекта по UUID.
+func (usecase *UseCase) GetEnvByUUID(ctx context.Context, uuid g_uuid.UUID) (env entities.ProjectEnv, cErr c_errors.Error) {
+	// tracer
+	{
+		var trace = tracer.New(tracer.LevelUseCase)
+
+		trace.FunctionCall(ctx, uuid)
+
+		defer func() { trace.Error(cErr).FunctionCallFinished() }()
+	}
+
+	var err error
+
+	if env, err = usecase.repositories.Projects.GetEnvByUUID(ctx, uuid); err != nil {
+		usecase.components.Logger.Error().
+			Format("Failed to get the project environment variables: '%s'. ", err).Write()
+
+		cErr = error_list.FailedGetProjectEnv()
+		cErr.SetError(err)
+
+		return
+	}
+
+	if env == nil {
+		env = make(entities.ProjectEnv, 0)
 	}
 
 	return
