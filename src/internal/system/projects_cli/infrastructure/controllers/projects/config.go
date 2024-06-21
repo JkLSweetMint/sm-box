@@ -1,4 +1,4 @@
-package initialization
+package projects
 
 import (
 	"path"
@@ -63,8 +63,8 @@ func (conf *Config) Read() (err error) {
 	var (
 		c       configurator.Configurator[*Config]
 		profile = configurator.PrivateProfile{
-			Dir:      path.Join(env.Vars.SystemName, "/infrastructure/usecases/"),
-			Filename: "initialization.xml",
+			Dir:      path.Join(env.Vars.SystemName, "/infrastructure/controllers/"),
+			Filename: "projects.xml",
 		}
 	)
 

@@ -11,24 +11,24 @@ import (
 
 // Controller - контроллер инициализации.
 type Controller struct {
-	usecases   *UseCases
+	usecases   *usecases
 	components *components
 
 	conf *Config
 	ctx  context.Context
 }
 
-// components - компоненты контроллера.
-type components struct {
-	Logger logger.Logger
-}
-
-// UseCases - сценарии контроллера.
-type UseCases struct {
+// usecases - логики контроллера.
+type usecases struct {
 	Initialization interface {
 		Initialize(ctx context.Context) (cErr c_errors.Error)
 		Clear(ctx context.Context) (cErr c_errors.Error)
 	}
+}
+
+// components - компоненты контроллера.
+type components struct {
+	Logger logger.Logger
 }
 
 // New - создание контроллера.
@@ -66,9 +66,9 @@ func New(ctx context.Context) (controller *Controller, err error) {
 		}
 	}
 
-	// Сценарии
+	// Логика
 	{
-		controller.usecases = new(UseCases)
+		controller.usecases = new(usecases)
 
 		if controller.usecases.Initialization, err = usecase_initialization.New(controller.ctx); err != nil {
 			return
@@ -95,7 +95,7 @@ func (controller *Controller) Initialize(ctx context.Context) (cErr c_errors.Err
 
 	if cErr = controller.usecases.Initialization.Initialize(ctx); cErr != nil {
 		controller.components.Logger.Error().
-			Format("The controller instructions failed with an error: '%s'. ", cErr).Write()
+			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 		return
 	}
 
@@ -115,7 +115,7 @@ func (controller *Controller) Clear(ctx context.Context) (cErr c_errors.Error) {
 
 	if cErr = controller.usecases.Initialization.Clear(ctx); cErr != nil {
 		controller.components.Logger.Error().
-			Format("The controller instructions failed with an error: '%s'. ", cErr).Write()
+			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 		return
 	}
 

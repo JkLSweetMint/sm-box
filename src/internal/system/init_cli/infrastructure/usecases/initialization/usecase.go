@@ -9,8 +9,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"os"
 	"path"
+	error_list "sm-box/internal/common/errors"
 	"sm-box/internal/system/init_cli/embed"
-	error_list "sm-box/internal/system/init_cli/errors"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -22,7 +22,7 @@ var (
 	initFile = path.Join(env.Paths.SystemLocation, env.Paths.System.Path, ".init")
 )
 
-// UseCase - сценарий инициализации.
+// UseCase - логика инициализации.
 type UseCase struct {
 	components *components
 
@@ -30,12 +30,12 @@ type UseCase struct {
 	ctx  context.Context
 }
 
-// components - компоненты сценария.
+// components - компоненты логики.
 type components struct {
 	Logger logger.Logger
 }
 
-// New - создание сценария.
+// New - создание логики.
 func New(ctx context.Context) (usecase *UseCase, err error) {
 	// tracer
 	{
@@ -100,7 +100,7 @@ func (usecase *UseCase) Initialize(ctx context.Context) (cErr c_errors.Error) {
 				usecase.components.Logger.Error().
 					Text("The system is initialized, no initialization is required. ").Write()
 			} else {
-				cErr = error_list.ErrFailedToInitializeSystem()
+				cErr = error_list.FailedToInitializeSystem()
 				cErr.SetError(err)
 
 				usecase.components.Logger.Error().
@@ -111,95 +111,94 @@ func (usecase *UseCase) Initialize(ctx context.Context) (cErr c_errors.Error) {
 		}
 	}
 
-	// Процесс инициализации
+	// Процесс создания базы данных
 	{
-		// Системная база данных
+		var (
+			connector sqlite3.Connector
+			err       error
+		)
+
+		usecase.components.Logger.Info().
+			Text("Starting initialization system db... ").Write()
+
+		// Подключение/создание файла
 		{
-			var err error
+			var conf = new(sqlite3.Config).Default()
 
-			usecase.components.Logger.Info().
-				Text("Starting initialization system db... ").Write()
+			conf.Database = path.Join(env.Paths.Var.Lib.Path, env.Files.Var.Lib.SystemDB)
 
-			var connector sqlite3.Connector
+			if connector, err = sqlite3.New(ctx, conf); err != nil {
+				cErr = error_list.FailedToInitializeSystem()
+				cErr.SetError(err)
 
-			// Подключение/создание файла
+				usecase.components.Logger.Error().
+					Format("The system database file could not be created: '%s'. ", err).Write()
+				return
+			}
+		}
+
+		// Выполнение миграций
+		{
+			var query string
+
+			// Чтение файла миграций
 			{
-				var conf = new(sqlite3.Config).Default()
+				var data []byte
 
-				conf.Database = path.Join(env.Paths.Var.Lib, env.Files.Var.Lib.SystemDB)
-
-				if connector, err = sqlite3.New(ctx, conf); err != nil {
-					cErr = error_list.ErrFailedToInitializeSystem()
+				if data, err = embed.Dir.ReadFile("migrations/system.sql"); err != nil {
+					cErr = error_list.FailedToInitializeSystem()
 					cErr.SetError(err)
 
 					usecase.components.Logger.Error().
-						Format("The system database file could not be created: '%s'. ", err).Write()
+						Format("The migration file for the system database could not be read: '%s'. ", err).Write()
 					return
 				}
+
+				query = string(data)
 			}
 
-			// Выполнение миграций
-			{
-				var query string
+			if _, err = connector.Exec(query); err != nil {
+				cErr = error_list.FailedToInitializeSystem()
+				cErr.SetError(err)
 
-				// Чтение файла миграций
-				{
-					var data []byte
+				usecase.components.Logger.Error().
+					Format("Migrations for the system database failed: '%s'. ", err).Write()
+				return
+			}
+		}
 
-					if data, err = embed.Dir.ReadFile("migrations/system.sql"); err != nil {
-						cErr = error_list.ErrFailedToInitializeSystem()
-						cErr.SetError(err)
+		// Создание root пользователя
+		{
+			var password []byte
 
-						usecase.components.Logger.Error().
-							Format("The migration file for the system database could not be read: '%s'. ", err).Write()
-						return
-					}
+			if password, err = rsa.EncryptOAEP(
+				sha256.New(),
+				rand.Reader,
+				env.Vars.EncryptionKeys.Public,
+				[]byte("toor"),
+				[]byte("password")); err != nil {
+				cErr = error_list.FailedToInitializeSystem()
+				cErr.SetError(err)
 
-					query = string(data)
-				}
-
-				if _, err = connector.Exec(query); err != nil {
-					cErr = error_list.ErrFailedToInitializeSystem()
-					cErr.SetError(err)
-
-					usecase.components.Logger.Error().
-						Format("Migrations for the system database failed: '%s'. ", err).Write()
-					return
-				}
+				usecase.components.Logger.Error().
+					Format("The encryption of the root user's password failed: '%s'. ", err).Write()
+				return
 			}
 
-			// Создание root пользователя
+			var tx *sqlx.Tx
+
+			if tx, err = connector.Beginx(); err != nil {
+				cErr = error_list.FailedToInitializeSystem()
+				cErr.SetError(err)
+
+				usecase.components.Logger.Error().
+					Format("Failed to create a transaction for the database: '%s'. ", err).Write()
+				return
+			}
+
+			// Добавление root пользователя
 			{
-				var password []byte
-
-				if password, err = rsa.EncryptOAEP(
-					sha256.New(),
-					rand.Reader,
-					env.Vars.EncryptionKeys.Public,
-					[]byte("whoifnotme"),
-					[]byte("password")); err != nil {
-					cErr = error_list.ErrFailedToInitializeSystem()
-					cErr.SetError(err)
-
-					usecase.components.Logger.Error().
-						Format("The encryption of the root user's password failed: '%s'. ", err).Write()
-					return
-				}
-
-				var tx *sqlx.Tx
-
-				if tx, err = connector.Beginx(); err != nil {
-					cErr = error_list.ErrFailedToInitializeSystem()
-					cErr.SetError(err)
-
-					usecase.components.Logger.Error().
-						Format("Failed to create a transaction for the database: '%s'. ", err).Write()
-					return
-				}
-
-				// Добавление root пользователя
-				{
-					var query = `
+				var query = `
 				insert into
 					users(
 						username,
@@ -210,19 +209,19 @@ func (usecase *UseCase) Initialize(ctx context.Context) (cErr c_errors.Error) {
 				);
 			`
 
-					if _, err = tx.Exec(query, password); err != nil {
-						cErr = error_list.ErrFailedToInitializeSystem()
-						cErr.SetError(err)
+				if _, err = tx.Exec(query, password); err != nil {
+					cErr = error_list.FailedToInitializeSystem()
+					cErr.SetError(err)
 
-						usecase.components.Logger.Error().
-							Format("Error inserting an item from the database: '%s'. ", err).Write()
-						return
-					}
+					usecase.components.Logger.Error().
+						Format("Error inserting an item from the database: '%s'. ", err).Write()
+					return
 				}
+			}
 
-				// Добавление роли для root пользователя
-				{
-					var query = `
+			// Добавление роли для root пользователя
+			{
+				var query = `
 				insert into
 					user_accesses(
 						  user_id,
@@ -233,36 +232,34 @@ func (usecase *UseCase) Initialize(ctx context.Context) (cErr c_errors.Error) {
 					);
 			`
 
-					if _, err = tx.Exec(query); err != nil {
-						cErr = error_list.ErrFailedToInitializeSystem()
-						cErr.SetError(err)
-
-						usecase.components.Logger.Error().
-							Format("Error inserting an item from the database: '%s'. ", err).Write()
-						return
-					}
-				}
-
-				if err = tx.Commit(); err != nil {
-					cErr = error_list.ErrFailedToInitializeSystem()
+				if _, err = tx.Exec(query); err != nil {
+					cErr = error_list.FailedToInitializeSystem()
 					cErr.SetError(err)
 
 					usecase.components.Logger.Error().
-						Format("The transaction for the database failed: '%s'. ", err).Write()
+						Format("Error inserting an item from the database: '%s'. ", err).Write()
 					return
 				}
 			}
 
-			usecase.components.Logger.Info().
-				Text("The initialization system db has been successfully finished. ").Write()
+			if err = tx.Commit(); err != nil {
+				cErr = error_list.FailedToInitializeSystem()
+				cErr.SetError(err)
+
+				usecase.components.Logger.Error().
+					Format("The transaction for the database failed: '%s'. ", err).Write()
+				return
+			}
 		}
 
+		usecase.components.Logger.Info().
+			Text("The initialization system db has been successfully finished. ").Write()
 	}
 
 	// Создание init файла
 	{
 		if err := os.WriteFile(initFile, []byte{}, 0666); err != nil {
-			cErr = error_list.ErrFailedToInitializeSystem()
+			cErr = error_list.FailedToInitializeSystem()
 			cErr.SetError(err)
 
 			usecase.components.Logger.Error().
@@ -293,8 +290,8 @@ func (usecase *UseCase) Clear(ctx context.Context) (cErr c_errors.Error) {
 
 	// Очистка системной базы данных
 	{
-		if err := os.Remove(path.Join(env.Paths.SystemLocation, env.Paths.Var.Lib, "system.db")); err != nil {
-			cErr = error_list.ErrSystemCleanupError()
+		if err := os.Remove(path.Join(env.Paths.SystemLocation, env.Paths.Var.Lib.Path, env.Files.Var.Lib.SystemDB)); err != nil {
+			cErr = error_list.SystemCleanupError()
 			cErr.SetError(err)
 
 			usecase.components.Logger.Error().
@@ -305,8 +302,8 @@ func (usecase *UseCase) Clear(ctx context.Context) (cErr c_errors.Error) {
 
 	// Очистка проектов
 	{
-		if err := os.RemoveAll(path.Join(env.Paths.SystemLocation, env.Paths.Var.Lib, "/projects")); err != nil {
-			cErr = error_list.ErrSystemCleanupError()
+		if err := os.RemoveAll(path.Join(env.Paths.SystemLocation, env.Paths.Var.Lib.Projects)); err != nil {
+			cErr = error_list.SystemCleanupError()
 			cErr.SetError(err)
 
 			usecase.components.Logger.Error().
@@ -318,7 +315,7 @@ func (usecase *UseCase) Clear(ctx context.Context) (cErr c_errors.Error) {
 	// Удалить .init файл
 	{
 		if err := os.Remove(initFile); err != nil {
-			cErr = error_list.ErrSystemCleanupError()
+			cErr = error_list.SystemCleanupError()
 			cErr.SetError(err)
 
 			usecase.components.Logger.Error().

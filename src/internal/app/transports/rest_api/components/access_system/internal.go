@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"regexp"
-	"sm-box/internal/app/errors"
-	entities2 "sm-box/internal/app/infrastructure/objects/entities"
-	"sm-box/internal/app/infrastructure/types"
 	rest_api_io "sm-box/internal/app/transports/rest_api/io"
+	entities2 "sm-box/internal/common/entities"
+	errors2 "sm-box/internal/common/errors"
+	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"strings"
@@ -90,11 +90,11 @@ func (acc *accessSystem) BasicUserAuth(ctx fiber.Ctx) (err error) {
 			acc.components.Logger.Error().
 				Format("The request body data could not be read: '%s'. ", err).Write()
 
-			if err = rest_api_io.WriteError(ctx, error_list.ErrRequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+			if err = rest_api_io.WriteError(ctx, errors2.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
 				acc.components.Logger.Error().
 					Format("The response could not be recorded: '%s'. ", err).Write()
 
-				var cErr = error_list.ErrResponseCouldNotBeRecorded_RestAPI()
+				var cErr = errors2.ResponseCouldNotBeRecorded_RestAPI()
 				cErr.SetError(err)
 
 				return rest_api_io.WriteError(ctx, cErr)
@@ -118,11 +118,11 @@ func (acc *accessSystem) BasicUserAuth(ctx fiber.Ctx) (err error) {
 					acc.components.Logger.Warn().
 						Format("User authorization error: '%s'. ", err).Write()
 
-					if err = rest_api_io.WriteError(ctx, error_list.ErrUserNotFound_RestAPI()); err != nil {
+					if err = rest_api_io.WriteError(ctx, errors2.UserNotFound_RestAPI()); err != nil {
 						acc.components.Logger.Error().
 							Format("The response could not be recorded: '%s'. ", err).Write()
 
-						return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+						return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 					}
 					return
 				}
@@ -132,11 +132,11 @@ func (acc *accessSystem) BasicUserAuth(ctx fiber.Ctx) (err error) {
 					Field("username", requestData.Username).
 					Field("password", requestData.Password).Write()
 
-				if err = rest_api_io.WriteError(ctx, error_list.ErrInternalServerError_RestAPI()); err != nil {
+				if err = rest_api_io.WriteError(ctx, errors2.InternalServerError_RestAPI()); err != nil {
 					acc.components.Logger.Error().
 						Format("The response could not be recorded: '%s'. ", err).Write()
 
-					return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+					return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 				}
 				return
 			}
@@ -161,11 +161,11 @@ func (acc *accessSystem) BasicUserAuth(ctx fiber.Ctx) (err error) {
 					Format("Failed to get token data: '%s'. ", err).
 					Field("data", data).Write()
 
-				if err = rest_api_io.WriteError(ctx, error_list.ErrTokenNotFound_RestAPI()); err != nil {
+				if err = rest_api_io.WriteError(ctx, errors2.TokenNotFound_RestAPI()); err != nil {
 					acc.components.Logger.Error().
 						Format("The response could not be recorded: '%s'. ", err).Write()
 
-					return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+					return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 				}
 				return
 			}
@@ -179,11 +179,11 @@ func (acc *accessSystem) BasicUserAuth(ctx fiber.Ctx) (err error) {
 					Field("user_id", us.ID).
 					Field("token", token).Write()
 
-				if err = rest_api_io.WriteError(ctx, error_list.ErrAlreadyAuthorized_RestAPI()); err != nil {
+				if err = rest_api_io.WriteError(ctx, errors2.AlreadyAuthorized_RestAPI()); err != nil {
 					acc.components.Logger.Error().
 						Format("The response could not be recorded: '%s'. ", err).Write()
 
-					return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+					return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 				}
 				return
 			}
@@ -197,11 +197,11 @@ func (acc *accessSystem) BasicUserAuth(ctx fiber.Ctx) (err error) {
 					Field("owner_id", us.ID).
 					Field("token", token).Write()
 
-				if err = rest_api_io.WriteError(ctx, error_list.ErrInternalServerError_RestAPI()); err != nil {
+				if err = rest_api_io.WriteError(ctx, errors2.InternalServerError_RestAPI()); err != nil {
 					acc.components.Logger.Error().
 						Format("The response could not be recorded: '%s'. ", err).Write()
 
-					return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+					return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 				}
 				return
 			}
@@ -214,7 +214,7 @@ func (acc *accessSystem) BasicUserAuth(ctx fiber.Ctx) (err error) {
 			acc.components.Logger.Error().
 				Format("The response could not be recorded: '%s'. ", err).Write()
 
-			return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+			return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 		}
 		return
 	}

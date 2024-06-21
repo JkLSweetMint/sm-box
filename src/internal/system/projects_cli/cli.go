@@ -1,7 +1,7 @@
-package init_cli
+package projects_cli
 
 import (
-	controller_initialization "sm-box/internal/system/init_cli/infrastructure/controllers/initialization"
+	controller_projects "sm-box/internal/system/projects_cli/infrastructure/controllers/projects"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/encryption_keys"
 	"sm-box/pkg/core/addons/pid"
@@ -11,7 +11,7 @@ import (
 	"sm-box/pkg/core/tools/task_scheduler"
 )
 
-// CLI - описание функционала CLI для управления инициализации системы.
+// CLI - описание функционала CLI для управления проектами.
 type CLI interface {
 	Exec() (err error)
 }
@@ -48,9 +48,9 @@ func New() (cli_ CLI, err error) {
 	{
 		ref.controllers = new(controllers)
 
-		// Initialization
+		// Projects
 		{
-			if ref.controllers.Initialization, err = controller_initialization.New(ref.core.Ctx()); err != nil {
+			if ref.controllers.Projects, err = controller_projects.New(ref.core.Ctx()); err != nil {
 				return
 			}
 		}

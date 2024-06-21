@@ -3,8 +3,8 @@ package rest_api
 import (
 	"errors"
 	"github.com/gofiber/fiber/v3"
-	"sm-box/internal/app/errors"
 	"sm-box/internal/app/transports/rest_api/io"
+	errors2 "sm-box/internal/common/errors"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	c_errors "sm-box/pkg/errors"
@@ -57,7 +57,7 @@ func (eng *engine) initBaseRoutes() {
 						eng.components.Logger.Error().
 							Format("The response could not be recorded: '%s'. ", err).Write()
 
-						var cErr = error_list.ErrResponseCouldNotBeRecorded_RestAPI()
+						var cErr = errors2.ResponseCouldNotBeRecorded_RestAPI()
 						cErr.SetError(err)
 
 						return rest_api_io.WriteError(ctx, cErr)
@@ -156,7 +156,7 @@ func (eng *engine) initBaseRoutes() {
 						eng.components.Logger.Error().
 							Format("The response could not be recorded: '%s'. ", err).Write()
 
-						var cErr = error_list.ErrResponseCouldNotBeRecorded_RestAPI()
+						var cErr = errors2.ResponseCouldNotBeRecorded_RestAPI()
 						cErr.SetError(err)
 
 						return rest_api_io.WriteError(ctx, cErr)
@@ -236,7 +236,7 @@ func (eng *engine) initBaseRoutes() {
 
 				// Обработка данных
 				{
-					response = error_list.ErrUnknown_RestAPI()
+					response = errors2.Unknown_RestAPI()
 					response.SetError(errors.New("Test. "))
 				}
 
@@ -246,7 +246,7 @@ func (eng *engine) initBaseRoutes() {
 						eng.components.Logger.Error().
 							Format("The response could not be recorded: '%s'. ", err).Write()
 
-						var cErr = error_list.ErrResponseCouldNotBeRecorded_RestAPI()
+						var cErr = errors2.ResponseCouldNotBeRecorded_RestAPI()
 						cErr.SetError(err)
 
 						return rest_api_io.WriteError(ctx, cErr)

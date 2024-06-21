@@ -4,12 +4,15 @@ create table
     id          integer not null
         constraint projects_pk
             primary key autoincrement,
-    owner_id   integer not null
+    uuid        text not null unique,
+    owner_id    integer not null default 1
         references users (id),
-    db         text not null
+    name        text not null,
+    description text not null,
+    version     text not null,
 
-    constraint check_db
-        check (db regexp '^([0-9a-zA-Z]\.db)$')
+    constraint check_uuid
+        check (uuid regexp '^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$')
 );
 
 create table

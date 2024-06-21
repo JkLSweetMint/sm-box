@@ -7,9 +7,9 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"regexp"
-	"sm-box/internal/app/errors"
-	"sm-box/internal/app/infrastructure/objects/entities"
 	"sm-box/internal/app/transports/rest_api/io"
+	"sm-box/internal/common/entities"
+	errors2 "sm-box/internal/common/errors"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	"time"
@@ -35,11 +35,11 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 				Field("method", method).
 				Field("path", path).Write()
 
-			if err = rest_api_io.WriteError(ctx, error_list.ErrRouteNotFound_RestAPI()); err != nil {
+			if err = rest_api_io.WriteError(ctx, errors2.RouteNotFound_RestAPI()); err != nil {
 				acc.components.Logger.Error().
 					Format("The response could not be recorded: '%s'. ", err).Write()
 
-				return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+				return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 			}
 			return
 		}
@@ -64,11 +64,11 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 				Format("Failed to get token data: '%s'. ", err).
 				Field("data", data).Write()
 
-			if err = rest_api_io.WriteError(ctx, error_list.ErrTokenNotFound_RestAPI()); err != nil {
+			if err = rest_api_io.WriteError(ctx, errors2.TokenNotFound_RestAPI()); err != nil {
 				acc.components.Logger.Error().
 					Format("The response could not be recorded: '%s'. ", err).Write()
 
-				return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+				return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 			}
 			return
 		}
@@ -78,7 +78,7 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 	{
 		if route.Authorize {
 			if token.UserID == 0 {
-				return rest_api_io.WriteError(ctx, error_list.ErrUnauthorized_RestAPI())
+				return rest_api_io.WriteError(ctx, errors2.Unauthorized_RestAPI())
 			}
 		}
 	}
@@ -95,11 +95,11 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 						acc.components.Logger.Warn().
 							Format("User not found: '%s'. ", err).Write()
 
-						if err = rest_api_io.WriteError(ctx, error_list.ErrUserNotFound_RestAPI()); err != nil {
+						if err = rest_api_io.WriteError(ctx, errors2.UserNotFound_RestAPI()); err != nil {
 							acc.components.Logger.Error().
 								Format("The response could not be recorded: '%s'. ", err).Write()
 
-							return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+							return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 						}
 						return
 					}
@@ -108,11 +108,11 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 						Format("User data could not be retrieved: '%s'. ", err).
 						Field("user_id", token.UserID).Write()
 
-					if err = rest_api_io.WriteError(ctx, error_list.ErrInternalServerError_RestAPI()); err != nil {
+					if err = rest_api_io.WriteError(ctx, errors2.InternalServerError_RestAPI()); err != nil {
 						acc.components.Logger.Error().
 							Format("The response could not be recorded: '%s'. ", err).Write()
 
-						return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+						return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 					}
 					return
 				}
@@ -124,11 +124,11 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 					Field("user_id", token.UserID).
 					Field("route", route).Write()
 
-				if err = rest_api_io.WriteError(ctx, error_list.ErrForbidden_RestAPI()); err != nil {
+				if err = rest_api_io.WriteError(ctx, errors2.Forbidden_RestAPI()); err != nil {
 					acc.components.Logger.Error().
 						Format("The response could not be recorded: '%s'. ", err).Write()
 
-					return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+					return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 				}
 				return
 			}
@@ -169,11 +169,11 @@ func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
 					Format("Failed to get token data: '%s'. ", err).
 					Field("data", data).Write()
 
-				if err = rest_api_io.WriteError(ctx, error_list.ErrTokenNotFound_RestAPI()); err != nil {
+				if err = rest_api_io.WriteError(ctx, errors2.TokenNotFound_RestAPI()); err != nil {
 					acc.components.Logger.Error().
 						Format("The response could not be recorded: '%s'. ", err).Write()
 
-					return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+					return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 				}
 				return
 			}
@@ -191,14 +191,14 @@ func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
 					Text("The validity period of the user's token has not started yet. ").
 					Field("token", token).Write()
 
-				var cErr = error_list.ErrValidityPeriodOfUserTokenHasNotStarted_RestAPI()
+				var cErr = errors2.ValidityPeriodOfUserTokenHasNotStarted_RestAPI()
 				cErr.Details().Set("not_before", token.NotBefore.UTC().Format(time.RFC3339Nano))
 
 				if err = rest_api_io.WriteError(ctx, cErr); err != nil {
 					acc.components.Logger.Error().
 						Format("The response could not be recorded: '%s'. ", err).Write()
 
-					return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+					return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 				}
 				return
 			}
@@ -260,11 +260,11 @@ func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *entities.JwtToken) 
 			acc.components.Logger.Error().
 				Format("Failed to generate a token for the client: '%s'. ", err).Write()
 
-			if err = rest_api_io.WriteError(ctx, error_list.ErrInternalServerError_RestAPI()); err != nil {
+			if err = rest_api_io.WriteError(ctx, errors2.InternalServerError_RestAPI()); err != nil {
 				acc.components.Logger.Error().
 					Format("The response could not be recorded: '%s'. ", err).Write()
 
-				return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+				return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 			}
 			return
 		}
@@ -289,11 +289,11 @@ func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *entities.JwtToken) 
 			acc.components.Logger.Error().
 				Format("The client's current could not be registered in the database: '%s'. ", err).Write()
 
-			if err = rest_api_io.WriteError(ctx, error_list.ErrInternalServerError_RestAPI()); err != nil {
+			if err = rest_api_io.WriteError(ctx, errors2.InternalServerError_RestAPI()); err != nil {
 				acc.components.Logger.Error().
 					Format("The response could not be recorded: '%s'. ", err).Write()
 
-				return rest_api_io.WriteError(ctx, error_list.ErrResponseCouldNotBeRecorded_RestAPI())
+				return rest_api_io.WriteError(ctx, errors2.ResponseCouldNotBeRecorded_RestAPI())
 			}
 			return
 		}

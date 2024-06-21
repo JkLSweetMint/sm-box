@@ -1,4 +1,4 @@
-package init_cli
+package projects_cli
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	c_errors "sm-box/pkg/errors"
 )
 
-// cli - реализация инструмента для инициализации системы.
+// cli - реализация инструмента для управления проектами.
 type cli struct {
 	conf *Config
 	core core.Core
@@ -20,9 +20,9 @@ type cli struct {
 
 // controllers - контроллеры cli.
 type controllers struct {
-	Initialization interface {
-		Initialize(ctx context.Context) (cErr c_errors.Error)
-		Clear(ctx context.Context) (cErr c_errors.Error)
+	Projects interface {
+		Create(ctx context.Context, title, version, description string) (cErr c_errors.Error)
+		Remove(ctx context.Context, id string) (cErr c_errors.Error)
 	}
 }
 

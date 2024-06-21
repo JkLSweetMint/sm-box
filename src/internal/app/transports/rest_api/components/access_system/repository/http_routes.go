@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
-	"sm-box/internal/app/infrastructure/objects/db_models"
-	entities2 "sm-box/internal/app/infrastructure/objects/entities"
+	"sm-box/internal/common/db_models"
+	entities2 "sm-box/internal/common/entities"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/databases/connectors/sqlite3"
 	"strings"

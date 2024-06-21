@@ -56,12 +56,20 @@ type Dev struct {
 		// Cache - путь к директории для кеширования файлов.
 		// Стандартное расположение: /cache
 		Cache string
-		// Lib - путь к директории для хранения системных библиотек и хранилищ системы.
-		// Стандартное расположение: /lib
-		Lib string
 		// Run - путь к директории PID файлов.
 		// Стандартное расположение: /run
 		Run string
+
+		// Lib - путь к директории для хранения системных библиотек и хранилищ системы.
+		// Стандартное расположение: /lib
+		Lib *struct {
+			// Path - путь к директории.
+			Path string
+
+			// Projects - путь к директории файлов проектов.
+			// Стандартное расположение: /projects
+			Projects string
+		}
 
 		// Test - директория тестовых файлов.
 		// Стандартное расположение: /test
@@ -127,12 +135,18 @@ type Prod struct {
 		// Cache - путь к директории для кеширования файлов.
 		// Стандартное расположение: /cache
 		Cache string
-		// Lib - путь к директории для хранения системных библиотек и хранилищ системы.
-		// Стандартное расположение: /lib
-		Lib string
 		// Run - путь к директории PID файлов.
 		// Стандартное расположение: /run
 		Run string
+
+		Lib *struct {
+			// Path - путь к директории.
+			Path string
+
+			// Projects - путь к директории файлов проектов.
+			// Стандартное расположение: /projects
+			Projects string
+		}
 	}
 }
 
@@ -182,8 +196,13 @@ func (storage *Dev) Build(options BuildOptions) *Dev {
 			Logs  string
 			Data  string
 			Cache string
-			Lib   string
 			Run   string
+
+			Lib *struct {
+				Path string
+
+				Projects string
+			}
 
 			Test *struct {
 				Path string
@@ -201,8 +220,22 @@ func (storage *Dev) Build(options BuildOptions) *Dev {
 		s.Logs = path.Join(s.Path, "/logs")
 		s.Data = path.Join(s.Path, "/data")
 		s.Cache = path.Join(s.Path, "/cache")
-		s.Lib = path.Join(s.Path, "/lib")
 		s.Run = path.Join(s.Path, "/run")
+
+		// Lib
+		{
+			storage.Var.Lib = &struct {
+				Path string
+
+				Projects string
+			}{
+				Path: path.Join(s.Path, "/lib"),
+			}
+
+			var s = storage.Var.Lib
+
+			s.Projects = path.Join(s.Path, "/projects")
+		}
 
 		// Test
 		{
@@ -275,8 +308,13 @@ func (storage *Prod) Build(options BuildOptions) *Prod {
 			Logs  string
 			Data  string
 			Cache string
-			Lib   string
 			Run   string
+
+			Lib *struct {
+				Path string
+
+				Projects string
+			}
 		}{
 			Path: "/var",
 		}
@@ -287,8 +325,22 @@ func (storage *Prod) Build(options BuildOptions) *Prod {
 		s.Logs = path.Join(s.Path, "/logs")
 		s.Data = path.Join(s.Path, "/data")
 		s.Cache = path.Join(s.Path, "/cache")
-		s.Lib = path.Join(s.Path, "/lib")
 		s.Run = path.Join(s.Path, "/run")
+
+		// Lib
+		{
+			storage.Var.Lib = &struct {
+				Path string
+
+				Projects string
+			}{
+				Path: path.Join(s.Path, "/lib"),
+			}
+
+			var s = storage.Var.Lib
+
+			s.Projects = path.Join(s.Path, "/projects")
+		}
 	}
 
 	return storage

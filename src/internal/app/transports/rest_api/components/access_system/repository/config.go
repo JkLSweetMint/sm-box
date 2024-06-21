@@ -43,7 +43,7 @@ func (conf *Config) Default() *Config {
 
 	conf.Connector = new(sqlite3.Config).Default()
 
-	conf.Connector.Database = path.Join(env.Paths.Var.Lib, env.Files.Var.Lib.SystemDB)
+	conf.Connector.Database = path.Join(env.Paths.Var.Lib.Path, env.Files.Var.Lib.SystemDB)
 
 	return conf
 }

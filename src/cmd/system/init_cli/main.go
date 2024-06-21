@@ -10,7 +10,7 @@ import (
 
 func init() {
 	env.Vars.SystemName = "init-cli"
-	env.Version = "24.0.19"
+	env.Version = "24.0.20"
 
 	if env.Mode == env_mode.Dev {
 		if err := tracer.Init(); err != nil {

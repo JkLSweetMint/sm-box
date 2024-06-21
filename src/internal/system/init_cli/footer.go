@@ -2,6 +2,7 @@ package init_cli
 
 import (
 	"context"
+	"fmt"
 	"github.com/spf13/cobra"
 	"os"
 	"sm-box/pkg/core/components/tracer"
@@ -58,6 +59,8 @@ func (cli_ *cli) exec(ctx context.Context) (err error) {
 
 		// initial
 		{
+			var enableClear bool
+
 			var cmd = &cobra.Command{
 				Use:   "initial",
 				Short: "Initial initialization of the system. ",
@@ -68,14 +71,12 @@ Initial initialization of the system.
 				Run: func(cmd *cobra.Command, args []string) {
 					// Очистка (если требуется)
 					{
-						if ok, err := cmd.Flags().GetBool("clear"); err != nil {
-							cli_.components.Logger.Error().
-								Format("An error occurred while executing the command: '%s'. ", err).Write()
-							return
-						} else if ok {
+						if enableClear {
 							if cErr := cli_.controllers.Initialization.Clear(ctx); cErr != nil {
 								cli_.components.Logger.Error().
 									Format("An error occurred while executing the command: '%s'. ", cErr).Write()
+
+								fmt.Println(cErr.Message())
 								return
 							}
 						}
@@ -84,12 +85,14 @@ Initial initialization of the system.
 					if cErr := cli_.controllers.Initialization.Initialize(ctx); cErr != nil {
 						cli_.components.Logger.Error().
 							Format("An error occurred while executing the command: '%s'. ", cErr).Write()
+
+						fmt.Println(cErr.Message())
 						return
 					}
 				},
 			}
 
-			cmd.Flags().Bool("clear", false, "cleaning the system before initialization")
+			cmd.Flags().BoolVarP(&enableClear, "clear", "c", false, "cleaning the system before initialization")
 
 			root.AddCommand(cmd)
 		}
