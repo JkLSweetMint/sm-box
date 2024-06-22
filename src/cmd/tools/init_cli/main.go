@@ -3,8 +3,7 @@ package main
 import (
 	"fmt"
 	"path"
-	"sm-box/internal/app"
-	"sm-box/pkg/core/addons/encryption_keys"
+	"sm-box/internal/tools/init_cli"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -12,43 +11,33 @@ import (
 )
 
 func init() {
-	env.Vars.SystemName = "box"
+	env.Vars.SystemName = "init-cli"
 	env.Version = "24.0.22"
 
-	configurator.PbDir = path.Join(configurator.PbDir, env.Vars.SystemName)
-	configurator.PrtDir = path.Join(configurator.PrtDir, env.Vars.SystemName)
+	configurator.PbDir = path.Join(configurator.PbDir, "/tools", env.Vars.SystemName)
+	configurator.PrtDir = path.Join(configurator.PrtDir, "/tools", env.Vars.SystemName)
 
 	if env.Mode == env_mode.Dev {
 		if err := tracer.Init(); err != nil {
 			panic(fmt.Sprintf("An error occurred during initialization of the function/method call trace logging component: '%s'. ", err))
 		}
 	}
-
-	if err := encryption_keys.Init(); err != nil {
-		panic(fmt.Sprintf("An error occurred during the initialization of the system add-on for encryption keys: '%s'. ", err))
-	}
 }
 
 func main() {
 	var (
-		bx  app.Box
+		cli init_cli.CLI
 		err error
 	)
 
-	if bx, err = app.New(); err != nil {
+	if cli, err = init_cli.New(); err != nil {
 		panic(fmt.Sprintf("An error occurred during the creation of the '%s' instance: '%s'. ",
 			env.Vars.SystemName,
 			err))
 	}
 
-	if err = bx.Serve(); err != nil {
+	if err = cli.Exec(); err != nil {
 		panic(fmt.Sprintf("An error occurred when starting maintenance of the '%s': '%s'. ",
-			env.Vars.SystemName,
-			err))
-	}
-
-	if err = bx.Shutdown(); err != nil {
-		panic(fmt.Sprintf("An error occurred while completing the maintenance of the '%s': '%s'. ",
 			env.Vars.SystemName,
 			err))
 	}

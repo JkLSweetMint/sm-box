@@ -6,7 +6,7 @@ import (
 
 // Init - инициализация компонента ведения журнала трессировки вызовов функций/методов.
 func Init() (err error) {
-	var conf = new(Config).Default()
+	var conf = new(Config)
 
 	if err = conf.Read(); err != nil {
 		return

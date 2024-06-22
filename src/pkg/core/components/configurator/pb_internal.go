@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	pbDir            = path.Join(env.Paths.SystemLocation, env.Paths.Etc)
+	PbDir            = path.Join(env.Paths.SystemLocation, env.Paths.Etc)
 	pbDefaultEncoder = encoders.YamlEncoder{}
 )
 
@@ -72,8 +72,9 @@ func (c *publicConfigurator[T]) Init() (err error) {
 		}
 	}
 
-	if _, err = os.Stat(path.Join(pbDir, c.dir, c.filename)); err != nil {
+	if _, err = os.Stat(path.Join(PbDir, c.dir, c.filename)); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
+			c.conf.Default()
 			return c.Write()
 		}
 
@@ -103,7 +104,7 @@ func (c *publicConfigurator[T]) Write() (err error) {
 		return
 	}
 
-	var dir = path.Join(pbDir, c.dir)
+	var dir = path.Join(PbDir, c.dir)
 
 	if err = os.MkdirAll(dir, 0655); err != nil {
 		return
@@ -132,7 +133,7 @@ func (c *publicConfigurator[T]) Read() (err error) {
 
 	var data []byte
 
-	if data, err = os.ReadFile(path.Join(pbDir, c.dir, c.filename)); err != nil {
+	if data, err = os.ReadFile(path.Join(PbDir, c.dir, c.filename)); err != nil {
 		return
 	}
 

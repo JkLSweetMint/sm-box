@@ -57,7 +57,7 @@ func New() (cr Core, err error) {
 
 		// Конфигурация
 		{
-			ref.conf = new(Config).Default()
+			ref.conf = new(Config)
 
 			if err = ref.conf.Read(); err != nil {
 				return

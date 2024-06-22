@@ -1,5 +1,9 @@
 package configurator
 
+import "sm-box/pkg/core/env"
+
+var ConfigDir = env.Vars.SystemName
+
 // Configurator - диспетчер конфигураций.
 type Configurator[T any] interface {
 	Public() Public[T]

@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"path"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -28,7 +27,7 @@ func (conf *Config) Read() (err error) {
 	var (
 		c       configurator.Configurator[*Config]
 		profile = configurator.PrivateProfile{
-			Dir:      path.Join(env.Vars.SystemName, "/components"),
+			Dir:      "/components",
 			Filename: "logger.xml",
 		}
 	)

@@ -22,9 +22,9 @@ func (bx *box) serve(ctx context.Context) (err error) {
 	// Транспортная часть
 	{
 		go func() {
-			if err = bx.Transports().RestApi().Listen(); err != nil {
+			if err = bx.Transports().HttpProxy().Listen(); err != nil {
 				bx.Components().Logger().Error().
-					Format("Failed to launch 'http rest api': '%s'. ", err).Write()
+					Format("Failed to launch 'http proxy': '%s'. ", err).Write()
 			}
 		}()
 	}
@@ -50,9 +50,9 @@ func (bx *box) shutdown(ctx context.Context) (err error) {
 
 	// Транспортная часть
 	{
-		if err = bx.Transports().RestApi().Shutdown(); err != nil {
+		if err = bx.Transports().HttpProxy().Shutdown(); err != nil {
 			bx.Components().Logger().Error().
-				Format("Failed to stop 'http rest api': '%s'. ", err).Write()
+				Format("Failed to stop 'http proxy': '%s'. ", err).Write()
 		}
 	}
 

@@ -32,7 +32,7 @@ func newLogger(initiator string, conf *Config) (log *logger, err error) {
 	}
 
 	if conf == nil {
-		conf = new(Config).Default()
+		conf = new(Config)
 
 		if err = conf.Read(); err != nil {
 			return

@@ -1,10 +1,8 @@
 package tracer
 
 import (
-	"path"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer/logger"
-	"sm-box/pkg/core/env"
 )
 
 // Config - конфигурация компонента трессировки.
@@ -18,7 +16,7 @@ func (conf *Config) Read() (err error) {
 	var (
 		c       configurator.Configurator[*Config]
 		profile = configurator.PrivateProfile{
-			Dir:      path.Join(env.Vars.SystemName, "/components"),
+			Dir:      "/components",
 			Filename: "tracer.xml",
 		}
 	)

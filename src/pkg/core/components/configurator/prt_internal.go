@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	prtDir            = path.Join(env.Paths.SystemLocation, env.Paths.System.Path)
+	PrtDir            = path.Join(env.Paths.SystemLocation, env.Paths.System.Path)
 	prtDefaultEncoder = encoders.XmlEncoder{}
 )
 
@@ -74,8 +74,9 @@ func (c *privateConfigurator[T]) Init() (err error) {
 	}
 
 	if env.Mode == env_mode.Dev {
-		if _, err = os.Stat(path.Join(prtDir, c.dir, c.filename)); err != nil {
+		if _, err = os.Stat(path.Join(PrtDir, c.dir, c.filename)); err != nil {
 			if errors.Is(err, os.ErrNotExist) {
+				c.conf.Default()
 				return c.write()
 			}
 
@@ -106,7 +107,7 @@ func (c *privateConfigurator[T]) write() (err error) {
 		return
 	}
 
-	var dir = path.Join(prtDir, c.dir)
+	var dir = path.Join(PrtDir, c.dir)
 
 	if err = os.MkdirAll(dir, 0655); err != nil {
 		return
@@ -135,7 +136,7 @@ func (c *privateConfigurator[T]) read() (err error) {
 
 	var data []byte
 
-	if data, err = os.ReadFile(path.Join(prtDir, c.dir, c.filename)); err != nil {
+	if data, err = os.ReadFile(path.Join(PrtDir, c.dir, c.filename)); err != nil {
 		return
 	}
 

@@ -1,11 +1,9 @@
 package app
 
 import (
-	"path"
-	rest_api_conf "sm-box/internal/app/transports/rest_api/config"
+	http_proxy_conf "sm-box/internal/app/transports/http_proxy/config"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/env"
 )
 
 // Config - конфигурация коробки.
@@ -13,7 +11,7 @@ type Config struct{}
 
 // ConfigTransports - конфигурация транспортной части коробки
 type ConfigTransports struct {
-	RestAPI *rest_api_conf.Config `json:"rest_api" yaml:"RestAPI" xml:"RestAPI"`
+	HttpProxy *http_proxy_conf.Config `json:"http_proxy" yaml:"HttpProxy" xml:"HttpProxy"`
 }
 
 // Read - чтение конфигурации.
@@ -29,7 +27,7 @@ func (conf *Config) Read() (err error) {
 	var (
 		c       configurator.Configurator[*Config]
 		profile = configurator.PrivateProfile{
-			Dir:      path.Join(env.Vars.SystemName, "/"),
+			Dir:      "/",
 			Filename: "box.xml",
 		}
 	)

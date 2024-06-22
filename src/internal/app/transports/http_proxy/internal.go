@@ -1,0 +1,181 @@
+package http_proxy
+
+import (
+	"context"
+	"fmt"
+	"github.com/gofiber/fiber/v3"
+	"os"
+	"path"
+	"sm-box/internal/app/transports/http_proxy/config"
+	"sm-box/pkg/core/components/logger"
+	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
+	"sm-box/pkg/http/postman"
+	"sm-box/pkg/tools/file"
+	"strings"
+	"sync"
+	"time"
+)
+
+// engine - движок http proxy коробки.
+type engine struct {
+	app    *fiber.App
+	router fiber.Router
+
+	conf *config.Config
+	ctx  context.Context
+
+	components *components
+
+	postman *postman.Collection
+}
+
+// components - компоненты движка http proxy коробки.
+type components struct {
+	Logger logger.Logger
+}
+
+// Listen - запуск движка.
+func (eng *engine) Listen() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelMain, tracer.LevelTransport)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	eng.components.Logger.Info().
+		Text("The http proxy engine is listening... ").Write()
+
+	// Регистрация запросов
+	{
+		var (
+			prefix string
+			list   = make([]*fiber.Route, 0, 100)
+		)
+
+		// prefix
+		{
+			if eng.conf.Engine.Name != "" {
+				prefix += "/" + eng.conf.Engine.Name
+			}
+
+			if eng.conf.Engine.Version != "" {
+				prefix += "/" + eng.conf.Engine.Version
+			}
+		}
+
+		for _, stack := range eng.app.Stack() {
+			for _, route := range stack {
+				if strings.HasPrefix(route.Path, prefix) {
+					eng.components.Logger.Info().
+						Format("The route '%s %s' (%d) is registered. ", route.Method, route.Path, len(route.Handlers)).Write()
+
+					list = append(list, route)
+				}
+			}
+		}
+	}
+
+	// Postman
+	{
+		var (
+			p    = path.Join(env.Paths.SystemLocation, env.Paths.System.Path, env.Vars.SystemName, "/transports/postman")
+			name = fmt.Sprintf("box.%s@%s.json", eng.conf.Engine.Name, eng.conf.Engine.Version)
+		)
+
+		// Проверка наличия файла
+		{
+			var exist bool
+
+			if exist, err = file.Exists(path.Join(p, name)); err != nil {
+				eng.components.Logger.Error().
+					Format("Could not verify the existence of the postman collection file: '%s'. ", err).Write()
+				return
+			}
+
+			if exist {
+				if err = os.Remove(path.Join(p, name)); err != nil {
+					eng.components.Logger.Error().
+						Format("The postman collection file could not be deleted: '%s'. ", err).Write()
+					return
+				}
+			} else {
+				if err = os.MkdirAll(p, 0666); err != nil {
+					eng.components.Logger.Error().
+						Format("Failed to create a directory for the postman collection file: '%s'. ", err).Write()
+					return
+				}
+			}
+		}
+
+		var fl *os.File
+
+		if fl, err = os.Create(path.Join(p, name)); err != nil {
+			eng.components.Logger.Error().
+				Format("Failed to create a file for the postman collection: '%s'. ", err).Write()
+			return
+		}
+
+		defer fl.Close()
+
+		if err = eng.postman.Write(fl, postman.V210); err != nil {
+			eng.components.Logger.Error().
+				Format("Failed to write postman collection data: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		if err = eng.app.Listen(eng.conf.Engine.Addr, eng.conf.Engine.ToFiberListenConfig()); err != nil {
+			eng.components.Logger.Error().
+				Format("An error occurred when starting the http router maintenance: '%s'. ", err).Write()
+			return
+		}
+	}()
+
+	time.Sleep(time.Second)
+
+	if err != nil {
+		return
+	}
+
+	eng.components.Logger.Info().
+		Text("The http proxy engine is listened. ").Write()
+
+	wg.Wait()
+
+	return
+}
+
+// Shutdown - завершение работы движка.
+func (eng *engine) Shutdown() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelMain, tracer.LevelTransport)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	eng.components.Logger.Info().
+		Text("Shutting down the http proxy engine... ").Write()
+
+	if err = eng.app.Shutdown(); err != nil {
+		eng.components.Logger.Error().
+			Format("An error occurred when completing router maintenance: '%s'. ", err).Write()
+		return
+	}
+
+	eng.components.Logger.Info().
+		Text("The http proxy engine is turned off. ").Write()
+
+	return
+}

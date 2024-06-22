@@ -1,19 +1,14 @@
-package core
+package config
 
 import (
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/tools/closer"
 )
 
-// Config - конфигурация ядра системы.
+// Config - конфигурация http proxy.
 type Config struct {
-	Tools *ConfigTools `json:"tools" yaml:"Tools" xml:"Tools"`
-}
-
-// ConfigTools - конфигурация инструментов ядра системы.
-type ConfigTools struct {
-	Closer *closer.Config `json:"closer" yaml:"Closer" xml:"Closer"`
+	Engine  *Engine  `json:"engine"  yaml:"Engine"  xml:"Engine"`
+	Postman *Postman `json:"postman" yaml:"Postman" xml:"Postman"`
 }
 
 // Read - чтение конфигурации.
@@ -29,8 +24,8 @@ func (conf *Config) Read() (err error) {
 	var (
 		c       configurator.Configurator[*Config]
 		profile = configurator.PrivateProfile{
-			Dir:      "/",
-			Filename: "core.xml",
+			Dir:      "/transports",
+			Filename: "http_proxy.xml",
 		}
 	)
 
@@ -57,30 +52,16 @@ func (conf *Config) FillEmptyFields() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	if conf.Tools == nil {
-		conf.Tools = new(ConfigTools)
+	if conf.Engine == nil {
+		conf.Engine = new(Engine)
 	}
 
-	conf.Tools.FillEmptyFields()
-
-	return conf
-}
-
-// FillEmptyFields - заполнение пустых полей конфигурации
-func (conf *ConfigTools) FillEmptyFields() *ConfigTools {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelConfig)
-
-		trc.FunctionCall()
-		defer func() { trc.FunctionCallFinished(conf) }()
+	if conf.Postman == nil {
+		conf.Postman = new(Postman)
 	}
 
-	if conf.Closer == nil {
-		conf.Closer = new(closer.Config)
-	}
-
-	conf.Closer.FillEmptyFields()
+	conf.Engine.FillEmptyFields()
+	conf.Postman.FillEmptyFields()
 
 	return conf
 }
@@ -95,22 +76,8 @@ func (conf *Config) Default() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.Tools = new(ConfigTools).Default()
-
-	return conf
-}
-
-// Default - запись стандартной конфигурации.
-func (conf *ConfigTools) Default() *ConfigTools {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelConfig)
-
-		trc.FunctionCall()
-		defer func() { trc.FunctionCallFinished(conf) }()
-	}
-
-	conf.Closer = new(closer.Config).Default()
+	conf.Engine = new(Engine).Default()
+	conf.Postman = new(Postman).Default()
 
 	return conf
 }
@@ -125,17 +92,12 @@ func (conf *Config) Validate() (err error) {
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	return
-}
+	if err = conf.Engine.Validate(); err != nil {
+		return
+	}
 
-// Validate - валидация конфигурации.
-func (conf *ConfigTools) Validate() (err error) {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelConfig)
-
-		trc.FunctionCall()
-		defer func() { trc.Error(err).FunctionCallFinished() }()
+	if err = conf.Postman.Validate(); err != nil {
+		return
 	}
 
 	return

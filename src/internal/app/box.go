@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"sm-box/internal/app/transports/rest_api"
+	"sm-box/internal/app/transports/http_proxy"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
 	"sm-box/pkg/core/components/logger"
@@ -38,7 +38,7 @@ func New() (box_ Box, err error) {
 
 	// Конфигурация
 	{
-		ref.conf = new(Config).Default()
+		ref.conf = new(Config)
 
 		if err = ref.conf.Read(); err != nil {
 			return
@@ -73,7 +73,7 @@ func New() (box_ Box, err error) {
 	{
 		ref.transports = new(transports)
 
-		if ref.transports.restApi, err = rest_api.New(ref.Ctx()); err != nil {
+		if ref.transports.httpProxy, err = http_proxy.New(ref.Ctx()); err != nil {
 			return
 		}
 	}

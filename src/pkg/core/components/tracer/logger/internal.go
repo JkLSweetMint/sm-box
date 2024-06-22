@@ -27,7 +27,7 @@ type internal struct {
 // newLogger - создание компонента ведения журнала.
 func newLogger(conf *Config) (log *logger, err error) {
 	if conf == nil {
-		conf = new(Config).Default()
+		conf = new(Config)
 	}
 
 	log = &logger{
