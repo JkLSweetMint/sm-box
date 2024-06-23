@@ -7,6 +7,29 @@
 
 ---
 
+### v24.0.23:
+- [x] Переработка архитектуры системы;
+- [x] Доработки [коробки](src/internal/app/box.go) для проксирования на микросервисы;
+- [x] Создать сервис для [аутентификации пользователей](src/internal/services/authentication/service.go);
+
+---
+
+### v24.0.22:
+- [x] Переработка архитектуры системы;
+
+---
+
+### v24.0.21:
+- [x] Доработки [CLI для управления проектами](src/internal/system/project_cli);
+
+---
+
+### v24.0.20:
+- [x] Доработки [CLI для инициализации коробки](src/internal/system/init_cli);
+- [x] Доработки [CLI для управления проектами](src/internal/system/project_cli);
+
+---
+
 ### v24.0.19:
 - [x] Доработки [CLI для инициализации коробки](src/internal/system/init_cli);
 
@@ -42,11 +65,11 @@
 
 ### v24.0.14:
 - [x] Разработать модели базы данных:
-  - [x] [JWT токен](src/internal/common/db_models/jwt_token.go);
+  - [x] [JWT токен](src/internal/common/objects/db_models/jwt_token.go);
 - [x] Разработать модели:
-  - [x] [JWT токен](src/internal/common/models/jwt_token.go);
+  - [x] [JWT токен](src/internal/common/objects/models/jwt_token.go);
 - [x] Разработать сущности:
-  - [x] [JWT токен](src/internal/common/entities/jwt_token.go);
+  - [x] [JWT токен](src/internal/common/objects/entities/jwt_token.go);
 - [x] Доработки архитектуры проекта;
 - [x] Доработки архитектуры базы данных;
 - [x] Доработки по компоненту [системы доступа http rest api](src/internal/app/transports/rest_api/components/access_system);
@@ -55,20 +78,20 @@
 
 ### v24.0.13:
 - [x] Разработать модели базы данных:
-    - [x] [Проект](src/internal/common/db_models/project.go);
-    - [x] [Роль](src/internal/common/db_models/role.go);
-    - [x] [Http Маршрут](src/internal/common/db_models/http_route.go);
-    - [x] [Пользователь](src/internal/common/db_models/user.go);
+    - [x] [Проект](src/internal/common/objects/db_models/project.go);
+    - [x] [Роль](src/internal/common/objects/db_models/role.go);
+    - [x] [Http Маршрут](src/internal/common/objects/db_models/http_route.go);
+    - [x] [Пользователь](src/internal/common/objects/db_models/user.go);
 - [x] Разработать модели:
-    - [x] [Проект](src/internal/common/models/project.go);
-    - [x] [Роль](src/internal/common/models/role.go);
-    - [x] [Http Маршрут](src/internal/common/models/http_route.go);
-    - [x] [Пользователь](src/internal/common/models/user.go);
+    - [x] [Проект](src/internal/common/objects/models/project.go);
+    - [x] [Роль](src/internal/common/objects/models/role.go);
+    - [x] [Http Маршрут](src/internal/common/objects/models/http_route.go);
+    - [x] [Пользователь](src/internal/common/objects/models/user.go);
 - [x] Разработать сущности:
-    - [x] [Проект](src/internal/common/entities/project.go);
-    - [x] [Роль](src/internal/common/entities/role.go);
-    - [x] [Http Маршрут](src/internal/common/entities/http_route.go);
-    - [x] [Пользователь](src/internal/common/entities/user.go);
+    - [x] [Проект](src/internal/common/objects/entities/project.go);
+    - [x] [Роль](src/internal/common/objects/entities/role.go);
+    - [x] [Http Маршрут](src/internal/common/objects/entities/http_route.go);
+    - [x] [Пользователь](src/internal/common/objects/entities/user.go);
 - [x] Доработки архитектуры проекта;
 - [x] Доработки архитектуры базы данных;
 

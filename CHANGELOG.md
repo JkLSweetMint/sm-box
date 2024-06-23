@@ -1,5 +1,33 @@
 # ChangeLog:
 
+### v24.0.23:
+- Переработка архитектуры системы;
+- project-cli (новое название project manager) теперь микросервис на который направляет запросы [коробка](src/internal/app/box.go);
+- Создан сервис для [аутентификации пользователей](src/internal/services/authentication/service.go);
+- Доработки [коробки](src/internal/app/box.go) для проксирования на микросервисы;
+
+---
+
+### v24.0.22:
+- Исправлен баг в компоненте [ведения журнала](src/pkg/core/components/logger/logger.go);
+- Переработка архитектуры системы;
+- [Приложение (Коробка)](src/internal/app/box.go) теперь занимается проксированием на микросервисы;
+- [init-cli](src/internal/tools/init_cli) перенесен в инструменты;
+- Доработки компонента [управления конфигурациями проекта](src/pkg/core/components/configurator/configurator.go);
+
+---
+
+### v24.0.21:
+- Доработать [CLI для управления проектами](src/internal/system/project_cli);
+
+---
+
+### v24.0.20:
+- Доработать [CLI для инициализации коробки](src/internal/system/init_cli);
+- Доработать [CLI для управления проектами](src/internal/system/project_cli);
+
+---
+
 ### v24.0.19:
 - Доработать [CLI для инициализации коробки](src/internal/system/init_cli);
 
@@ -7,7 +35,7 @@
 
 ### v24.0.18:
 - Переработка [системного скрипта для инициализации коробки](src/internal/system/init_script) в [CLI для инициализации коробки](src/internal/system/init_cli);
-- Добавление [CLI для управления проектами](src/internal/system/project_cli);;
+- Добавление [CLI для управления проектами](src/internal/system/project_cli);
 
 ---
 
@@ -39,11 +67,11 @@
 
 ### v24.0.14:
 - Разработаны модели базы данных:
-  - [JWT токен](src/internal/common/db_models/jwt_token.go);
+  - [JWT токен](src/internal/common/objects/db_models/jwt_token.go);
 - Разработаны модели:
-  - [JWT токен](src/internal/common/models/jwt_token.go);
+  - [JWT токен](src/internal/common/objects/models/jwt_token.go);
 - Разработаны сущности:
-  - [JWT токен](src/internal/common/entities/jwt_token.go);
+  - [JWT токен](src/internal/common/objects/entities/jwt_token.go);
 - Доработка архитектуры проекта;
 - Доработки архитектуры базы данных;
 - Доработки по компоненту [системы доступа http rest api](src/internal/app/transports/rest_api/components/access_system);
@@ -55,20 +83,20 @@
 
 ### v24.0.13:
 - Разработаны модели базы данных:
-  - [Проект](src/internal/common/db_models/project.go);
-  - [Роль](src/internal/common/db_models/role.go);
-  - [Http Маршрут](src/internal/common/db_models/http_route.go);
-  - [Пользователь](src/internal/common/db_models/user.go);
+  - [Проект](src/internal/common/objects/db_models/project.go);
+  - [Роль](src/internal/common/objects/db_models/role.go);
+  - [Http Маршрут](src/internal/common/objects/db_models/http_route.go);
+  - [Пользователь](src/internal/common/objects/db_models/user.go);
 - Разработаны модели:
-  - [Проект](src/internal/common/models/project.go);
-  - [Роль](src/internal/common/models/role.go);
-  - [Http Маршрут](src/internal/common/models/http_route.go);
-  - [Пользователь](src/internal/common/models/user.go);
+  - [Проект](src/internal/common/objects/models/project.go);
+  - [Роль](src/internal/common/objects/models/role.go);
+  - [Http Маршрут](src/internal/common/objects/models/http_route.go);
+  - [Пользователь](src/internal/common/objects/models/user.go);
 - Разработаны сущности:
-  - [Проект](src/internal/common/entities/project.go);
-  - [Роль](src/internal/common/entities/role.go);
-  - [Http Маршрут](src/internal/common/entities/http_route.go);
-  - [Пользователь](src/internal/common/entities/user.go);
+  - [Проект](src/internal/common/objects/entities/project.go);
+  - [Роль](src/internal/common/objects/entities/role.go);
+  - [Http Маршрут](src/internal/common/objects/entities/http_route.go);
+  - [Пользователь](src/internal/common/objects/entities/user.go);
 - Добавлен тип данных [ID](src/internal/common/types/id.go) для сущностей и моделей; 
 - Доработка архитектуры проекта;
 - Доработки архитектуры базы данных;

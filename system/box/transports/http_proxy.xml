@@ -1,0 +1,38 @@
+<Config>
+	<Engine addr="127.0.0.1:8000" name="proxy" version="v1.0" domain="box.samgk.ru">
+		<ServerHeader>Sm-Box Server</ServerHeader>
+		<StrictRouting>true</StrictRouting>
+		<CaseSensitive>false</CaseSensitive>
+		<Immutable>false</Immutable>
+		<UnescapePath>false</UnescapePath>
+		<BodyLimit>4194304</BodyLimit>
+		<Concurrency>262144</Concurrency>
+		<ReadTimeout>0</ReadTimeout>
+		<WriteTimeout>0</WriteTimeout>
+		<IdleTimeout>0</IdleTimeout>
+		<ReadBufferSize>4096</ReadBufferSize>
+		<WriteBufferSize>4096</WriteBufferSize>
+		<CompressedFileSuffix>.box.gz</CompressedFileSuffix>
+		<ProxyHeader></ProxyHeader>
+		<GETOnly>false</GETOnly>
+		<DisableKeepalive>false</DisableKeepalive>
+		<DisableDefaultDate>false</DisableDefaultDate>
+		<DisableDefaultContentType>false</DisableDefaultContentType>
+		<DisableHeaderNormalizing>false</DisableHeaderNormalizing>
+		<AppName>Sm-Box Rest API</AppName>
+		<StreamRequestBody>false</StreamRequestBody>
+		<DisablePreParseMultipartForm>false</DisablePreParseMultipartForm>
+		<ReduceMemoryUsage>false</ReduceMemoryUsage>
+		<Network>tcp4</Network>
+		<EnableTrustedProxyCheck>false</EnableTrustedProxyCheck>
+		<EnableIPValidation>false</EnableIPValidation>
+		<EnableSplittingOnParsers>false</EnableSplittingOnParsers>
+	</Engine>
+	<Postman>
+		<Protocol>https</Protocol>
+		<Host>box.samgk.ru</Host>
+	</Postman>
+	<Proxy>
+		<Sources path="/authentication/v1.0/*" remote_addr="http://localhost:8001"></Sources>
+	</Proxy>
+</Config>

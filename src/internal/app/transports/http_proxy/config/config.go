@@ -9,6 +9,7 @@ import (
 type Config struct {
 	Engine  *Engine  `json:"engine"  yaml:"Engine"  xml:"Engine"`
 	Postman *Postman `json:"postman" yaml:"Postman" xml:"Postman"`
+	Proxy   *Proxy   `json:"proxy"   yaml:"Proxy"   xml:"Proxy"`
 }
 
 // Read - чтение конфигурации.
@@ -60,8 +61,13 @@ func (conf *Config) FillEmptyFields() *Config {
 		conf.Postman = new(Postman)
 	}
 
+	if conf.Proxy == nil {
+		conf.Proxy = new(Proxy)
+	}
+
 	conf.Engine.FillEmptyFields()
 	conf.Postman.FillEmptyFields()
+	conf.Proxy.FillEmptyFields()
 
 	return conf
 }
@@ -78,6 +84,7 @@ func (conf *Config) Default() *Config {
 
 	conf.Engine = new(Engine).Default()
 	conf.Postman = new(Postman).Default()
+	conf.Proxy = new(Proxy).Default()
 
 	return conf
 }
@@ -97,6 +104,10 @@ func (conf *Config) Validate() (err error) {
 	}
 
 	if err = conf.Postman.Validate(); err != nil {
+		return
+	}
+
+	if err = conf.Proxy.Validate(); err != nil {
 		return
 	}
 

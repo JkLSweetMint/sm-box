@@ -1,4 +1,4 @@
-package errors
+package error_list
 
 import (
 	"github.com/gofiber/fiber/v3"
@@ -88,6 +88,20 @@ var (
 			Text("You do not have access to visit this route. "),
 	}.RestAPI(c_errors.RestAPIConstructor{
 		StatusCode: fiber.StatusForbidden,
+	}).Build()
+)
+
+// E-000106
+var (
+	InvalidArgumentsValue_RestAPI = c_errors.Constructor[c_errors.RestAPI]{
+		ID:     "E-000106",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("Invalid arguments value. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusBadRequest,
 	}).Build()
 )
 

@@ -1,0 +1,12 @@
+<Config>
+	<Tools>
+		<Closer>
+			<Signals>
+				<Signal>2</Signal>
+				<Signal>15</Signal>
+				<Signal>3</Signal>
+				<Signal>9</Signal>
+			</Signals>
+		</Closer>
+	</Tools>
+</Config>

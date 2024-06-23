@@ -2,7 +2,7 @@ package entities
 
 import (
 	"github.com/golang-jwt/jwt/v5"
-	"sm-box/internal/common/db_models"
+	"sm-box/internal/common/objects/db_models"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"

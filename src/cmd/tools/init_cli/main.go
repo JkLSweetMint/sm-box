@@ -12,7 +12,7 @@ import (
 
 func init() {
 	env.Vars.SystemName = "init-cli"
-	env.Version = "24.0.22"
+	env.Version = "24.0.23"
 
 	configurator.PbDir = path.Join(configurator.PbDir, "/tools", env.Vars.SystemName)
 	configurator.PrtDir = path.Join(configurator.PrtDir, "/tools", env.Vars.SystemName)

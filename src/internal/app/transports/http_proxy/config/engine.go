@@ -215,8 +215,8 @@ type Engine struct {
 	// Версия сервера
 	Version string `json:"version" yaml:"Version" xml:"version,attr"`
 
-	// Домены сервера
-	Domains []string `json:"domains" yaml:"Domains" xml:"domains,attr"`
+	// Домен сервера
+	Domain string `json:"domain" yaml:"Domain" xml:"domain,attr"`
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации
@@ -271,10 +271,10 @@ func (conf *Engine) Default() *Engine {
 	conf.EnableIPValidation = false
 	conf.RequestMethods = make([]string, 0)
 	conf.EnableSplittingOnParsers = false
-	conf.Addr = "127.0.0.1:8080"
+	conf.Addr = "127.0.0.1:8000"
 	conf.Name = "proxy"
 	conf.Version = "v1.0"
-	conf.Domains = make([]string, 0)
+	conf.Domain = "box.samgk.ru"
 
 	return conf
 }

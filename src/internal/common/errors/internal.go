@@ -1,4 +1,4 @@
-package errors
+package error_list
 
 import (
 	"github.com/gofiber/fiber/v3"
@@ -45,6 +45,20 @@ var (
 		Message: new(messages.TextMessage).
 			Text("Internal server error. "),
 	}.Build()
+)
+
+// I-000002
+var (
+	RemoteServerIsUnavailableForProxing_RestAPI = c_errors.Constructor[c_errors.RestAPI]{
+		ID:     "I-000002",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("The remote server is unavailable for proxying. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusInternalServerError,
+	}).Build()
 )
 
 // I-000100

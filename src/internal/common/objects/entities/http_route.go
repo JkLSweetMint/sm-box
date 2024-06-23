@@ -1,7 +1,7 @@
 package entities
 
 import (
-	"sm-box/internal/common/db_models"
+	"sm-box/internal/common/objects/db_models"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 	"strings"

@@ -1,10 +1,10 @@
-package http_proxy
+package rest_api
 
 import (
 	"errors"
 	"github.com/gofiber/fiber/v3"
-	rest_api_io "sm-box/internal/app/transports/http_proxy/io"
 	error_list "sm-box/internal/common/errors"
+	rest_api_io "sm-box/internal/common/transports/rest_api/io"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	c_errors "sm-box/pkg/errors"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// initBaseRoutes - регистрация базовых маршрутов системы.
+// initBaseRoutes - регистрация базовых маршрутов rest api.
 func (eng *engine) initBaseRoutes() {
 	// tracer
 	{
@@ -24,7 +24,7 @@ func (eng *engine) initBaseRoutes() {
 	}
 
 	eng.components.Logger.Info().
-		Text("Starting initialization of basic http routes... ").Write()
+		Text("Starting initialization of basic http rest api routes... ").Write()
 
 	// /sys
 	{
@@ -311,5 +311,5 @@ func (eng *engine) initBaseRoutes() {
 	}
 
 	eng.components.Logger.Info().
-		Text("The basic http routes are initialized. ").Write()
+		Text("The basic http rest api routes are initialized. ").Write()
 }
