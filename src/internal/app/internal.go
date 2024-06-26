@@ -14,7 +14,6 @@ type box struct {
 
 	components  *components
 	controllers *controllers
-	transports  *transports
 }
 
 // Serve - запуск коробки.
@@ -84,9 +83,4 @@ func (bx *box) Components() Components {
 // Controllers - получение контроллеров коробки.
 func (bx *box) Controllers() Controllers {
 	return bx.controllers
-}
-
-// Transports - получение транспортной части коробки.
-func (bx *box) Transports() Transports {
-	return bx.transports
 }

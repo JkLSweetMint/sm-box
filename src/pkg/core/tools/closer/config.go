@@ -9,7 +9,6 @@ var defaultSignals = []syscall.Signal{
 	syscall.SIGINT,
 	syscall.SIGTERM,
 	syscall.SIGQUIT,
-	syscall.SIGKILL,
 }
 
 // Config - конфигурация инструмента ядра системы отвечающий за корректное завершение работы системы.

@@ -1,10 +1,13 @@
 package rest_api
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v3"
 	cache_middleware "github.com/gofiber/fiber/v3/middleware/cache"
 	compress_middleware "github.com/gofiber/fiber/v3/middleware/compress"
 	cors_middleware "github.com/gofiber/fiber/v3/middleware/cors"
+	error_list "sm-box/internal/common/errors"
+	rest_api_io "sm-box/internal/common/transports/rest_api/io"
 	"sm-box/pkg/core/components/tracer"
 )
 
@@ -22,7 +25,35 @@ func (eng *engine) initFiberApp() (err error) {
 		Text("Starting the initialization of the fiber http server... ").
 		Field("config", eng.conf.Engine.ToFiberConfig()).Write()
 
-	eng.app = fiber.New(eng.conf.Engine.ToFiberConfig())
+	var conf = eng.conf.Engine.ToFiberConfig()
+
+	conf.ErrorHandler = func(ctx fiber.Ctx, err error) error {
+		// 404
+		{
+			if err.Error() == fmt.Sprintf("Cannot %s %s", ctx.Method(), ctx.Path()) {
+				if err = rest_api_io.WriteError(ctx, error_list.RouteNotFound_RestAPI()); err != nil {
+					eng.components.Logger.Error().
+						Format("The response could not be recorded: '%s'. ", err).Write()
+
+					return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+				}
+				return nil
+			}
+		}
+
+		// Internal server
+		{
+			if err = rest_api_io.WriteError(ctx, error_list.InternalServerError_RestAPI()); err != nil {
+				eng.components.Logger.Error().
+					Format("The response could not be recorded: '%s'. ", err).Write()
+
+				return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+			}
+			return nil
+		}
+	}
+
+	eng.app = fiber.New(conf)
 
 	// Маршрутизатор
 	{

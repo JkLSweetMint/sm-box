@@ -150,7 +150,7 @@ func (conf *Config) Validate() (err error) {
 		return
 	}
 
-	if err = conf.Validate(); err != nil {
+	if err = conf.Auth.Validate(); err != nil {
 		return
 	}
 

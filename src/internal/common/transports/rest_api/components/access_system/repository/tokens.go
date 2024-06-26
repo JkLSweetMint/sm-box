@@ -2,17 +2,16 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"sm-box/internal/common/objects/db_models"
 	"sm-box/internal/common/objects/entities"
-	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/databases/connectors/sqlite3"
-	"time"
+	"sm-box/pkg/databases/connectors/postgresql"
 )
 
 // tokensRepository - часть репозитория с управлением токенами.
 type tokensRepository struct {
-	connector  sqlite3.Connector
+	connector  postgresql.Connector
 	components *components
 
 	conf *Config
@@ -43,7 +42,7 @@ func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *e
 				tokens.not_before,
 				tokens.expires_at
 			from
-				system_access_jwt_tokens as tokens
+				system_access.jwt_tokens as tokens
 			where
 				tokens.data = $1
 		`
@@ -73,23 +72,9 @@ func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *e
 
 			tok.Data = data
 
-			if tok.IssuedAt, err = time.Parse(time.RFC3339Nano, model.IssuedAt); err != nil {
-				repo.components.Logger.Error().
-					Format("Error while reading item data from the database:: '%s'. ", err).Write()
-				return
-			}
-
-			if tok.NotBefore, err = time.Parse(time.RFC3339Nano, model.NotBefore); err != nil {
-				repo.components.Logger.Error().
-					Format("Error while reading item data from the database:: '%s'. ", err).Write()
-				return
-			}
-
-			if tok.ExpiresAt, err = time.Parse(time.RFC3339Nano, model.ExpiresAt); err != nil {
-				repo.components.Logger.Error().
-					Format("Error while reading item data from the database:: '%s'. ", err).Write()
-				return
-			}
+			tok.IssuedAt = model.IssuedAt
+			tok.NotBefore = model.NotBefore
+			tok.ExpiresAt = model.ExpiresAt
 		}
 	}
 
@@ -104,7 +89,7 @@ func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *e
 				params.remote_addr,
 				params.user_agent
 			from
-				system_access_jwt_token_params as params
+				system_access.jwt_token_params as params
 			where
 				params.token_id = $1
 		`
@@ -152,7 +137,7 @@ func (repo *tokensRepository) RegisterToken(ctx context.Context, tok *entities.J
 			model = tok.DbModel()
 			query = `
 			insert into 
-				system_access_jwt_tokens (
+				system_access.jwt_tokens (
 						data, 
 						expires_at, 
 						not_before,
@@ -166,6 +151,8 @@ func (repo *tokensRepository) RegisterToken(ctx context.Context, tok *entities.J
 			returning id;
 		`
 		)
+
+		fmt.Printf("%+v\n", model)
 
 		var row = repo.connector.QueryRowxContext(ctx, query,
 			model.Data,
@@ -192,7 +179,7 @@ func (repo *tokensRepository) RegisterToken(ctx context.Context, tok *entities.J
 			model = tok.Params.DbModel()
 			query = `
 			insert into 
-				system_access_jwt_token_params (
+				system_access.jwt_token_params (
 						token_id, 
 						remote_addr, 
 						user_agent
@@ -214,34 +201,6 @@ func (repo *tokensRepository) RegisterToken(ctx context.Context, tok *entities.J
 				Format("Error inserting an item from the database: '%s'. ", err).Write()
 			return
 		}
-	}
-
-	return
-}
-
-// SetTokenOwner - установить владельца токена.
-func (repo *tokensRepository) SetTokenOwner(ctx context.Context, tokenID, ownerID types.ID) (err error) {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelRepository)
-
-		trc.FunctionCall(ctx, tokenID, ownerID)
-		defer func() { trc.Error(err).FunctionCallFinished() }()
-	}
-
-	var query = `
-		update 
-			system_access_jwt_tokens
-		set
-		    user_id = $1
-		where
-		    id = $2
-	`
-
-	if _, err = repo.connector.ExecContext(ctx, query, ownerID, tokenID); err != nil {
-		repo.components.Logger.Error().
-			Format("Error updating an item from the database: '%s'. ", err).Write()
-		return
 	}
 
 	return

@@ -1,18 +1,12 @@
 package app
 
 import (
-	http_proxy_conf "sm-box/internal/app/transports/http_proxy/config"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
 )
 
 // Config - конфигурация коробки.
 type Config struct{}
-
-// ConfigTransports - конфигурация транспортной части коробки
-type ConfigTransports struct {
-	HttpProxy *http_proxy_conf.Config `json:"http_proxy" yaml:"HttpProxy" xml:"HttpProxy"`
-}
 
 // Read - чтение конфигурации.
 func (conf *Config) Read() (err error) {

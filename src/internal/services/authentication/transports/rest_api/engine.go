@@ -2,7 +2,8 @@ package rest_api
 
 import (
 	"context"
-	"sm-box/internal/services/authentication/transports/rest_api/components/access_system"
+	"sm-box/internal/common/transports/rest_api/components/access_system"
+	authentication_adapter "sm-box/internal/services/authentication/infrastructure/adapters/authentication"
 	"sm-box/internal/services/authentication/transports/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -56,6 +57,18 @@ func New(ctx context.Context) (eng Engine, err error) {
 		// AccessSystem
 		{
 			if ref.components.AccessSystem, err = access_system.New(ref.ctx, ref.conf.Components.AccessSystem); err != nil {
+				return
+			}
+		}
+	}
+
+	// Контроллеры
+	{
+		ref.controllers = new(controllers)
+
+		// Authentication
+		{
+			if ref.controllers.Authentication, err = authentication_adapter.New_RestAPI(ctx); err != nil {
 				return
 			}
 		}

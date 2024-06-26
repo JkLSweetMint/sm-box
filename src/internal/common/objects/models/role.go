@@ -8,7 +8,7 @@ type (
 		ID        types.ID `json:"id"         yaml:"ID"        xml:"id,attr"`
 		ProjectID types.ID `json:"project_id" yaml:"ProjectID" xml:"project_id,attr"`
 
-		Title        string               `json:"title"                  yaml:"Title"                  xml:"Title"`
+		Name         string               `json:"name"                   yaml:"Name"                   xml:"Name"`
 		Inheritances RoleInfoInheritances `json:"inheritances,omitempty" yaml:"Inheritances,omitempty" xml:"Inheritances,omitempty>Inheritance"`
 	}
 

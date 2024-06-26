@@ -7,6 +7,8 @@ import (
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	"sm-box/pkg/databases/connectors/universal_sqlx"
+	"strings"
+	"time"
 )
 
 const (
@@ -57,6 +59,8 @@ func New(ctx context.Context, conf *Config) (conn Connector, err error) {
 		}
 	}
 
+	ref.Concurrency.Ctx, ref.Concurrency.Cancel = context.WithCancel(context.Background())
+
 	if err = ref.connect(); err != nil {
 		ref.Components.Logger.Error().
 			Format("Failed to connect to the database: '%s'. ", err).Write()
@@ -66,8 +70,6 @@ func New(ctx context.Context, conf *Config) (conn Connector, err error) {
 	ref.DB.SetConnMaxLifetime(ref.conf.ConnMaxLifetime)
 	ref.DB.SetMaxOpenConns(ref.conf.MaxOpenConns)
 	ref.DB.SetMaxIdleConns(ref.conf.MaxIdleConns)
-
-	ref.Concurrency.Ctx, ref.Concurrency.Cancel = context.WithCancel(context.Background())
 
 	env.Synchronization.WaitGroup.Add(1)
 
@@ -116,6 +118,27 @@ func (conn *connector) connect() (err error) {
 		conn.Components.Logger.Error().
 			Format("An error occurred while connecting to the database: '%s'. ", err).Write()
 		return
+	}
+
+	for attempt := 1; ; attempt++ {
+		if err = conn.Ping(); err != nil {
+			conn.Components.Logger.Error().
+				Format("An error occurred while connecting to the database: '%s'. ", err).
+				Field("database", conn.conf.ConnectionString()).Write()
+
+			if !strings.HasSuffix(err.Error(), "connect: connection refused") || attempt == 5 {
+				return
+			}
+
+			conn.Components.Logger.Error().
+				Text("Trying to connect to the database again...").
+				Field("database", conn.conf.ConnectionString()).Write()
+
+			time.Sleep(time.Second)
+			continue
+		}
+
+		break
 	}
 
 	conn.Components.Logger.Info().

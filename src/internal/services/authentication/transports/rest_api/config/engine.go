@@ -271,8 +271,8 @@ func (conf *Engine) Default() *Engine {
 	conf.EnableIPValidation = false
 	conf.RequestMethods = make([]string, 0)
 	conf.EnableSplittingOnParsers = false
-	conf.Addr = "127.0.0.1:8001"
-	conf.Name = "authentication"
+	conf.Addr = "0.0.0.0:8080"
+	conf.Name = "authentication-api"
 	conf.Version = "v1.0"
 	conf.Domain = "box.samgk.ru"
 

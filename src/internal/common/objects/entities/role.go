@@ -11,7 +11,7 @@ type (
 		ID        types.ID
 		ProjectID types.ID
 
-		Title        string
+		Name         string
 		Inheritances RoleInheritances
 	}
 

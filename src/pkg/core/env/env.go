@@ -35,10 +35,6 @@ var (
 	Synchronization = new(env_synchronization.Dev).Build()
 )
 
-const (
-	devSystemLocation = "F:\\projects\\SweetMint\\sm-box\\box"
-)
-
 // init - инициализация окружения системы.
 func init() {
 	var err error

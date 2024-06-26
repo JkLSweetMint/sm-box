@@ -27,7 +27,6 @@ type accessSystem struct {
 
 		GetToken(ctx context.Context, data string) (tok *entities.JwtToken, err error)
 		RegisterToken(ctx context.Context, tok *entities.JwtToken) (err error)
-		SetTokenOwner(ctx context.Context, tokenID, ownerID types.ID) (err error)
 	}
 }
 

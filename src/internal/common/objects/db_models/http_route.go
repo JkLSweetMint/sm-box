@@ -2,6 +2,7 @@ package db_models
 
 import (
 	"sm-box/internal/common/types"
+	"time"
 )
 
 type (
@@ -14,7 +15,7 @@ type (
 		Method string `db:"method"`
 		Path   string `db:"path"`
 
-		RegisterTime string `db:"register_time"`
+		RegisterTime time.Time `db:"register_time"`
 	}
 
 	// HttpRouteAccess - модель доступа http маршрута система для базы данных.

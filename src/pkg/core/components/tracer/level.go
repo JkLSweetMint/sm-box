@@ -52,6 +52,11 @@ const (
 	LevelControllerInternal
 	LevelControllerEvent
 
+	LevelAdapter
+	LevelAdapterDebug
+	LevelAdapterInternal
+	LevelAdapterEvent
+
 	LevelComponent
 	LevelComponentDebug
 	LevelComponentInternal
@@ -109,6 +114,11 @@ var (
 		"ControllerInternal",
 		"ControllerEvent",
 
+		"Adapter",
+		"AdapterDebug",
+		"AdapterInternal",
+		"AdapterEvent",
+
 		"Component",
 		"ComponentDebug",
 		"ComponentInternal",
@@ -163,6 +173,11 @@ var (
 		LevelControllerDebug,
 		LevelControllerInternal,
 		LevelControllerEvent,
+
+		LevelAdapter,
+		LevelAdapterDebug,
+		LevelAdapterInternal,
+		LevelAdapterEvent,
 
 		LevelComponent,
 		LevelComponentDebug,

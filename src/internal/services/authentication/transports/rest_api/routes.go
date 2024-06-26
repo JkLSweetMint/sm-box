@@ -1,6 +1,7 @@
 package rest_api
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/http/postman"
@@ -26,7 +27,11 @@ func (eng *engine) initRoutes() {
 	{
 		var route = fiber.Route{Name: "Запрос для базовой авторизации пользователя. "}
 
-		router.Post("/basic-auth", eng.components.AccessSystem.BasicUserAuth).Name(route.Name)
+		router.Post("/basic-auth", func(ctx fiber.Ctx) (err error) {
+			fmt.Println(123)
+
+			return
+		}).Name(route.Name)
 
 		route = eng.app.GetRoute(route.Name)
 

@@ -192,7 +192,7 @@ func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
 					Field("token", token).Write()
 
 				var cErr = error_list.ValidityPeriodOfUserTokenHasNotStarted_RestAPI()
-				cErr.Details().Set("not_before", token.NotBefore.UTC().Format(time.RFC3339Nano))
+				cErr.Details().Set("not_before", token.NotBefore)
 
 				if err = rest_api_io.WriteError(ctx, cErr); err != nil {
 					acc.components.Logger.Error().

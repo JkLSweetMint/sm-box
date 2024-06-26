@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"sm-box/internal/app/transports/http_proxy"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
 	"sm-box/pkg/core/components/logger"
@@ -21,7 +20,6 @@ type Box interface {
 
 	Components() Components
 	Controllers() Controllers
-	Transports() Transports
 }
 
 // New - создание коробки.
@@ -67,15 +65,6 @@ func New() (box_ Box, err error) {
 	// Контроллеры
 	{
 		ref.controllers = new(controllers)
-	}
-
-	// Транспортная часть
-	{
-		ref.transports = new(transports)
-
-		if ref.transports.httpProxy, err = http_proxy.New(ref.Ctx()); err != nil {
-			return
-		}
 	}
 
 	// Регистрация задач коробки

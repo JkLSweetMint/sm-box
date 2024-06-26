@@ -1,5 +1,5 @@
 <Config>
-	<Engine addr="127.0.0.1:8001" name="authentication" version="v1.0" domain="box.samgk.ru">
+	<Engine addr="0.0.0.0:8080" name="authentication-api" version="v1.0" domain="box.samgk.ru">
 		<ServerHeader>Authentication service</ServerHeader>
 		<StrictRouting>true</StrictRouting>
 		<CaseSensitive>false</CaseSensitive>
@@ -32,7 +32,12 @@
 		<AccessSystem>
 			<CookieKeyForToken>token</CookieKeyForToken>
 			<Repository>
-				<Connector database="/var/lib/system.db">
+				<Connector>
+					<DbName>box</DbName>
+					<Host>postgres</Host>
+					<Port>5432</Port>
+					<Auth user="root" password="3bxMue16ztXPR635"></Auth>
+					<Tags sslmode="disable"></Tags>
 					<MaxOpenConns>50</MaxOpenConns>
 					<MaxIdleConns>50</MaxIdleConns>
 					<ConnMaxLifetime>120000000000</ConnMaxLifetime>

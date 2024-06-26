@@ -1,7 +1,9 @@
 package sqlite3
 
 import (
+	"path"
 	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
 	"time"
 )
 
@@ -74,7 +76,7 @@ func (conf *Config) ConnectionString() (str string) {
 		defer func() { trace.FunctionCallFinished(str) }()
 	}
 
-	str = conf.Database
+	str = path.Join(env.Paths.SystemLocation, conf.Database)
 
 	return
 }

@@ -4,9 +4,7 @@ import (
 	"os"
 	"path"
 	"reflect"
-	env_mode "sm-box/pkg/core/env/mode"
 	"strings"
-	"testing"
 )
 
 // initSystemDir - инициализация системных директорий.
@@ -65,15 +63,6 @@ func getSystemLocation() (location string, err error) {
 			err = ErrSystemLocationNotFound
 		}
 	}()
-
-	// Test mode
-	{
-		if testing.Testing() || Mode == env_mode.Dev {
-			location = devSystemLocation
-
-			return
-		}
-	}
 
 	// Остальное
 	{

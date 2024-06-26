@@ -6,11 +6,13 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"os"
 	"path"
-	"sm-box/internal/services/authentication/transports/rest_api/components/access_system"
+	"sm-box/internal/common/objects/entities"
+	"sm-box/internal/common/transports/rest_api/components/access_system"
 	"sm-box/internal/services/authentication/transports/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
+	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/http/postman"
 	"sm-box/pkg/tools/file"
 	"strings"
@@ -26,9 +28,17 @@ type engine struct {
 	conf *config.Config
 	ctx  context.Context
 
-	components *components
+	controllers *controllers
+	components  *components
 
 	postman *postman.Collection
+}
+
+// controllers - контроллеры движка.
+type controllers struct {
+	Authentication interface {
+		BasicAuth(ctx context.Context, username, password string) (us *entities.User, cErr c_errors.RestAPI)
+	}
 }
 
 // components - компоненты движка http rest api сервиса.

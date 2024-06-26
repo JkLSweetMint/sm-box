@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:16.3
+    container_name: database
+    restart: unless-stopped
+    attach: false
+    environment:
+      POSTGRES_DB: "box"
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "3bxMue16ztXPR635"
+      TZ: 'GMT-4'
+      PGTZ: 'GMT-4'
+    volumes:
+      - ./system/database:/var/lib/postgresql/data
+      - ./src/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "8081:5432"
+
+  app:
+    image: box/app:latest
+    container_name: app
+    restart: unless-stopped
+    attach: false
+    depends_on:
+      - postgres
+    volumes:
+      - ./etc:/home/app/etc
+      - ./system:/home/app/system
+      - ./var/data:/home/app/var/data
+      - ./var/lib:/home/app/var/lib
+      - ./var/logs:/home/app/var/logs
+      - ./var/test:/home/app/var/test
+
+  authentication-service:
+    build:
+      dockerfile: Dockerfile.authentication-service
+    image: box/authentication-service:latest
+    container_name: authentication-service
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    volumes:
+      - ./etc:/home/app/etc
+      - ./system:/home/app/system
+      - ./var/data:/home/app/var/data
+      - ./var/lib:/home/app/var/lib
+      - ./var/logs:/home/app/var/logs
+      - ./var/test:/home/app/var/test
+
+  nginx:
+    image: nginx:1.27.0
+    container_name: proxy
+    restart: unless-stopped
+    attach: false
+    depends_on:
+      - app
+      - authentication-service
+    volumes:
+      - type: bind
+        source: ./system/nginx/proxy
+        target: /etc/nginx/proxy
+        consistency: cached
+      - type: bind
+        source: ./system/nginx/box.samgk.ru.conf
+        target: /etc/nginx/conf.d/box.samgk.ru.conf
+        consistency: cached
+    ports:
+      - "8080:80"

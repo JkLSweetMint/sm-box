@@ -1,15 +1,13 @@
 package repository
 
 import (
-	"path"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/env"
-	"sm-box/pkg/databases/connectors/sqlite3"
+	"sm-box/pkg/databases/connectors/postgresql"
 )
 
 // Config - конфигурация репозитория.
 type Config struct {
-	Connector *sqlite3.Config `json:"connector" yaml:"Connector" xml:"Connector"`
+	Connector *postgresql.Config `json:"connector" yaml:"Connector" xml:"Connector"`
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации
@@ -23,7 +21,7 @@ func (conf *Config) FillEmptyFields() *Config {
 	}
 
 	if conf.Connector == nil {
-		conf.Connector = new(sqlite3.Config)
+		conf.Connector = new(postgresql.Config)
 	}
 
 	conf.Connector.FillEmptyFields()
@@ -41,9 +39,15 @@ func (conf *Config) Default() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.Connector = new(sqlite3.Config).Default()
+	conf.Connector = new(postgresql.Config).Default()
 
-	conf.Connector.Database = path.Join(env.Paths.Var.Lib.Path, env.Files.Var.Lib.SystemDB)
+	conf.Connector.DbName = "box"
+	conf.Connector.Auth.User = "root"
+	conf.Connector.Auth.Password = "3bxMue16ztXPR635"
+	conf.Connector.Host = "postgres"
+	conf.Connector.Port = 5432
+
+	conf.Connector.Tags["sslmode"] = "disable"
 
 	return conf
 }

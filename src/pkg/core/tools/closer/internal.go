@@ -2,6 +2,7 @@ package closer
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"sm-box/pkg/core/components/tracer"
@@ -40,6 +41,8 @@ func (c *closer) Cancel() {
 		trc.FunctionCall()
 		defer func() { trc.FunctionCallFinished() }()
 	}
+
+	fmt.Println(12312312312312)
 
 	c.ctxCancel()
 

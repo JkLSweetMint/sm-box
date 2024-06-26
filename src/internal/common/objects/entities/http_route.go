@@ -67,7 +67,7 @@ func (entity *HttpRoute) DbModel() (model *db_models.HttpRoute) {
 		Method: strings.ToUpper(entity.Method),
 		Path:   entity.Path,
 
-		RegisterTime: entity.RegisterTime.Format(time.RFC3339Nano),
+		RegisterTime: entity.RegisterTime,
 	}
 
 	if entity.Active {

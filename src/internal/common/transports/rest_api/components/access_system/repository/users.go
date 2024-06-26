@@ -12,12 +12,12 @@ import (
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
-	"sm-box/pkg/databases/connectors/sqlite3"
+	"sm-box/pkg/databases/connectors/postgresql"
 )
 
 // usersRepository - часть репозитория с управлением пользователями.
 type usersRepository struct {
-	connector  sqlite3.Connector
+	connector  postgresql.Connector
 	components *components
 
 	conf *Config
@@ -50,7 +50,7 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 				coalesce(users.email, '') as email,
 				users.username
 			from
-				users
+				public.users as users
 			where
 				users.id = $1
 		`
@@ -85,14 +85,14 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 		var (
 			rows  *sqlx.Rows
 			query = `
-				WITH RECURSIVE cte_roles (id, project_id, title, parent) AS (
+				WITH RECURSIVE cte_roles (id, project_id, name, parent) AS (
 					select
 						roles.id,
 						roles.project_id,
-						roles.title,
-						0 as parent
+						roles.name,
+						0::bigint as parent
 					from
-						system_access_roles as roles
+						system_access.roles as roles
 					where
 						roles.id in (
 							select
@@ -110,18 +110,18 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 					select
 						roles.id,
 						roles.project_id,
-						roles.title,
+						roles.name,
 						role_inheritance.parent as parent
 					from
-						system_access_roles as roles
-							left join system_access_role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
+						system_access.roles as roles
+							left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
 							JOIN cte_roles cte ON cte.id = role_inheritance.parent
 				)
 				
 				select
 					distinct id,
 					coalesce(project_id, 0) as project_id,
-					title,
+					name,
 					coalesce(parent, 0) as parent
 				from
 					cte_roles;
@@ -156,7 +156,7 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 						role = &entities2.Role{
 							ID:        model.ID,
 							ProjectID: model.ProjectID,
-							Title:     model.Title,
+							Name:      model.Name,
 
 							Inheritances: make(entities2.RoleInheritances, 0),
 						}
@@ -180,7 +180,7 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 					role = &entities2.Role{
 						ID:        model.ID,
 						ProjectID: model.ProjectID,
-						Title:     model.Title,
+						Name:      model.Name,
 
 						Inheritances: make(entities2.RoleInheritances, 0),
 					}
@@ -226,7 +226,7 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 				users.username,
 				users.password
 			from
-				users
+				public.users as users
 			where
 				users.username = $1
 		`
@@ -285,14 +285,14 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 		var (
 			rows  *sqlx.Rows
 			query = `
-				WITH RECURSIVE cte_roles (id, project_id, title, parent) AS (
+				WITH RECURSIVE cte_roles (id, project_id, name, parent) AS (
 					select
 						roles.id,
 						roles.project_id,
-						roles.title,
-						0 as parent
+						roles.name,
+						0::bigint as parent
 					from
-						system_access_roles as roles
+						system_access.roles as roles
 					where
 						roles.id in (
 							select
@@ -310,18 +310,18 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 					select
 						roles.id,
 						roles.project_id,
-						roles.title,
+						roles.name,
 						role_inheritance.parent as parent
 					from
-						system_access_roles as roles
-							left join system_access_role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
+						system_access.roles as roles
+							left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
 							JOIN cte_roles cte ON cte.id = role_inheritance.parent
 				)
 				
 				select
 					distinct id,
 					coalesce(project_id, 0) as project_id,
-					title,
+					name,
 					coalesce(parent, 0) as parent
 				from
 					cte_roles;
@@ -357,7 +357,7 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 						role = &entities2.Role{
 							ID:        model.ID,
 							ProjectID: model.ProjectID,
-							Title:     model.Title,
+							Name:      model.Name,
 
 							Inheritances: make(entities2.RoleInheritances, 0),
 						}
@@ -381,7 +381,7 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 					role = &entities2.Role{
 						ID:        model.ID,
 						ProjectID: model.ProjectID,
-						Title:     model.Title,
+						Name:      model.Name,
 
 						Inheritances: make(entities2.RoleInheritances, 0),
 					}

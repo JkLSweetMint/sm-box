@@ -6,14 +6,13 @@ import (
 	db_models2 "sm-box/internal/common/objects/db_models"
 	"sm-box/internal/common/objects/entities"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/databases/connectors/sqlite3"
+	"sm-box/pkg/databases/connectors/postgresql"
 	"strings"
-	"time"
 )
 
 // httpRoutesRepository - часть репозитория с управлением http маршрутов.
 type httpRoutesRepository struct {
-	connector  sqlite3.Connector
+	connector  postgresql.Connector
 	components *components
 
 	conf *Config
@@ -47,7 +46,7 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 				routes.active,
 				routes.authorize
 			from
-				transports_http_routes as routes
+				transports.http_routes as routes
 			where
 				routes.method = $1 and
 				routes.path = $2
@@ -72,12 +71,7 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 		route.Authorize = model.Authorize == "on"
 		route.Method = method
 		route.Path = path
-
-		if route.RegisterTime, err = time.Parse(time.RFC3339Nano, model.RegisterTime); err != nil {
-			repo.components.Logger.Error().
-				Format("Error while reading item data from the database:: '%s'. ", err).Write()
-			return
-		}
+		route.RegisterTime = model.RegisterTime
 	}
 
 	// Доступы
@@ -90,21 +84,21 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 		var (
 			rows  *sqlx.Rows
 			query = `
-				WITH RECURSIVE cte_roles (id, project_id, title, parent) AS (
+				WITH RECURSIVE cte_roles (id, project_id, name, parent) AS (
 					select
 						roles.id,
 						roles.project_id,
-						roles.title,
-						0 as parent
+						roles.name,
+						0::bigint as parent
 					from
-						system_access_roles as roles
+						system_access.roles as roles
 					where
 						roles.id in (
 							select
 								route_accesses.role_id as id
 							from
-								transports_http_routes as routes
-									left join transports_http_route_accesses as route_accesses on routes.id = route_accesses.route_id
+								transports.http_routes as routes
+									left join transports.http_route_accesses as route_accesses on routes.id = route_accesses.route_id
 							where
 								routes.method = $1 and
 								routes.path = $2
@@ -115,18 +109,18 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 					select
 						roles.id,
 						roles.project_id,
-						roles.title,
+						roles.name,
 						role_inheritance.parent as parent
 					from
-						system_access_roles as roles
-							left join system_access_role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
+						system_access.roles as roles
+							left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
 							JOIN cte_roles cte ON cte.id = role_inheritance.parent
 				)
 				
 				select
 					distinct id,
 							 coalesce(project_id, 0) as project_id,
-							 title,
+							 name,
 							 coalesce(parent, 0) as parent
 				from
 					cte_roles;
@@ -161,7 +155,7 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 						role = &entities.Role{
 							ID:        model.ID,
 							ProjectID: model.ProjectID,
-							Title:     model.Title,
+							Name:      model.Name,
 
 							Inheritances: make(entities.RoleInheritances, 0),
 						}
@@ -185,7 +179,7 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 					role = &entities.Role{
 						ID:        model.ID,
 						ProjectID: model.ProjectID,
-						Title:     model.Title,
+						Name:      model.Name,
 
 						Inheritances: make(entities.RoleInheritances, 0),
 					}
@@ -230,11 +224,11 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 				routes.active,
 				routes.authorize
 			from
-				transports_http_routes as routes
+				transports.http_routes as routes
 			where
 				routes.method = $1 and
 				routes.path = $2 and
-				routes.active = 'on'
+				routes.active is true
 		`
 
 		var row = repo.connector.QueryRowxContext(ctx, query, method, path)
@@ -256,12 +250,7 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 		route.Authorize = model.Authorize == "on"
 		route.Method = method
 		route.Path = path
-
-		if route.RegisterTime, err = time.Parse(time.RFC3339Nano, model.RegisterTime); err != nil {
-			repo.components.Logger.Error().
-				Format("Error while reading item data from the database:: '%s'. ", err).Write()
-			return
-		}
+		route.RegisterTime = model.RegisterTime
 	}
 
 	// Доступы
@@ -274,21 +263,21 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 		var (
 			rows  *sqlx.Rows
 			query = `
-				WITH RECURSIVE cte_roles (id, project_id, title, parent) AS (
+				WITH RECURSIVE cte_roles (id, project_id, name, parent) AS (
 					select
 						roles.id,
 						roles.project_id,
-						roles.title,
-						0 as parent
+						roles.name,
+						0::bigint as parent
 					from
-						system_access_roles as roles
+						system_access.roles as roles
 					where
 						roles.id in (
 							select
 								route_accesses.role_id as id
 							from
-								transports_http_routes as routes
-									left join transports_http_route_accesses as route_accesses on routes.id = route_accesses.route_id
+								transports.http_routes as routes
+									left join transports.http_route_accesses as route_accesses on routes.id = route_accesses.route_id
 							where
 								routes.method = $1 and
 								routes.path = $2
@@ -299,18 +288,18 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 					select
 						roles.id,
 						roles.project_id,
-						roles.title,
+						roles.name,
 						role_inheritance.parent as parent
 					from
-						system_access_roles as roles
-							left join system_access_role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
+						system_access.roles as roles
+							left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
 							JOIN cte_roles cte ON cte.id = role_inheritance.parent
 				)
 				
 				select
 					distinct id,
 							 coalesce(project_id, 0) as project_id,
-							 title,
+							 name,
 							 coalesce(parent, 0) as parent
 				from
 					cte_roles;
@@ -345,7 +334,7 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 						role = &entities.Role{
 							ID:        model.ID,
 							ProjectID: model.ProjectID,
-							Title:     model.Title,
+							Name:      model.Name,
 
 							Inheritances: make(entities.RoleInheritances, 0),
 						}
@@ -369,7 +358,7 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 					role = &entities.Role{
 						ID:        model.ID,
 						ProjectID: model.ProjectID,
-						Title:     model.Title,
+						Name:      model.Name,
 
 						Inheritances: make(entities.RoleInheritances, 0),
 					}
@@ -401,7 +390,7 @@ func (repo *httpRoutesRepository) RegisterRoute(ctx context.Context, route *enti
 		model = route.DbModel()
 		query = `
 			insert into 
-				transports_http_routes (
+				transports.http_routes (
 						method, 
 						path,
 						register_time,
@@ -445,9 +434,9 @@ func (repo *httpRoutesRepository) SetInactiveRoutes(ctx context.Context) (err er
 
 	var query = `
 		update 
-			transports_http_routes
+			transports.http_routes
 		set
-		    active = 'off'
+		    active = false
 	`
 
 	if _, err = repo.connector.ExecContext(ctx, query); err != nil {

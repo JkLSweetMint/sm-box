@@ -4,7 +4,7 @@ import (
 	"context"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/databases/connectors/sqlite3"
+	"sm-box/pkg/databases/connectors/postgresql"
 )
 
 const (
@@ -79,9 +79,9 @@ func New(ctx context.Context, conf *Config) (repo *Repository, err error) {
 
 	// Коннектор базы данных
 	{
-		var conn sqlite3.Connector
+		var conn postgresql.Connector
 
-		if conn, err = sqlite3.New(ctx, conf.Connector); err != nil {
+		if conn, err = postgresql.New(ctx, conf.Connector); err != nil {
 			return
 		}
 

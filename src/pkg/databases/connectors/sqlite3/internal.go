@@ -3,7 +3,6 @@ package sqlite3
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
-	"path"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -57,8 +56,6 @@ func New(ctx context.Context, conf *Config) (conn Connector, err error) {
 			}
 		}
 	}
-
-	ref.conf.Database = path.Join(env.Paths.SystemLocation, ref.conf.Database)
 
 	if err = ref.connect(); err != nil {
 		ref.Components.Logger.Error().

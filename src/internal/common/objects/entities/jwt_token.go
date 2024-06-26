@@ -64,9 +64,9 @@ func (entity *JwtToken) DbModel() (model *db_models.JwtToken) {
 
 		Data: entity.Data,
 
-		ExpiresAt: entity.ExpiresAt.Format(time.RFC3339Nano),
-		NotBefore: entity.NotBefore.Format(time.RFC3339Nano),
-		IssuedAt:  entity.IssuedAt.Format(time.RFC3339Nano),
+		ExpiresAt: entity.ExpiresAt,
+		NotBefore: entity.NotBefore,
+		IssuedAt:  entity.IssuedAt,
 	}
 
 	return

@@ -65,10 +65,6 @@ type Dev struct {
 		Lib *struct {
 			// Path - путь к директории.
 			Path string
-
-			// Projects - путь к директории файлов проектов.
-			// Стандартное расположение: /projects
-			Projects string
 		}
 
 		// Test - директория тестовых файлов.
@@ -142,10 +138,6 @@ type Prod struct {
 		Lib *struct {
 			// Path - путь к директории.
 			Path string
-
-			// Projects - путь к директории файлов проектов.
-			// Стандартное расположение: /projects
-			Projects string
 		}
 	}
 }
@@ -200,8 +192,6 @@ func (storage *Dev) Build(options BuildOptions) *Dev {
 
 			Lib *struct {
 				Path string
-
-				Projects string
 			}
 
 			Test *struct {
@@ -226,15 +216,9 @@ func (storage *Dev) Build(options BuildOptions) *Dev {
 		{
 			storage.Var.Lib = &struct {
 				Path string
-
-				Projects string
 			}{
 				Path: path.Join(s.Path, "/lib"),
 			}
-
-			var s = storage.Var.Lib
-
-			s.Projects = path.Join(s.Path, "/projects")
 		}
 
 		// Test
@@ -312,8 +296,6 @@ func (storage *Prod) Build(options BuildOptions) *Prod {
 
 			Lib *struct {
 				Path string
-
-				Projects string
 			}
 		}{
 			Path: "/var",
@@ -331,15 +313,9 @@ func (storage *Prod) Build(options BuildOptions) *Prod {
 		{
 			storage.Var.Lib = &struct {
 				Path string
-
-				Projects string
 			}{
 				Path: path.Join(s.Path, "/lib"),
 			}
-
-			var s = storage.Var.Lib
-
-			s.Projects = path.Join(s.Path, "/projects")
 		}
 	}
 
