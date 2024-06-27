@@ -1,4 +1,4 @@
-package logger
+package config
 
 import (
 	"sm-box/pkg/core/components/configurator"
@@ -10,8 +10,8 @@ import (
 
 // Config - конфигурация компонента ведения журнала системы.
 type Config struct {
-	Terminal *ConfigTerminalLog `json:"terminal" yaml:"Terminal" xml:"Terminal"`   // Конфигурация терминала.
-	Files    ConfigFilesLog     `json:"files"    yaml:"Files"    xml:"Files>File"` // Конфигурация файлов.
+	Terminal *TerminalLog `json:"terminal" yaml:"Terminal" xml:"Terminal"`   // Конфигурация терминала.
+	Files    FilesLog     `json:"files"    yaml:"Files"    xml:"Files>File"` // Конфигурация файлов.
 }
 
 // Read - чтение конфигурации.
@@ -56,15 +56,15 @@ func (conf *Config) FillEmptyFields() *Config {
 	}
 
 	if conf.Terminal == nil {
-		conf.Terminal = new(ConfigTerminalLog)
+		conf.Terminal = new(TerminalLog)
 	}
 
 	if conf.Terminal.Levels == nil {
-		conf.Terminal.Levels = new(ConfigTerminalLogLevels)
+		conf.Terminal.Levels = new(TerminalLogLevels)
 	}
 
 	if conf.Terminal.Options == nil {
-		conf.Terminal.Options = new(ConfigTerminalLogOptions)
+		conf.Terminal.Options = new(TerminalLogOptions)
 	}
 
 	if strings.TrimSpace(conf.Terminal.Options.TimeFormat) == "" {
@@ -72,7 +72,7 @@ func (conf *Config) FillEmptyFields() *Config {
 	}
 
 	if conf.Files == nil {
-		conf.Files = make(ConfigFilesLog, 0)
+		conf.Files = make(FilesLog, 0)
 	}
 
 	return conf
@@ -90,66 +90,66 @@ func (conf *Config) Default() *Config {
 
 	// Terminal
 	{
-		conf.Terminal = &ConfigTerminalLog{
-			Levels: &ConfigTerminalLogLevels{
-				Debug: &ConfigTerminalLogLevel{
+		conf.Terminal = &TerminalLog{
+			Levels: &TerminalLogLevels{
+				Debug: &TerminalLogLevel{
 					Enable: true,
-					Options: &ConfigTerminalLogLevelOptions{
+					Options: &TerminalLogLevelOptions{
 						Encoder:     "raw",
 						Format:      "capital_color",
 						EnableTrace: true,
 					},
 				},
-				Info: &ConfigTerminalLogLevel{
+				Info: &TerminalLogLevel{
 					Enable: true,
-					Options: &ConfigTerminalLogLevelOptions{
+					Options: &TerminalLogLevelOptions{
 						Encoder:     "raw",
 						Format:      "capital_color",
 						EnableTrace: false,
 					},
 				},
-				Warn: &ConfigTerminalLogLevel{
+				Warn: &TerminalLogLevel{
 					Enable: true,
-					Options: &ConfigTerminalLogLevelOptions{
+					Options: &TerminalLogLevelOptions{
 						Encoder:     "raw",
 						Format:      "capital_color",
 						EnableTrace: true,
 					},
 				},
-				Error: &ConfigTerminalLogLevel{
+				Error: &TerminalLogLevel{
 					Enable: true,
-					Options: &ConfigTerminalLogLevelOptions{
+					Options: &TerminalLogLevelOptions{
 						Encoder:     "raw",
 						Format:      "capital_color",
 						EnableTrace: true,
 					},
 				},
-				Panic: &ConfigTerminalLogLevel{
+				Panic: &TerminalLogLevel{
 					Enable: true,
-					Options: &ConfigTerminalLogLevelOptions{
+					Options: &TerminalLogLevelOptions{
 						Encoder:     "raw",
 						Format:      "capital_color",
 						EnableTrace: true,
 					},
 				},
-				DPanic: &ConfigTerminalLogLevel{
+				DPanic: &TerminalLogLevel{
 					Enable: true,
-					Options: &ConfigTerminalLogLevelOptions{
+					Options: &TerminalLogLevelOptions{
 						Encoder:     "raw",
 						Format:      "capital_color",
 						EnableTrace: true,
 					},
 				},
-				Fatal: &ConfigTerminalLogLevel{
+				Fatal: &TerminalLogLevel{
 					Enable: true,
-					Options: &ConfigTerminalLogLevelOptions{
+					Options: &TerminalLogLevelOptions{
 						Encoder:     "raw",
 						Format:      "capital_color",
 						EnableTrace: true,
 					},
 				},
 			},
-			Options: &ConfigTerminalLogOptions{
+			Options: &TerminalLogOptions{
 				TimeFormat: time.RFC3339,
 			},
 		}
@@ -157,72 +157,72 @@ func (conf *Config) Default() *Config {
 
 	// Files
 	{
-		conf.Files = []*ConfigFileLog{
+		conf.Files = []*FileLog{
 			// Global
 			{
 				FileName: "%s.log",
 				Path:     env.Paths.Var.Logs,
 
-				Options: &ConfigFilesLogFileOptions{
+				Options: &FilesLogFileOptions{
 					TimeFormat: time.RFC3339,
-					Rotation: &ConfigFilesLogFileOptionRotation{
+					Rotation: &FilesLogFileOptionRotation{
 						Enable:   true,
 						FileSize: "4GB",
 					},
 				},
 
-				Levels: &ConfigFileLogLevels{
-					Debug: &ConfigFileLogLevel{
+				Levels: &FileLogLevels{
+					Debug: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: true,
 						},
 					},
-					Info: &ConfigFileLogLevel{
+					Info: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: false,
 						},
 					},
-					Warn: &ConfigFileLogLevel{
+					Warn: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: true,
 						},
 					},
-					Error: &ConfigFileLogLevel{
+					Error: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: true,
 						},
 					},
-					DPanic: &ConfigFileLogLevel{
+					DPanic: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: true,
 						},
 					},
-					Panic: &ConfigFileLogLevel{
+					Panic: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: true,
 						},
 					},
-					Fatal: &ConfigFileLogLevel{
+					Fatal: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: true,
@@ -236,26 +236,26 @@ func (conf *Config) Default() *Config {
 				FileName: "%s.debug.log",
 				Path:     env.Paths.Var.Logs,
 
-				Options: &ConfigFilesLogFileOptions{
+				Options: &FilesLogFileOptions{
 					TimeFormat: time.RFC3339,
-					Rotation: &ConfigFilesLogFileOptionRotation{
+					Rotation: &FilesLogFileOptionRotation{
 						Enable:   true,
 						FileSize: "4GB",
 					},
 				},
 
-				Levels: &ConfigFileLogLevels{
-					Debug: &ConfigFileLogLevel{
+				Levels: &FileLogLevels{
+					Debug: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: true,
 						},
 					},
-					DPanic: &ConfigFileLogLevel{
+					DPanic: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: true,
@@ -269,34 +269,34 @@ func (conf *Config) Default() *Config {
 				FileName: "%s.error.log",
 				Path:     env.Paths.Var.Logs,
 
-				Options: &ConfigFilesLogFileOptions{
+				Options: &FilesLogFileOptions{
 					TimeFormat: time.RFC3339,
-					Rotation: &ConfigFilesLogFileOptionRotation{
+					Rotation: &FilesLogFileOptionRotation{
 						Enable:   true,
 						FileSize: "4GB",
 					},
 				},
 
-				Levels: &ConfigFileLogLevels{
-					Error: &ConfigFileLogLevel{
+				Levels: &FileLogLevels{
+					Error: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: true,
 						},
 					},
-					Panic: &ConfigFileLogLevel{
+					Panic: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: true,
 						},
 					},
-					Fatal: &ConfigFileLogLevel{
+					Fatal: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder:     "raw",
 							Format:      "capital",
 							EnableTrace: true,

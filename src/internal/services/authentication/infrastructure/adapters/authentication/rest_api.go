@@ -2,7 +2,7 @@ package authentication_adapter
 
 import (
 	"context"
-	"sm-box/internal/common/objects/entities"
+	"sm-box/internal/common/objects/models"
 	authentication_controller "sm-box/internal/services/authentication/infrastructure/controllers/authentication"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -18,7 +18,7 @@ type Adapter_RestAPI struct {
 	components *components
 
 	controller interface {
-		BasicAuth(ctx context.Context, username, password string) (us *entities.User, cErr c_errors.Error)
+		BasicAuth(ctx context.Context, tokenData, username, password string) (token *models.JwtTokenInfo, user *models.UserInfo, cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -70,18 +70,18 @@ func New_RestAPI(ctx context.Context) (adapter *Adapter_RestAPI, err error) {
 
 // BasicAuth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (adapter *Adapter_RestAPI) BasicAuth(ctx context.Context, username, password string) (us *entities.User, cErr c_errors.RestAPI) {
+func (adapter *Adapter_RestAPI) BasicAuth(ctx context.Context, tokenData, username, password string) (token *models.JwtTokenInfo, user *models.UserInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, username, password)
-		defer func() { trc.Error(cErr).FunctionCallFinished(us) }()
+		trc.FunctionCall(ctx, tokenData, username, password)
+		defer func() { trc.Error(cErr).FunctionCallFinished(token, user) }()
 	}
 
 	//var proxyErr c_errors.Error
 
-	if us, _ = adapter.controller.BasicAuth(ctx, username, password); cErr != nil {
+	if token, user, _ = adapter.controller.BasicAuth(ctx, tokenData, username, password); cErr != nil {
 		adapter.components.Logger.Error().
 			Format("The controller method was executed with an error: '%s'. ", cErr).Write()
 		return

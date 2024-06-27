@@ -1,10 +1,8 @@
 package authentication_usecase
 
 import (
-	"path"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/env"
 )
 
 // Config - конфигурация.
@@ -63,7 +61,7 @@ func (conf *Config) Read() (err error) {
 	var (
 		c       configurator.Configurator[*Config]
 		profile = configurator.PrivateProfile{
-			Dir:      path.Join(env.Vars.SystemName, "/infrastructure/usecases/"),
+			Dir:      "/infrastructure/usecases/",
 			Filename: "authentication.xml",
 		}
 	)

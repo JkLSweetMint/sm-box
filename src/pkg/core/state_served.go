@@ -21,7 +21,7 @@ type stateServed struct {
 func (c *stateServed) Boot() (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
+		var trc = tracer.New(tracer.LevelCore)
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
@@ -44,7 +44,7 @@ func (c *stateServed) Boot() (err error) {
 func (c *stateServed) Serve() (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
+		var trc = tracer.New(tracer.LevelCore)
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
@@ -66,7 +66,7 @@ func (c *stateServed) Serve() (err error) {
 func (c *stateServed) Shutdown() (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
+		var trc = tracer.New(tracer.LevelCore)
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
@@ -126,6 +126,14 @@ func (c *stateServed) Shutdown() (err error) {
 //
 // Будет возвращено значение StateServed - "Served".
 func (c *stateServed) State() (state State) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelCore)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(state) }()
+	}
+
 	return StateServed
 }
 

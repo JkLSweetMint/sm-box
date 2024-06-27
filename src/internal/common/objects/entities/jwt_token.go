@@ -3,6 +3,7 @@ package entities
 import (
 	"github.com/golang-jwt/jwt/v5"
 	"sm-box/internal/common/objects/db_models"
+	"sm-box/internal/common/objects/models"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -72,6 +73,30 @@ func (entity *JwtToken) DbModel() (model *db_models.JwtToken) {
 	return
 }
 
+// Model - получение модели.
+func (entity *JwtToken) Model() (model *models.JwtTokenInfo) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(model) }()
+	}
+
+	model = &models.JwtTokenInfo{
+		ID:     entity.ID,
+		UserID: entity.UserID,
+
+		Data: entity.Data,
+
+		ExpiresAt: entity.ExpiresAt,
+		NotBefore: entity.NotBefore,
+		IssuedAt:  entity.IssuedAt,
+	}
+
+	return
+}
+
 // Generate - генерация данных токена.
 func (entity *JwtToken) Generate(claims *jwt.RegisteredClaims) (err error) {
 	// tracer
@@ -105,6 +130,24 @@ func (entity *JwtTokenParams) DbModel() (model *db_models.JwtTokenParams) {
 
 	model = &db_models.JwtTokenParams{
 		TokenID:    0,
+		RemoteAddr: entity.RemoteAddr,
+		UserAgent:  entity.UserAgent,
+	}
+
+	return
+}
+
+// Model - получение модели.
+func (entity *JwtTokenParams) Model() (model *models.JwtTokenInfoParams) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(model) }()
+	}
+
+	model = &models.JwtTokenInfoParams{
 		RemoteAddr: entity.RemoteAddr,
 		UserAgent:  entity.UserAgent,
 	}

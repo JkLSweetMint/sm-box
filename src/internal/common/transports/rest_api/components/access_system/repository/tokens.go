@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"sm-box/internal/common/objects/db_models"
 	"sm-box/internal/common/objects/entities"
 	"sm-box/pkg/core/components/tracer"
@@ -151,8 +150,6 @@ func (repo *tokensRepository) RegisterToken(ctx context.Context, tok *entities.J
 			returning id;
 		`
 		)
-
-		fmt.Printf("%+v\n", model)
 
 		var row = repo.connector.QueryRowxContext(ctx, query,
 			model.Data,

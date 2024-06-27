@@ -1,46 +1,22 @@
 package configurator
 
-import "sm-box/pkg/core/env"
-
-var ConfigDir = env.Vars.SystemName
-
-// Configurator - диспетчер конфигураций.
-type Configurator[T any] interface {
-	Public() Public[T]
-	Private() Private[T]
+// configurator - внутренняя реализация диспетчера конфигураций.
+type configurator[T any] struct {
+	conf Config[T]
 }
 
-// Public - диспетчер публичных конфигураций.
-// Для хранения файлов конфигураций используются директория /etc.
-type Public[T any] interface {
-	Encoder(encoder Encoder) Public[T]
-	File(dir, filename string) Public[T]
-	Profile(profile PublicProfile) Public[T]
-
-	Init() (err error)
-	Write() (err error)
-	Read() (err error)
-}
-
-// Private - диспетчер приватных конфигураций.
-// Для хранения файлов конфигураций используются директория /system.
-type Private[T any] interface {
-	Encoder(encoder Encoder) Private[T]
-	File(dir, filename string) Private[T]
-	Profile(profile PrivateProfile) Private[T]
-
-	Init() (err error)
-}
-
-// New - создание диспетчера конфигураций.
-func New[T any](conf Config[T]) (c Configurator[T], err error) {
-	if conf == nil {
-		return nil, ErrNilConfigurationInstanceWasPassed
+// Public - получение диспетчера публичных конфигураций.
+func (c *configurator[T]) Public() Public[T] {
+	return &publicConfigurator[T]{
+		conf:    c.conf,
+		encoder: pbDefaultEncoder,
 	}
+}
 
-	c = &configurator[T]{
-		conf: conf,
+// Private - получение диспетчера приватных конфигураций.
+func (c *configurator[T]) Private() Private[T] {
+	return &privateConfigurator[T]{
+		conf:    c.conf,
+		encoder: prtDefaultEncoder,
 	}
-
-	return
 }

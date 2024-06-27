@@ -9,8 +9,8 @@ type (
 	// HttpRoute - модель http маршрута система для базы данных.
 	HttpRoute struct {
 		ID        types.ID `db:"id"`
-		Active    string   `db:"active"`
-		Authorize string   `db:"authorize"`
+		Active    bool     `db:"active"`
+		Authorize bool     `db:"authorize"`
 
 		Method string `db:"method"`
 		Path   string `db:"path"`

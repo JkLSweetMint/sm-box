@@ -2,48 +2,75 @@ package closer
 
 import (
 	"context"
+	"os"
+	"os/signal"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/env"
 )
 
-// Closer - описание инструмента ядра системы отвечающий за корректное завершение работы системы.
-type Closer interface {
-	Wait()
-	Cancel()
+// closer - инструмент ядра системы отвечающий за корректное завершение работы системы.
+type closer struct {
+	conf *Config
+
+	stop      chan struct{}
+	ctx       context.Context
+	ctxCancel context.CancelFunc
 }
 
-// New - создание инструмента ядра системы отвечающий за корректное завершение работы системы.
-func New(ctx context.Context, conf *Config) (cl Closer, ct context.Context) {
+// Wait - ожидание завершения работы.
+// Вызов этого метода замораживает выполнение до завершения работы всех сценариев использующих
+// глобальный инструмент синхронизации WaitGroup.
+func (c *closer) Wait() {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelCoreTool)
+		var trc = tracer.New(tracer.LevelCoreTool)
 
-		trc.FunctionCall(ctx, conf)
-		defer func() { trc.FunctionCallFinished(cl, ct) }()
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished() }()
 	}
 
-	if err := conf.FillEmptyFields().Validate(); err != nil {
-		return
+	<-c.stop
+}
+
+// Cancel - сообщает системе о завершении работы.
+func (c *closer) Cancel() {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelCoreTool)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished() }()
 	}
 
-	var c = &closer{
-		conf: conf,
+	c.ctxCancel()
 
-		stop: make(chan struct{}, 5),
+	c.stop <- struct{}{}
+}
+
+// tracking - отслеживание сигналов для завершения работы.
+func (c *closer) tracking() {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelCoreTool)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished() }()
 	}
 
-	c.ctx, c.ctxCancel = context.WithCancel(ctx)
+	var (
+		ch      = make(chan os.Signal, 1)
+		signals = make([]os.Signal, len(c.conf.Signals))
+	)
 
-	cl = c
-	ct = c.ctx
+	for i, sig := range c.conf.Signals {
+		signals[i] = sig
+	}
 
-	env.Synchronization.WaitGroup.Add(1)
+	signal.Notify(ch, signals...)
 
-	go func() {
-		defer env.Synchronization.WaitGroup.Done()
-
-		c.tracking()
-	}()
-
-	return
+	select {
+	case <-ch:
+		c.Cancel()
+	case <-c.ctx.Done():
+		c.Cancel()
+	}
 }

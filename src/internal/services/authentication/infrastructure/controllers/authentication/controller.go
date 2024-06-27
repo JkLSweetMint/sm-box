@@ -3,6 +3,7 @@ package authentication_controller
 import (
 	"context"
 	"sm-box/internal/common/objects/entities"
+	"sm-box/internal/common/objects/models"
 	authentication_usecase "sm-box/internal/services/authentication/infrastructure/usecases/authentication"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -25,7 +26,7 @@ type Controller struct {
 // usecases - логика контроллера.
 type usecases struct {
 	Authentication interface {
-		BasicAuth(ctx context.Context, username, password string) (us *entities.User, cErr c_errors.Error)
+		BasicAuth(ctx context.Context, tokenData, username, password string) (token *entities.JwtToken, us *entities.User, cErr c_errors.Error)
 	}
 }
 
@@ -90,19 +91,35 @@ func New(ctx context.Context) (controller *Controller, err error) {
 
 // BasicAuth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (controller *Controller) BasicAuth(ctx context.Context, username, password string) (us *entities.User, cErr c_errors.Error) {
+func (controller *Controller) BasicAuth(ctx context.Context, tokenData, username, password string) (token *models.JwtTokenInfo, user *models.UserInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, username, password)
-		defer func() { trc.Error(cErr).FunctionCallFinished(us) }()
+		trc.FunctionCall(ctx, tokenData, username, password)
+		defer func() { trc.Error(cErr).FunctionCallFinished(token, user) }()
 	}
 
-	if us, cErr = controller.usecases.Authentication.BasicAuth(ctx, username, password); cErr != nil {
+	var (
+		tok *entities.JwtToken
+		us  *entities.User
+	)
+
+	if tok, us, cErr = controller.usecases.Authentication.BasicAuth(ctx, tokenData, username, password); cErr != nil {
 		controller.components.Logger.Error().
 			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 		return
+	}
+
+	// Преобразование в модели
+	{
+		if tok != nil {
+			token = tok.Model()
+		}
+
+		if us != nil {
+			user = us.Model()
+		}
 	}
 
 	return

@@ -5,9 +5,9 @@ import (
 	"sync"
 )
 
-// aggregate - описание коллекции для хранения задач планировщика.
-type aggregate interface {
-	Iterator(te Event) iterator
+// Aggregate - описание коллекции для хранения задач планировщика.
+type Aggregate interface {
+	Iterator(te Event) Iterator
 	Add(t Task)
 }
 
@@ -18,7 +18,7 @@ type baseShelf struct {
 }
 
 // Iterator - создает и возвращает итератор по коллекции.
-func (s *baseShelf) Iterator(e Event) (iter iterator) {
+func (s *baseShelf) Iterator(e Event) (iter Iterator) {
 	var copyShelf = &baseShelf{
 		Tasks: make([]Task, 0),
 		rwMx:  new(sync.RWMutex),

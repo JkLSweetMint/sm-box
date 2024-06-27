@@ -1,9 +1,12 @@
 package rest_api
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v3"
+	error_list "sm-box/internal/common/errors"
+	"sm-box/internal/common/objects/models"
+	rest_api_io "sm-box/internal/common/transports/rest_api/io"
 	"sm-box/pkg/core/components/tracer"
+	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/http/postman"
 	"strings"
 )
@@ -28,9 +31,68 @@ func (eng *engine) initRoutes() {
 		var route = fiber.Route{Name: "Запрос для базовой авторизации пользователя. "}
 
 		router.Post("/basic-auth", func(ctx fiber.Ctx) (err error) {
-			fmt.Println(123)
+			type Response struct {
+				Token *models.JwtTokenInfo `json:"token" xml:"Token"`
+				User  *models.UserInfo     `json:"user"  xml:"User"`
+			}
+			type Request struct {
+				Username string `json:"username" xml:"Username"`
+				Password string `json:"password" xml:"Password"`
+			}
 
-			return
+			var (
+				response = new(Response)
+				request  = new(Request)
+			)
+
+			// Чтение данных
+			{
+				if err = ctx.Bind().Body(request); err != nil {
+					eng.components.Logger.Error().
+						Format("The request body data could not be read: '%s'. ", err).Write()
+
+					if err = rest_api_io.WriteError(ctx, error_list.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+						eng.components.Logger.Error().
+							Format("The response could not be recorded: '%s'. ", err).Write()
+
+						var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+						cErr.SetError(err)
+
+						return rest_api_io.WriteError(ctx, cErr)
+					}
+
+					return
+				}
+			}
+
+			// Обработка
+			{
+				var (
+					tokenData = ctx.Cookies(eng.conf.Components.AccessSystem.CookieKeyForToken)
+					cErr      c_errors.RestAPI
+				)
+
+				if response.Token, response.User, cErr = eng.controllers.Authentication.BasicAuth(ctx.Context(),
+					tokenData,
+					request.Username,
+					request.Password); cErr != nil {
+					eng.components.Logger.Error().
+						Format("User authorization failed: '%s'. ", cErr).Write()
+
+					return rest_api_io.WriteError(ctx, cErr)
+				}
+			}
+
+			// Отправка ответа
+			{
+				if err = rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+					eng.components.Logger.Error().
+						Format("The response could not be recorded: '%s'. ", err).Write()
+
+					return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+				}
+				return
+			}
 		}).Name(route.Name)
 
 		route = eng.app.GetRoute(route.Name)

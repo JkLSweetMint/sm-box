@@ -5,14 +5,15 @@ import "sm-box/internal/common/types"
 type (
 	// UserInfo - пользователь системы.
 	UserInfo struct {
-		ID        types.ID `json:"id"         yaml:"ID"        xml:"id,attr"`
-		ProjectID types.ID `json:"project_id" yaml:"ProjectID" xml:"project_id,attr"`
+		ID        types.ID `json:"id"         xml:"id,attr"`
+		ProjectID types.ID `json:"project_id" xml:"project_id,attr"`
 
-		Email    string `json:"email"    yaml:"Email"    xml:"Email"`
-		Username string `json:"username" yaml:"Username" xml:"Username"`
-		Password string `json:"password" yaml:"Password" xml:"Password"`
+		Email    string `json:"email"    xml:"Email"`
+		Username string `json:"username" xml:"Username"`
 
-		Accesses UserInfoAccesses `json:"accesses" yaml:"Accesses" xml:"Accesses>Access"`
+		Password string `json:"password,omitempty" xml:"Password,omitempty"`
+
+		Accesses UserInfoAccesses `json:"accesses" xml:"Accesses>Access"`
 	}
 
 	// UserInfoAccesses - информация о доступах пользователя.

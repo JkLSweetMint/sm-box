@@ -14,10 +14,10 @@ create table
     password   varchar(1024) not null,
 
     constraint check_username
-        check (username ~ '^[0-9a-za-z-_]{3,16}$'),
+        check (username ~ '^[-0-9a-za-z_]{3,16}$'),
 
     constraint check_email
-        check (email is null or email ~ '^[a-za-z0-9._%+-]+@[a-za-z0-9.-]+\.[a-za-z]{2,}$')
+        check (email is null or email ~ '^[-a-za-z0-9._%+]+@[-a-za-z0-9.]+\.[a-za-z]{2,}$')
 );
 
 create table

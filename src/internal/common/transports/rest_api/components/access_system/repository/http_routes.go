@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
-	db_models2 "sm-box/internal/common/objects/db_models"
+	"sm-box/internal/common/objects/db_models"
 	"sm-box/internal/common/objects/entities"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/databases/connectors/postgresql"
@@ -37,7 +37,7 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 
 	// Основные данные
 	{
-		var model = new(db_models2.HttpRoute)
+		var model = new(db_models.HttpRoute)
 
 		var query = `
 			select
@@ -67,8 +67,8 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 		}
 
 		route.ID = model.ID
-		route.Active = model.Active == "on"
-		route.Authorize = model.Authorize == "on"
+		route.Active = model.Active
+		route.Authorize = model.Authorize
 		route.Method = method
 		route.Path = path
 		route.RegisterTime = model.RegisterTime
@@ -77,8 +77,8 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 	// Доступы
 	{
 		type Model struct {
-			*db_models2.Role
-			*db_models2.RoleInheritance
+			*db_models.Role
+			*db_models.RoleInheritance
 		}
 
 		var (
@@ -215,7 +215,7 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 
 	// Основные данные
 	{
-		var model = new(db_models2.HttpRoute)
+		var model = new(db_models.HttpRoute)
 
 		var query = `
 			select
@@ -246,8 +246,8 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 		}
 
 		route.ID = model.ID
-		route.Active = model.Active == "on"
-		route.Authorize = model.Authorize == "on"
+		route.Active = model.Active
+		route.Authorize = model.Authorize
 		route.Method = method
 		route.Path = path
 		route.RegisterTime = model.RegisterTime
@@ -256,8 +256,8 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 	// Доступы
 	{
 		type Model struct {
-			*db_models2.Role
-			*db_models2.RoleInheritance
+			*db_models.Role
+			*db_models.RoleInheritance
 		}
 
 		var (
@@ -404,7 +404,7 @@ func (repo *httpRoutesRepository) RegisterRoute(ctx context.Context, route *enti
 						$5
 					) 
 					on conflict (method, path) do update 
-						set active = 'on'
+						set active = true
 		`
 	)
 

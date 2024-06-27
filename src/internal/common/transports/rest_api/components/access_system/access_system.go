@@ -3,76 +3,62 @@ package access_system
 import (
 	"context"
 	"github.com/gofiber/fiber/v3"
-	"sm-box/internal/common/transports/rest_api/components/access_system/repository"
+	"sm-box/internal/common/objects/entities"
+	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
+	"strings"
+	"time"
 )
 
-const (
-	loggerInitiator = "transports-[http]-[rest_api]-[components]=access_system"
-)
+// accessSystem - компонент системы доступа http rest api.
+type accessSystem struct {
+	conf *Config
+	ctx  context.Context
 
-// AccessSystem - описание компонента системы доступа http rest api.
-type AccessSystem interface {
-	AuthenticationMiddleware(ctx fiber.Ctx) (err error)
-	IdentificationMiddleware(ctx fiber.Ctx) (err error)
+	components *components
+	repository interface {
+		GetUser(ctx context.Context, id types.ID) (us *entities.User, err error)
 
-	RegisterRoutes(list ...*fiber.Route) (err error)
+		GetRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error)
+		GetActiveRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error)
+		RegisterRoute(ctx context.Context, route *entities.HttpRoute) (err error)
+		SetInactiveRoutes(ctx context.Context) (err error)
+
+		GetToken(ctx context.Context, data string) (tok *entities.JwtToken, err error)
+		RegisterToken(ctx context.Context, tok *entities.JwtToken) (err error)
+	}
 }
 
-// New - создание компонента системы доступа http rest api.
-func New(ctx context.Context, conf *Config) (acc AccessSystem, err error) {
+// components - компоненты компонента системы доступа http rest api.
+type components struct {
+	Logger logger.Logger
+}
+
+// RegisterRoutes - регистрация маршрутов в системе.
+func (acc *accessSystem) RegisterRoutes(list ...*fiber.Route) (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelComponent)
+		var trc = tracer.New(tracer.LevelComponent)
 
-		trc.FunctionCall(ctx, conf)
-		defer func() { trc.Error(err).FunctionCallFinished(acc) }()
+		trc.FunctionCall(list)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	var ref = &accessSystem{
-		conf: conf,
-		ctx:  ctx,
-	}
+	for _, r := range list {
+		var route = new(entities.HttpRoute).FillEmptyFields()
 
-	// Конфигурация
-	{
-		if err = ref.conf.FillEmptyFields().Validate(); err != nil {
+		route.Active = true
+		route.Method = strings.ToUpper(r.Method)
+		route.Path = r.Path
+		route.RegisterTime = time.Now()
+
+		if err = acc.repository.RegisterRoute(acc.ctx, route); err != nil {
+			acc.components.Logger.Error().
+				Format("Failed to register http rest api route: '%s'. ", err).Write()
 			return
 		}
 	}
-
-	// Компоненты
-	{
-		ref.components = new(components)
-
-		// Logger
-		{
-			if ref.components.Logger, err = logger.New(loggerInitiator); err != nil {
-				return
-			}
-		}
-	}
-
-	// Репозиторий
-	{
-		if ref.repository, err = repository.New(ctx, conf.Repository); err != nil {
-			return
-		}
-	}
-
-	acc = ref
-
-	// Установить все маршруты в бд как не активные
-	{
-		if err = ref.repository.SetInactiveRoutes(ref.ctx); err != nil {
-			return
-		}
-	}
-
-	ref.components.Logger.Info().
-		Text("The access system component has been created. ").
-		Field("config", ref.conf).Write()
 
 	return
 }

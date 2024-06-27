@@ -2,13 +2,13 @@ package tracer
 
 import (
 	"sm-box/pkg/core/components/configurator"
-	"sm-box/pkg/core/components/tracer/logger"
+	config2 "sm-box/pkg/core/components/tracer/logger/config"
 )
 
 // Config - конфигурация компонента трессировки.
 type Config struct {
-	Levels []Level        `json:"levels" yaml:"Levels" xml:"Levels>Level"`
-	Logger *logger.Config `json:"logger" yaml:"Logger" xml:"Logger"`
+	Levels []Level         `json:"levels" yaml:"Levels" xml:"Levels>Level"`
+	Logger *config2.Config `json:"logger" yaml:"Logger" xml:"Logger"`
 }
 
 // Read - чтение конфигурации.
@@ -41,7 +41,7 @@ func (conf *Config) FillEmptyFields() *Config {
 	}
 
 	if conf.Logger == nil {
-		conf.Logger = new(logger.Config)
+		conf.Logger = new(config2.Config)
 	}
 
 	conf.Logger.FillEmptyFields()
@@ -53,7 +53,7 @@ func (conf *Config) FillEmptyFields() *Config {
 func (conf *Config) Default() *Config {
 	conf.Levels = allLevels
 
-	conf.Logger = new(logger.Config).Default()
+	conf.Logger = new(config2.Config).Default()
 
 	return conf
 }

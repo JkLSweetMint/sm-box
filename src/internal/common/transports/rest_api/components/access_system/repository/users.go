@@ -7,8 +7,8 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"github.com/jmoiron/sqlx"
-	db_models2 "sm-box/internal/common/objects/db_models"
-	entities2 "sm-box/internal/common/objects/entities"
+	"sm-box/internal/common/objects/db_models"
+	"sm-box/internal/common/objects/entities"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -25,7 +25,7 @@ type usersRepository struct {
 }
 
 // GetUser - получение пользователя по идентификатору.
-func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *entities2.User, err error) {
+func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *entities.User, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -36,12 +36,12 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 
 	// Подготовка
 	{
-		us = new(entities2.User).FillEmptyFields()
+		us = new(entities.User).FillEmptyFields()
 	}
 
 	// Основные данные
 	{
-		var model = new(db_models2.User)
+		var model = new(db_models.User)
 
 		var query = `
 			select
@@ -78,8 +78,8 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 	// Доступы
 	{
 		type Model struct {
-			*db_models2.Role
-			*db_models2.RoleInheritance
+			*db_models.Role
+			*db_models.RoleInheritance
 		}
 
 		var (
@@ -147,27 +147,27 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 			models = append(models, model)
 		}
 
-		var writeInheritance func(parent *entities2.UserAccess)
+		var writeInheritance func(parent *entities.UserAccess)
 
-		writeInheritance = func(parent *entities2.UserAccess) {
+		writeInheritance = func(parent *entities.UserAccess) {
 			for _, model := range models {
 				if model.Parent == parent.ID {
 					var (
-						role = &entities2.Role{
+						role = &entities.Role{
 							ID:        model.ID,
 							ProjectID: model.ProjectID,
 							Name:      model.Name,
 
-							Inheritances: make(entities2.RoleInheritances, 0),
+							Inheritances: make(entities.RoleInheritances, 0),
 						}
 					)
 					role.FillEmptyFields()
 
-					parent.Inheritances = append(parent.Inheritances, &entities2.RoleInheritance{
+					parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
 						Role: role,
 					})
 
-					writeInheritance(&entities2.UserAccess{
+					writeInheritance(&entities.UserAccess{
 						Role: role,
 					})
 				}
@@ -177,14 +177,14 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 		for _, model := range models {
 			if model.Parent == 0 {
 				var (
-					role = &entities2.Role{
+					role = &entities.Role{
 						ID:        model.ID,
 						ProjectID: model.ProjectID,
 						Name:      model.Name,
 
-						Inheritances: make(entities2.RoleInheritances, 0),
+						Inheritances: make(entities.RoleInheritances, 0),
 					}
-					acc = &entities2.UserAccess{
+					acc = &entities.UserAccess{
 						Role: role.FillEmptyFields(),
 					}
 				)
@@ -200,7 +200,7 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 
 // BasicAuth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (repo *usersRepository) BasicAuth(ctx context.Context, username, password string) (us *entities2.User, err error) {
+func (repo *usersRepository) BasicAuth(ctx context.Context, username, password string) (us *entities.User, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -211,12 +211,12 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 
 	// Подготовка
 	{
-		us = new(entities2.User).FillEmptyFields()
+		us = new(entities.User).FillEmptyFields()
 	}
 
 	// Основные данные
 	{
-		var model = new(db_models2.User)
+		var model = new(db_models.User)
 
 		var query = `
 			select
@@ -278,8 +278,8 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 	// Доступы
 	{
 		type Model struct {
-			*db_models2.Role
-			*db_models2.RoleInheritance
+			*db_models.Role
+			*db_models.RoleInheritance
 		}
 
 		var (
@@ -348,27 +348,27 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 			models = append(models, model)
 		}
 
-		var writeInheritance func(parent *entities2.UserAccess)
+		var writeInheritance func(parent *entities.UserAccess)
 
-		writeInheritance = func(parent *entities2.UserAccess) {
+		writeInheritance = func(parent *entities.UserAccess) {
 			for _, model := range models {
 				if model.Parent == parent.ID {
 					var (
-						role = &entities2.Role{
+						role = &entities.Role{
 							ID:        model.ID,
 							ProjectID: model.ProjectID,
 							Name:      model.Name,
 
-							Inheritances: make(entities2.RoleInheritances, 0),
+							Inheritances: make(entities.RoleInheritances, 0),
 						}
 					)
 					role.FillEmptyFields()
 
-					parent.Inheritances = append(parent.Inheritances, &entities2.RoleInheritance{
+					parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
 						Role: role,
 					})
 
-					writeInheritance(&entities2.UserAccess{
+					writeInheritance(&entities.UserAccess{
 						Role: role,
 					})
 				}
@@ -378,14 +378,14 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 		for _, model := range models {
 			if model.Parent == 0 {
 				var (
-					role = &entities2.Role{
+					role = &entities.Role{
 						ID:        model.ID,
 						ProjectID: model.ProjectID,
 						Name:      model.Name,
 
-						Inheritances: make(entities2.RoleInheritances, 0),
+						Inheritances: make(entities.RoleInheritances, 0),
 					}
-					acc = &entities2.UserAccess{
+					acc = &entities.UserAccess{
 						Role: role.FillEmptyFields(),
 					}
 				)

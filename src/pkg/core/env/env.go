@@ -49,4 +49,8 @@ func init() {
 	if err = initSystemDir(); err != nil {
 		panic(err)
 	}
+
+	if err = readEncryptionKeys(); err != nil {
+		panic(err)
+	}
 }

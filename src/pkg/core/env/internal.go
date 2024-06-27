@@ -1,9 +1,15 @@
 package env
 
 import (
+	"crypto/x509"
+	"encoding/pem"
+	"errors"
+	"io/fs"
 	"os"
 	"path"
 	"reflect"
+	"slices"
+	"sm-box/embed"
 	"strings"
 )
 
@@ -82,6 +88,90 @@ func getSystemLocation() (location string, err error) {
 				location = location[:len(location)-3]
 			}
 		}
+	}
+
+	return
+}
+
+// readEncryptionKeys - чтение ключей шифрования.
+func readEncryptionKeys() (err error) {
+	const (
+		prtFileName = "private.pem"
+		pbFileName  = "public.pem"
+	)
+
+	var (
+		exists = []bool{
+			false,
+			false,
+		}
+		files = []string{
+			prtFileName,
+			pbFileName,
+		}
+	)
+
+	// Проверка существования
+	{
+		var dir []fs.DirEntry
+
+		if dir, err = embed.Dir.ReadDir("."); err != nil {
+			return
+		}
+
+		for _, fl := range dir {
+			if index := slices.Index(files, fl.Name()); index >= 0 {
+				exists[index] = true
+			}
+		}
+	}
+
+	// Чтение
+	{
+		if exists[0] && exists[1] {
+			// Приватный ключ
+			{
+				var (
+					data  []byte
+					block *pem.Block
+				)
+
+				if data, err = embed.Dir.ReadFile(prtFileName); err != nil {
+					return
+				}
+
+				block, _ = pem.Decode(data)
+
+				if Vars.EncryptionKeys.Private, err = x509.ParsePKCS1PrivateKey(block.Bytes); err != nil {
+					return
+				}
+			}
+
+			// Публичный ключ
+			{
+				var (
+					data  []byte
+					block *pem.Block
+				)
+
+				if data, err = embed.Dir.ReadFile(pbFileName); err != nil {
+					return
+				}
+
+				block, _ = pem.Decode(data)
+
+				if Vars.EncryptionKeys.Public, err = x509.ParsePKCS1PublicKey(block.Bytes); err != nil {
+					return
+				}
+			}
+
+			return
+		}
+	}
+
+	// Ключей нет
+	{
+		err = errors.New("Invalid encryption keys. ")
 	}
 
 	return

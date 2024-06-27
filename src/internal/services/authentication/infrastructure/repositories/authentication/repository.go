@@ -2,17 +2,12 @@ package authentication_repository
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
-	"database/sql"
 	"github.com/jmoiron/sqlx"
 	"sm-box/internal/common/objects/db_models"
 	"sm-box/internal/common/objects/entities"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/env"
 	"sm-box/pkg/databases/connectors/postgresql"
 )
 
@@ -83,6 +78,66 @@ func New(ctx context.Context) (repo *Repository, err error) {
 	return
 }
 
+// GetToken - получение jwt токена.
+func (repo *Repository) GetToken(ctx context.Context, data string) (tok *entities.JwtToken, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, data)
+		defer func() { trc.Error(err).FunctionCallFinished(tok) }()
+	}
+
+	var model = new(db_models.JwtToken)
+
+	// Получение данных
+	{
+		var query = `
+			select
+				tokens.id,
+				coalesce(tokens.user_id, 0) as user_id,
+				tokens.issued_at,
+				tokens.not_before,
+				tokens.expires_at
+			from
+				system_access.jwt_tokens as tokens
+			where
+				tokens.data = $1
+		`
+
+		var row = repo.connector.QueryRowxContext(ctx, query, data)
+
+		if err = row.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+			return
+		}
+
+		if err = row.StructScan(model); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	// Перенос в сущность
+	{
+		tok = new(entities.JwtToken)
+		tok.FillEmptyFields()
+
+		tok.ID = model.ID
+		tok.UserID = model.UserID
+
+		tok.Data = data
+
+		tok.IssuedAt = model.IssuedAt
+		tok.NotBefore = model.NotBefore
+		tok.ExpiresAt = model.ExpiresAt
+	}
+
+	return
+}
+
 // SetTokenOwner - установить владельца токена.
 func (repo *Repository) SetTokenOwner(ctx context.Context, tokenID, ownerID types.ID) (err error) {
 	// tracer
@@ -141,10 +196,11 @@ func (repo *Repository) BasicAuth(ctx context.Context, username, password string
 			from
 				public.users as users
 			where
-				users.username = $1
+				users.username = $1 and 
+				users.password = $2
 		`
 
-		var row = repo.connector.QueryRowxContext(ctx, query, username)
+		var row = repo.connector.QueryRowxContext(ctx, query, username, password)
 
 		if err = row.Err(); err != nil {
 			repo.components.Logger.Error().
@@ -162,30 +218,6 @@ func (repo *Repository) BasicAuth(ctx context.Context, username, password string
 		us.ProjectID = model.ProjectID
 		us.Email = model.Email
 		us.Username = model.Username
-
-		// Проверка пароля
-		{
-			var passwordDB []byte
-
-			if passwordDB, err = rsa.DecryptOAEP(
-				sha256.New(),
-				rand.Reader,
-				env.Vars.EncryptionKeys.Private,
-				model.Password,
-				[]byte("password")); err != nil {
-				repo.components.Logger.Error().
-					Format("The decryption of the user's password failed: '%s'. ", err).Write()
-				return
-			}
-
-			if string(passwordDB) != password {
-				repo.components.Logger.Error().
-					Text("The user's password does not match. ").Write()
-
-				err = sql.ErrNoRows
-				return
-			}
-		}
 	}
 
 	// Доступы
@@ -198,14 +230,14 @@ func (repo *Repository) BasicAuth(ctx context.Context, username, password string
 		var (
 			rows  *sqlx.Rows
 			query = `
-				WITH RECURSIVE cte_roles (id, project_id, title, parent) AS (
+				WITH RECURSIVE cte_roles (id, project_id, name, parent) AS (
 					select
 						roles.id,
 						roles.project_id,
-						roles.title,
-						0 as parent
+						roles.name,
+						0::bigint as parent
 					from
-						system_access_roles as roles
+						system_access.roles as roles
 					where
 						roles.id in (
 							select
@@ -223,22 +255,21 @@ func (repo *Repository) BasicAuth(ctx context.Context, username, password string
 					select
 						roles.id,
 						roles.project_id,
-						roles.title,
+						roles.name,
 						role_inheritance.parent as parent
 					from
-						system_access_roles as roles
-							left join system_access_role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
+						system_access.roles as roles
+							left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
 							JOIN cte_roles cte ON cte.id = role_inheritance.parent
 				)
 				
 				select
 					distinct id,
 					coalesce(project_id, 0) as project_id,
-					title,
+					name,
 					coalesce(parent, 0) as parent
 				from
 					cte_roles;
-
 			`
 			models = make([]*Model, 0, 10)
 		)

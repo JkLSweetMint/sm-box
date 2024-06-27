@@ -2,134 +2,121 @@ package core
 
 import (
 	"context"
-	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/tools/closer"
-	"sm-box/pkg/core/tools/task_scheduler"
-	"sync"
 )
 
-const (
-	loggerInitiator = "core"
-)
+// core - ядро системы.
+type core struct {
+	components *components
+	tools      *tools
 
-var (
-	once     = new(sync.Once)
-	instance Core
-)
+	ctx  context.Context
+	conf *Config
 
-// Core - описание ядра системы.
-type Core interface {
-	Boot() (err error)
-	Serve() (err error)
-	Shutdown() (err error)
+	state interface {
+		Shutdown() (err error)
+		Boot() (err error)
+		Serve() (err error)
 
-	State() (state State)
-	Ctx() (ctx context.Context)
-
-	Components() Components
-	Tools() Tools
+		State() (state State)
+	}
 }
 
-// New - создание ядра системы.
-// Может быть создан только один объект ядра!
-//
-// Ядро может быть в следующих состояний:
-//   - StateNew    - "New"
-//   - StateBooted - "Booted"
-//   - StateServed - "Served"
-//   - StateOff    - "Off"
-func New() (cr Core, err error) {
+// Boot - загрузка ядра, построение системы, создание компонентов.
+// Загрузить можно только ядро со статусом StateNew.
+// Состояние ядра будет изменено на StateBooted.
+func (c *core) Boot() (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
+		var trc = tracer.New(tracer.LevelCore)
 
 		trc.FunctionCall()
-		defer func() { trc.Error(err).FunctionCallFinished(cr) }()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	var created bool
-
-	once.Do(func() {
-		var ref = &core{
-			ctx: context.Background(),
-		}
-
-		// Конфигурация
-		{
-			ref.conf = new(Config)
-
-			if err = ref.conf.Read(); err != nil {
-				return
-			}
-		}
-
-		// Компоненты
-		{
-			ref.components = new(components)
-
-			// Logger
-			{
-				if ref.components.logger, err = logger.New(loggerInitiator); err != nil {
-					return
-				}
-			}
-		}
-
-		// Инструменты
-		{
-			ref.tools = new(tools)
-
-			// Closer
-			{
-				if ref.tools.closer, ref.ctx = closer.New(ref.ctx, ref.conf.Tools.Closer); err != nil {
-					return
-				}
-			}
-
-			// TaskScheduler
-			{
-				if ref.tools.taskScheduler, err = task_scheduler.New(ref.ctx); err != nil {
-					return
-				}
-			}
-		}
-
-		instance = ref
-
-		// Состояние
-		{
-			if err = ref.updateState(StateNew); err != nil {
-				return
-			}
-		}
-
-		instance.Components().Logger().Info().
-			Text("The system core instance has been created. ").
-			Field("state", ref.State()).
-			Field("config", ref.conf).Write()
-
-		// Вызов задачи планировщика - 'BeforeNew'.
-		{
-			if err = ref.tools.taskScheduler.Call(task_scheduler.EventBeforeNew); err != nil {
-				return
-			}
-		}
-
-		created = true
-	})
-
-	if err != nil {
-		return
-	}
-
-	cr = instance
-
-	if !created {
-		instance.Components().Logger().Info().
-			Text("The system core instance was received. ").
-			Field("state", instance.State()).Write()
+	if err = c.state.Boot(); err != nil {
+		c.Components().Logger().Error().
+			Format("An error occurred while booting the system core: '%s'.  ", err).Write()
 	}
 
 	return
+}
+
+// Serve - запуск обслуживания ядра.
+// Запустить обслуживание можно только ядро со статусом StateBooted.
+// Состояние ядра будет изменено на StateServed.
+func (c *core) Serve() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelCore)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	if err = c.state.Serve(); err != nil {
+		c.Components().Logger().Error().
+			Format("An error occurred while serving the system core: '%s'.  ", err).Write()
+	}
+
+	return
+}
+
+// Shutdown - завершение работы ядра.
+// Остановить можно только ядро со статусом StateServed.
+// Состояние ядра будет изменено на StateOff.
+func (c *core) Shutdown() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelCore)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	if err = c.state.Shutdown(); err != nil {
+		c.Components().Logger().Error().
+			Format("An error occurred during the shutdown of the system core: '%s'.  ", err).Write()
+	}
+
+	return
+}
+
+// State - получение состояния ядра системы.
+//
+// Возможные варианты состояния ядра:
+//  0. StateNil    - "Nil";
+//  1. StateNew    - "New";
+//  2. StateBooted - "Booted";
+//  3. StateServed - "Served";
+//  4. StateOff    - "Off";
+func (c *core) State() (state State) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelCore)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(state) }()
+	}
+
+	if c.state == nil {
+		return StateNil
+	}
+
+	return c.state.State()
+}
+
+// Ctx - получение контекста ядра системы.
+func (c *core) Ctx() (ctx context.Context) {
+	return c.ctx
+}
+
+// Components - получение компонентов ядра системы.
+func (c *core) Components() Components {
+	return c.components
+}
+
+// Tools - получение внутренних инструментов ядра системы.
+func (c *core) Tools() Tools {
+	return c.tools
 }

@@ -5,21 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gofiber/fiber/v3"
-	"github.com/golang-jwt/jwt/v5"
 	"regexp"
 	error_list "sm-box/internal/common/errors"
-	entities2 "sm-box/internal/common/objects/entities"
+	"sm-box/internal/common/objects/entities"
 	rest_api_io "sm-box/internal/common/transports/rest_api/io"
-	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/env"
 	"time"
 )
 
 // AuthenticationMiddleware - промежуточное программное обеспечение для аутентификации пользователя.
 func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 	var (
-		route *entities2.HttpRoute
-		token *entities2.JwtToken
+		route *entities.HttpRoute
+		token *entities.JwtToken
 	)
 
 	// Получение маршрута
@@ -86,7 +83,7 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 	// Проверка доступа к маршруту, если требуется авторизация
 	{
 		if route.Authorize {
-			var us *entities2.User
+			var us *entities.User
 
 			// Получение данных пользователя
 			{
@@ -140,19 +137,19 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 
 // IdentificationMiddleware - промежуточное программное обеспечение для идентификации клиента.
 func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
-	var token *entities2.JwtToken
+	var token *entities.JwtToken
 
 	// Получение токена, если нет, то создаём
 	{
 		if data := ctx.Cookies(acc.conf.CookieKeyForToken); data == "" {
-			token = &entities2.JwtToken{
+			token = &entities.JwtToken{
 				ID:        0,
 				UserID:    0,
 				Data:      "",
 				ExpiresAt: time.Now().Add(time.Hour * 8),
 				NotBefore: time.Now(),
 				IssuedAt:  time.Now(),
-				Params: &entities2.JwtTokenParams{
+				Params: &entities.JwtTokenParams{
 					RemoteAddr: fmt.Sprintf("%s:%s", ctx.IP(), ctx.Port()),
 					UserAgent:  string(ctx.Request().Header.UserAgent()),
 				},
@@ -207,14 +204,14 @@ func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
 		// Срок действия уже закончился, пересоздаём
 		{
 			if tm.After(token.ExpiresAt) {
-				token = &entities2.JwtToken{
+				token = &entities.JwtToken{
 					ID:        0,
 					UserID:    0,
 					Data:      "",
 					ExpiresAt: time.Now().Add(time.Hour * 8),
 					NotBefore: time.Now(),
 					IssuedAt:  time.Now(),
-					Params: &entities2.JwtTokenParams{
+					Params: &entities.JwtTokenParams{
 						RemoteAddr: fmt.Sprintf("%s:%s", ctx.IP(), ctx.Port()),
 						UserAgent:  string(ctx.Request().Header.UserAgent()),
 					},
@@ -230,74 +227,4 @@ func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
 	}
 
 	return ctx.Next()
-}
-
-// generateToken - генерация токена.
-func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *entities2.JwtToken) (err error) {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelComponentInternal)
-
-		trc.FunctionCall(ctx, token)
-		defer func() { trc.Error(err).FunctionCallFinished(token) }()
-	}
-
-	// Генерация данных токена
-	{
-		var (
-			claims = &jwt.RegisteredClaims{
-				Issuer: env.Vars.SystemName,
-				Audience: jwt.ClaimStrings{
-					string(ctx.Request().Header.UserAgent()),
-				},
-				ExpiresAt: &jwt.NumericDate{Time: token.ExpiresAt},
-				NotBefore: &jwt.NumericDate{Time: token.NotBefore},
-				IssuedAt:  &jwt.NumericDate{Time: token.IssuedAt},
-			}
-		)
-
-		if err = token.Generate(claims); err != nil {
-			acc.components.Logger.Error().
-				Format("Failed to generate a token for the client: '%s'. ", err).Write()
-
-			if err = rest_api_io.WriteError(ctx, error_list.InternalServerError_RestAPI()); err != nil {
-				acc.components.Logger.Error().
-					Format("The response could not be recorded: '%s'. ", err).Write()
-
-				return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
-			}
-			return
-		}
-	}
-
-	ctx.Cookie(&fiber.Cookie{
-		Name:        acc.conf.CookieKeyForToken,
-		Value:       token.Data,
-		Path:        "/",
-		Domain:      string(ctx.Request().Host()),
-		MaxAge:      0,
-		Expires:     token.ExpiresAt,
-		Secure:      false,
-		HTTPOnly:    false,
-		SameSite:    fiber.CookieSameSiteLaxMode,
-		SessionOnly: false,
-	})
-
-	// Сохранить в базу
-	{
-		if err = acc.repository.RegisterToken(ctx.Context(), token); err != nil {
-			acc.components.Logger.Error().
-				Format("The client's current could not be registered in the database: '%s'. ", err).Write()
-
-			if err = rest_api_io.WriteError(ctx, error_list.InternalServerError_RestAPI()); err != nil {
-				acc.components.Logger.Error().
-					Format("The response could not be recorded: '%s'. ", err).Write()
-
-				return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
-			}
-			return
-		}
-	}
-
-	return
 }

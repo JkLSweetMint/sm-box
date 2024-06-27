@@ -1,10 +1,8 @@
 package authentication_repository
 
 import (
-	"path"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/core/env"
 	"sm-box/pkg/databases/connectors/postgresql"
 )
 
@@ -85,7 +83,7 @@ func (conf *Config) Read() (err error) {
 	var (
 		c       configurator.Configurator[*Config]
 		profile = configurator.PrivateProfile{
-			Dir:      path.Join(env.Vars.SystemName, "/infrastructure/repositories/"),
+			Dir:      "/infrastructure/repositories/",
 			Filename: "authentication.xml",
 		}
 	)

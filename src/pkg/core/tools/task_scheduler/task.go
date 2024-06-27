@@ -51,16 +51,16 @@ var taskEventList = [...]string{
 	"AfterShutdown",
 }
 
+// Task - задача планировщика.
+type Task interface {
+	Exec(ctx context.Context) (err error)
+}
+
 // Event - событие.
 type Event int
 
 // TaskFunc - функция задачи.
 type TaskFunc func(ctx context.Context) (err error)
-
-// Task - задача планировщика.
-type Task interface {
-	Exec(ctx context.Context) (err error)
-}
 
 // BackgroundTask - фоновая задача планировщика.
 type BackgroundTask struct {

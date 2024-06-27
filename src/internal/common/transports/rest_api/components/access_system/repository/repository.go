@@ -27,7 +27,7 @@ type components struct {
 func New(ctx context.Context, conf *Config) (repo *Repository, err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelRepository)
+		var trc = tracer.New(tracer.LevelRepository)
 
 		trc.FunctionCall(ctx, conf)
 		defer func() { trc.Error(err).FunctionCallFinished(repo) }()

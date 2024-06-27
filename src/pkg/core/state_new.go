@@ -20,7 +20,7 @@ type stateNew struct {
 func (c *stateNew) Boot() (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
+		var trc = tracer.New(tracer.LevelCore)
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
@@ -77,7 +77,7 @@ func (c *stateNew) Boot() (err error) {
 func (c *stateNew) Serve() (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
+		var trc = tracer.New(tracer.LevelCore)
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
@@ -100,7 +100,7 @@ func (c *stateNew) Serve() (err error) {
 func (c *stateNew) Shutdown() (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
+		var trc = tracer.New(tracer.LevelCore)
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
@@ -121,6 +121,14 @@ func (c *stateNew) Shutdown() (err error) {
 //
 // Будет возвращено значение StateNew - "New".
 func (c *stateNew) State() (state State) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelCore)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(state) }()
+	}
+
 	return StateNew
 }
 

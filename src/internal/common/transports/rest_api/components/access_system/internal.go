@@ -1,61 +1,78 @@
 package access_system
 
 import (
-	"context"
 	"github.com/gofiber/fiber/v3"
+	"github.com/golang-jwt/jwt/v5"
+	error_list "sm-box/internal/common/errors"
 	"sm-box/internal/common/objects/entities"
-	"sm-box/internal/common/types"
-	"sm-box/pkg/core/components/logger"
+	rest_api_io "sm-box/internal/common/transports/rest_api/io"
 	"sm-box/pkg/core/components/tracer"
-	"strings"
-	"time"
+	"sm-box/pkg/core/env"
 )
 
-// accessSystem - компонент системы доступа http rest api.
-type accessSystem struct {
-	conf *Config
-	ctx  context.Context
-
-	components *components
-	repository interface {
-		GetUser(ctx context.Context, id types.ID) (us *entities.User, err error)
-
-		GetRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error)
-		GetActiveRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error)
-		RegisterRoute(ctx context.Context, route *entities.HttpRoute) (err error)
-		SetInactiveRoutes(ctx context.Context) (err error)
-
-		GetToken(ctx context.Context, data string) (tok *entities.JwtToken, err error)
-		RegisterToken(ctx context.Context, tok *entities.JwtToken) (err error)
-	}
-}
-
-// components - компоненты компонента системы доступа http rest api.
-type components struct {
-	Logger logger.Logger
-}
-
-// RegisterRoutes - регистрация маршрутов в системе.
-func (acc *accessSystem) RegisterRoutes(list ...*fiber.Route) (err error) {
+// generateToken - генерация токена.
+func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *entities.JwtToken) (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelComponent)
+		var trc = tracer.New(tracer.LevelComponentInternal)
 
-		trc.FunctionCall(list)
-		defer func() { trc.Error(err).FunctionCallFinished() }()
+		trc.FunctionCall(ctx, token)
+		defer func() { trc.Error(err).FunctionCallFinished(token) }()
 	}
 
-	for _, r := range list {
-		var route = new(entities.HttpRoute).FillEmptyFields()
+	// Генерация данных токена
+	{
+		var (
+			claims = &jwt.RegisteredClaims{
+				Issuer: env.Vars.SystemName,
+				Audience: jwt.ClaimStrings{
+					string(ctx.Request().Header.UserAgent()),
+				},
+				ExpiresAt: &jwt.NumericDate{Time: token.ExpiresAt},
+				NotBefore: &jwt.NumericDate{Time: token.NotBefore},
+				IssuedAt:  &jwt.NumericDate{Time: token.IssuedAt},
+			}
+		)
 
-		route.Active = true
-		route.Method = strings.ToUpper(r.Method)
-		route.Path = r.Path
-		route.RegisterTime = time.Now()
-
-		if err = acc.repository.RegisterRoute(acc.ctx, route); err != nil {
+		if err = token.Generate(claims); err != nil {
 			acc.components.Logger.Error().
-				Format("Failed to register http rest api route: '%s'. ", err).Write()
+				Format("Failed to generate a token for the client: '%s'. ", err).Write()
+
+			if err = rest_api_io.WriteError(ctx, error_list.InternalServerError_RestAPI()); err != nil {
+				acc.components.Logger.Error().
+					Format("The response could not be recorded: '%s'. ", err).Write()
+
+				return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+			}
+			return
+		}
+	}
+
+	ctx.Cookie(&fiber.Cookie{
+		Name:        acc.conf.CookieKeyForToken,
+		Value:       token.Data,
+		Path:        "/",
+		Domain:      string(ctx.Request().Host()),
+		MaxAge:      0,
+		Expires:     token.ExpiresAt,
+		Secure:      false,
+		HTTPOnly:    false,
+		SameSite:    fiber.CookieSameSiteLaxMode,
+		SessionOnly: false,
+	})
+
+	// Сохранить в базу
+	{
+		if err = acc.repository.RegisterToken(ctx.Context(), token); err != nil {
+			acc.components.Logger.Error().
+				Format("The client's current could not be registered in the database: '%s'. ", err).Write()
+
+			if err = rest_api_io.WriteError(ctx, error_list.InternalServerError_RestAPI()); err != nil {
+				acc.components.Logger.Error().
+					Format("The response could not be recorded: '%s'. ", err).Write()
+
+				return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+			}
 			return
 		}
 	}

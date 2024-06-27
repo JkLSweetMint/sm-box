@@ -1,7 +1,7 @@
 package task_scheduler
 
-// iterator - описание итератора для коллекции по хранению задач планировщика.
-type iterator interface {
+// Iterator - описание итератора для коллекции по хранению задач планировщика.
+type Iterator interface {
 	Index() int
 	Value() Task
 	Has() bool

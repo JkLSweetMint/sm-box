@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"sm-box/internal/common/objects/models"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 )
@@ -39,4 +40,49 @@ func (entity *Role) FillEmptyFields() *Role {
 	}
 
 	return entity
+}
+
+// Model - получение модели.
+func (entity *Role) Model() (model *models.RoleInfo) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(model) }()
+	}
+
+	model = &models.RoleInfo{
+		ID:           entity.ID,
+		ProjectID:    entity.ProjectID,
+		Name:         entity.Name,
+		Inheritances: make(models.RoleInfoInheritances, 0),
+	}
+
+	for _, rl := range entity.Inheritances {
+		model.Inheritances = append(model.Inheritances, rl.Model())
+	}
+
+	return
+}
+
+// Model - получение модели.
+func (entity *RoleInheritance) Model() (model *models.RoleInfoInheritance) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(model) }()
+	}
+
+	model = &models.RoleInfoInheritance{
+		RoleInfo: entity.Role.Model(),
+	}
+
+	for _, rl := range entity.Inheritances {
+		model.Inheritances = append(model.Inheritances, rl.Model())
+	}
+
+	return
 }

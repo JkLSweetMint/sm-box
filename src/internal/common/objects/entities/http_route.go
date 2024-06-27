@@ -61,21 +61,13 @@ func (entity *HttpRoute) DbModel() (model *db_models.HttpRoute) {
 	model = &db_models.HttpRoute{
 		ID: entity.ID,
 
-		Active:    "off",
-		Authorize: "off",
+		Active:    entity.Active,
+		Authorize: entity.Authorize,
 
 		Method: strings.ToUpper(entity.Method),
 		Path:   entity.Path,
 
 		RegisterTime: entity.RegisterTime,
-	}
-
-	if entity.Active {
-		model.Active = "on"
-	}
-
-	if entity.Authorize {
-		model.Authorize = "on"
 	}
 
 	return

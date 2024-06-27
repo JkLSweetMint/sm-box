@@ -21,7 +21,7 @@ type stateBooted struct {
 func (c *stateBooted) Boot() (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
+		var trc = tracer.New(tracer.LevelCore)
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
@@ -43,7 +43,7 @@ func (c *stateBooted) Boot() (err error) {
 func (c *stateBooted) Serve() (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
+		var trc = tracer.New(tracer.LevelCore)
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
@@ -102,7 +102,7 @@ func (c *stateBooted) Serve() (err error) {
 func (c *stateBooted) Shutdown() (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain, tracer.LevelCore)
+		var trc = tracer.New(tracer.LevelCore)
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
@@ -123,6 +123,14 @@ func (c *stateBooted) Shutdown() (err error) {
 //
 // Будет возвращено значение StateBooted - "Booted".
 func (c *stateBooted) State() (state State) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelCore)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(state) }()
+	}
+
 	return StateBooted
 }
 

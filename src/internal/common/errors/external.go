@@ -33,6 +33,17 @@ var (
 	}.RestAPI(c_errors.RestAPIConstructor{
 		StatusCode: fiber.StatusNotFound,
 	}).Build()
+
+	TokenNotFound = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000101",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("The token was not found. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusNotFound,
+	}).Build()
 )
 
 // E-000102
@@ -61,6 +72,15 @@ var (
 	}.RestAPI(c_errors.RestAPIConstructor{
 		StatusCode: fiber.StatusBadRequest,
 	}).Build()
+
+	AlreadyAuthorized = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000103",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("Already authorized. "),
+	}.Build()
 )
 
 // E-000104

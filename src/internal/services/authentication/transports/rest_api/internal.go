@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"os"
 	"path"
-	"sm-box/internal/common/objects/entities"
+	"sm-box/internal/common/objects/models"
 	"sm-box/internal/common/transports/rest_api/components/access_system"
 	"sm-box/internal/services/authentication/transports/rest_api/config"
 	"sm-box/pkg/core/components/logger"
@@ -37,7 +37,7 @@ type engine struct {
 // controllers - контроллеры движка.
 type controllers struct {
 	Authentication interface {
-		BasicAuth(ctx context.Context, username, password string) (us *entities.User, cErr c_errors.RestAPI)
+		BasicAuth(ctx context.Context, tokenData, username, password string) (token *models.JwtTokenInfo, user *models.UserInfo, cErr c_errors.RestAPI)
 	}
 }
 

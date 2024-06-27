@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"sm-box/internal/common/objects/models"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 )
@@ -87,6 +88,49 @@ func (entity *User) checkUserRoleInheritancesForHttpRouteAccesses(userAccess Rol
 		if ok = entity.checkUserRoleInheritancesForHttpRouteAccesses(role.Inheritances, access); ok {
 			return
 		}
+	}
+
+	return
+}
+
+// Model - получение модели.
+func (entity *User) Model() (model *models.UserInfo) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(model) }()
+	}
+
+	model = &models.UserInfo{
+		ID:        entity.ID,
+		ProjectID: entity.ProjectID,
+		Email:     entity.Email,
+		Username:  entity.Username,
+		Password:  entity.Password,
+		Accesses:  make(models.UserInfoAccesses, 0),
+	}
+
+	for _, acc := range entity.Accesses {
+		model.Accesses = append(model.Accesses, acc.Model())
+	}
+
+	return
+}
+
+// Model - получение модели.
+func (entity *UserAccess) Model() (model *models.UserInfoAccess) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(model) }()
+	}
+
+	model = &models.UserInfoAccess{
+		RoleInfo: entity.Role.Model(),
 	}
 
 	return

@@ -2,85 +2,44 @@ package app
 
 import (
 	"context"
-	"sm-box/pkg/core"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 )
 
-// box - реализация коробки.
-type box struct {
-	conf *Config
-	core core.Core
-
-	components  *components
-	controllers *controllers
-}
-
-// Serve - запуск коробки.
-// Состояние коробки будет изменено на core.StateServed.
-func (bx *box) Serve() (err error) {
+// serve - внутренний метод для запуска коробки.
+func (bx *box) serve(ctx context.Context) (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain)
+		var trc = tracer.New(tracer.LevelInternal)
 
-		trc.FunctionCall()
+		trc.FunctionCall(ctx)
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	if err = bx.core.Serve(); err != nil {
-		bx.Components().Logger().Error().
-			Format("An error occurred when starting maintenance of the '%s': '%s'. ",
-				env.Vars.SystemName,
-				err).Write()
-	}
+	bx.Components().Logger().Info().
+		Format("Starting the '%s'... ", env.Vars.SystemName).Write()
+
+	bx.Components().Logger().Info().
+		Format("The '%s' has been successfully started. ", env.Vars.SystemName).Write()
 
 	return
 }
 
-// Shutdown - завершение работы коробки.
-// Остановить можно только коробки со статусом core.StateServed.
-// Состояние ядра будет изменено на core.StateOff.
-func (bx *box) Shutdown() (err error) {
+// shutdown - внутренний метод для завершения работы коробки.
+func (bx *box) shutdown(ctx context.Context) (err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelMain)
+		var trc = tracer.New(tracer.LevelInternal)
 
-		trc.FunctionCall()
+		trc.FunctionCall(ctx)
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	if err = bx.core.Shutdown(); err != nil {
-		bx.Components().Logger().Error().
-			Format("An error occurred when starting maintenance of the '%s': '%s'. ",
-				env.Vars.SystemName,
-				err).Write()
-	}
+	bx.Components().Logger().Info().
+		Format("Shutting down the '%s'... ", env.Vars.SystemName).Write()
+
+	bx.Components().Logger().Info().
+		Format("The '%s' has finished its work. ", env.Vars.SystemName).Write()
 
 	return
-}
-
-// State - получение состояния коробки.
-//
-// Возможные варианты состояния:
-//  1. StateNew    - "New";
-//  2. StateBooted - "Booted";
-//  3. StateServed - "Served";
-//  4. StateOff    - "Off";
-func (bx *box) State() (state core.State) {
-	return bx.core.State()
-}
-
-// Ctx - получение контекста коробки.
-func (bx *box) Ctx() (ctx context.Context) {
-	return bx.core.Ctx()
-}
-
-// Components - получение компонентов коробки.
-func (bx *box) Components() Components {
-	return bx.components
-}
-
-// Controllers - получение контроллеров коробки.
-func (bx *box) Controllers() Controllers {
-	return bx.controllers
 }

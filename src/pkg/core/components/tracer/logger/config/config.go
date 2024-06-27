@@ -1,4 +1,4 @@
-package logger
+package config
 
 import (
 	"sm-box/pkg/core/env"
@@ -8,22 +8,22 @@ import (
 
 // Config - конфигурация компонента ведения журнала трессировки.
 type Config struct {
-	Terminal *ConfigTerminalLog `json:"terminal" yaml:"Terminal" xml:"Terminal"`   // Конфигурация терминала.
-	Files    ConfigFilesLog     `json:"files"    yaml:"Files"    xml:"Files>File"` // Конфигурация файлов.
+	Terminal *TerminalLog `json:"terminal" yaml:"Terminal" xml:"Terminal"`   // Конфигурация терминала.
+	Files    FilesLog     `json:"files"    yaml:"Files"    xml:"Files>File"` // Конфигурация файлов.
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации.
 func (conf *Config) FillEmptyFields() *Config {
 	if conf.Terminal == nil {
-		conf.Terminal = new(ConfigTerminalLog)
+		conf.Terminal = new(TerminalLog)
 	}
 
 	if conf.Terminal.Levels == nil {
-		conf.Terminal.Levels = new(ConfigTerminalLogLevels)
+		conf.Terminal.Levels = new(TerminalLogLevels)
 	}
 
 	if conf.Terminal.Options == nil {
-		conf.Terminal.Options = new(ConfigTerminalLogOptions)
+		conf.Terminal.Options = new(TerminalLogOptions)
 	}
 
 	if strings.TrimSpace(conf.Terminal.Options.TimeFormat) == "" {
@@ -31,7 +31,7 @@ func (conf *Config) FillEmptyFields() *Config {
 	}
 
 	if conf.Files == nil {
-		conf.Files = make(ConfigFilesLog, 0)
+		conf.Files = make(FilesLog, 0)
 	}
 
 	return conf
@@ -41,24 +41,24 @@ func (conf *Config) FillEmptyFields() *Config {
 func (conf *Config) Default() *Config {
 	// Terminal
 	{
-		conf.Terminal = &ConfigTerminalLog{
-			Levels: &ConfigTerminalLogLevels{
-				Info: &ConfigTerminalLogLevel{
+		conf.Terminal = &TerminalLog{
+			Levels: &TerminalLogLevels{
+				Info: &TerminalLogLevel{
 					Enable: false,
-					Options: &ConfigTerminalLogLevelOptions{
+					Options: &TerminalLogLevelOptions{
 						Encoder: "raw",
 						Format:  "capital_color",
 					},
 				},
-				Error: &ConfigTerminalLogLevel{
+				Error: &TerminalLogLevel{
 					Enable: false,
-					Options: &ConfigTerminalLogLevelOptions{
+					Options: &TerminalLogLevelOptions{
 						Encoder: "raw",
 						Format:  "capital_color",
 					},
 				},
 			},
-			Options: &ConfigTerminalLogOptions{
+			Options: &TerminalLogOptions{
 				TimeFormat: time.RFC3339,
 			},
 		}
@@ -66,31 +66,31 @@ func (conf *Config) Default() *Config {
 
 	// Files
 	{
-		conf.Files = []*ConfigFileLog{
+		conf.Files = []*FileLog{
 			// Global
 			{
 				FileName: "%s.trace.log",
 				Path:     env.Paths.Var.Logs,
 
-				Options: &ConfigFilesLogFileOptions{
+				Options: &FilesLogFileOptions{
 					TimeFormat: time.RFC3339,
-					Rotation: &ConfigFilesLogFileOptionRotation{
+					Rotation: &FilesLogFileOptionRotation{
 						Enable:   true,
 						FileSize: "4GB",
 					},
 				},
 
-				Levels: &ConfigFileLogLevels{
-					Info: &ConfigFileLogLevel{
+				Levels: &FileLogLevels{
+					Info: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder: "raw",
 							Format:  "capital",
 						},
 					},
-					Error: &ConfigFileLogLevel{
+					Error: &FileLogLevel{
 						Enable: true,
-						Options: &ConfigFilesLogLevelOptions{
+						Options: &FilesLogLevelOptions{
 							Encoder: "raw",
 							Format:  "capital",
 						},
