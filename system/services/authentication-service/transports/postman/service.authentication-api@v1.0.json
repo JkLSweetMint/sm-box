@@ -119,7 +119,7 @@
                     },
                     "response": [
                         {
-                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000000\",\n        \"type\": \"unknown\",\n        \"status\": \"unknown\",\n        \"message\": \"Unknown error. \",\n        \"details\": {\n            \"timestamp\": 1718005889\n        }\n    }\n}\n",
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000000\",\n        \"type\": \"unknown\",\n        \"status\": \"unknown\",\n        \"message\": \"Unknown error. \",\n        \"details\": {\n            \"key\": \"value\"\n        }\n    }\n}\n",
                             "status": "Ǵ",
                             "code": 500,
                             "name": "Пример возврата ошибки. "
@@ -166,13 +166,13 @@
                     "name": "Пример успешного ответа. "
                 },
                 {
-                    "body": "\n{\n    \"code\": 404,\n    \"code_message\": \"Not Found\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"E-000104\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The user was not found. \",\n        \"details\": {}\n    }\n}\n",
+                    "body": "\n{\n    \"code\": 404,\n    \"code_message\": \"Not Found\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"E-000004\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The user was not found. \",\n        \"details\": {}\n    }\n}\n",
                     "status": "Ɣ",
                     "code": 404,
                     "name": "Пример ответа если пользователь не найден. "
                 },
                 {
-                    "body": "\n{\n    \"code\": 400,\n    \"code_message\": \"Bad Request\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"I-000003\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The request body data could not be read. \",\n        \"details\": {}\n    }\n}\n",
+                    "body": "\n{\n    \"code\": 400,\n    \"code_message\": \"Bad Request\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"ERA-000002\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The request body data could not be read. \",\n        \"details\": {}\n    }\n}\n",
                     "status": "Ɛ",
                     "code": 400,
                     "name": "Пример ответа при не корректном запросе. "

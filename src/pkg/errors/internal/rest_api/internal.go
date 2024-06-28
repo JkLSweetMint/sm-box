@@ -8,24 +8,13 @@ type (
 	// Internal - внутренняя реализация ошибки rest api.
 	Internal struct {
 		*internal.Internal
-
-		statusCode int
-	}
-
-	// Constructor - конструктор для построения ошибки.
-	Constructor struct {
-		internal.Constructor
-
-		StatusCode int
 	}
 )
 
-// New - создание внутренней реализаци ошибки rest api.
-func New(cnst Constructor) (i *Internal) {
+// New - создание внутренней реализации ошибки rest api.
+func New(store *internal.Store) (i *Internal) {
 	i = &Internal{
-		Internal: internal.New(cnst.Constructor),
-
-		statusCode: cnst.StatusCode,
+		Internal: internal.New(store),
 	}
 
 	return
@@ -33,6 +22,6 @@ func New(cnst Constructor) (i *Internal) {
 
 // StatusCode - получение статус кода http rest api ошибки.
 func (i *Internal) StatusCode() (c int) {
-	c = i.statusCode
+	c = i.Internal.Store.Others.RestAPI.StatusCode
 	return
 }

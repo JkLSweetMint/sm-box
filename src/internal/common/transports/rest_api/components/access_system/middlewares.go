@@ -9,6 +9,7 @@ import (
 	error_list "sm-box/internal/common/errors"
 	"sm-box/internal/common/objects/entities"
 	rest_api_io "sm-box/internal/common/transports/rest_api/io"
+	c_errors "sm-box/pkg/errors"
 	"time"
 )
 
@@ -61,7 +62,7 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 				Format("Failed to get token data: '%s'. ", err).
 				Field("data", data).Write()
 
-			if err = rest_api_io.WriteError(ctx, error_list.TokenNotFound_RestAPI()); err != nil {
+			if err = rest_api_io.WriteError(ctx, error_list.TokenHasNotBeenTransferred_RestAPI()); err != nil {
 				acc.components.Logger.Error().
 					Format("The response could not be recorded: '%s'. ", err).Write()
 
@@ -92,7 +93,7 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 						acc.components.Logger.Warn().
 							Format("User not found: '%s'. ", err).Write()
 
-						if err = rest_api_io.WriteError(ctx, error_list.UserNotFound_RestAPI()); err != nil {
+						if err = rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.UserNotFound())); err != nil {
 							acc.components.Logger.Error().
 								Format("The response could not be recorded: '%s'. ", err).Write()
 
@@ -105,7 +106,10 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 						Format("User data could not be retrieved: '%s'. ", err).
 						Field("user_id", token.UserID).Write()
 
-					if err = rest_api_io.WriteError(ctx, error_list.InternalServerError_RestAPI()); err != nil {
+					var cErr = error_list.InternalServerError()
+					cErr.SetError(err)
+
+					if err = rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
 						acc.components.Logger.Error().
 							Format("The response could not be recorded: '%s'. ", err).Write()
 
@@ -166,7 +170,7 @@ func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
 					Format("Failed to get token data: '%s'. ", err).
 					Field("data", data).Write()
 
-				if err = rest_api_io.WriteError(ctx, error_list.TokenNotFound_RestAPI()); err != nil {
+				if err = rest_api_io.WriteError(ctx, error_list.TokenHasNotBeenTransferred_RestAPI()); err != nil {
 					acc.components.Logger.Error().
 						Format("The response could not be recorded: '%s'. ", err).Write()
 
@@ -188,10 +192,10 @@ func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
 					Text("The validity period of the user's token has not started yet. ").
 					Field("token", token).Write()
 
-				var cErr = error_list.ValidityPeriodOfUserTokenHasNotStarted_RestAPI()
+				var cErr = error_list.ValidityPeriodOfUserTokenHasNotStarted()
 				cErr.Details().Set("not_before", token.NotBefore)
 
-				if err = rest_api_io.WriteError(ctx, cErr); err != nil {
+				if err = rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
 					acc.components.Logger.Error().
 						Format("The response could not be recorded: '%s'. ", err).Write()
 

@@ -1,7 +1,9 @@
 package rest_api
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v3"
+	"regexp"
 	error_list "sm-box/internal/common/errors"
 	"sm-box/internal/common/objects/models"
 	rest_api_io "sm-box/internal/common/transports/rest_api/io"
@@ -68,9 +70,22 @@ func (eng *engine) initRoutes() {
 			// Обработка
 			{
 				var (
-					tokenData = ctx.Cookies(eng.conf.Components.AccessSystem.CookieKeyForToken)
+					tokenData string
 					cErr      c_errors.RestAPI
 				)
+
+				// Получение токена
+				{
+					if tokenData = ctx.Cookies(eng.conf.Components.AccessSystem.CookieKeyForToken); tokenData == "" {
+						var (
+							value   = ctx.Response().Header.PeekCookie(eng.conf.Components.AccessSystem.CookieKeyForToken)
+							pattern = fmt.Sprintf(`^%s=([\s\S]+);\sexpires=[\s\S]+;\sdomain=[\s\S]+;\spath=[\s\S]+;\sSameSite=[\s\S]+$`, eng.conf.Components.AccessSystem.CookieKeyForToken)
+							re      = regexp.MustCompile(pattern)
+						)
+
+						tokenData = re.FindStringSubmatch(string(value))[1]
+					}
+				}
 
 				if response.Token, response.User, cErr = eng.controllers.Authentication.BasicAuth(ctx.Context(),
 					tokenData,
@@ -149,7 +164,7 @@ func (eng *engine) initRoutes() {
     "code_message": "Not Found",
     "status": "failed",
     "error": {
-        "id": "E-000104",
+        "id": "E-000004",
         "type": "system",
         "status": "error",
         "message": "The user was not found. ",
@@ -168,7 +183,7 @@ func (eng *engine) initRoutes() {
     "code_message": "Bad Request",
     "status": "failed",
     "error": {
-        "id": "I-000003",
+        "id": "ERA-000002",
         "type": "system",
         "status": "error",
         "message": "The request body data could not be read. ",

@@ -1,3 +1,53 @@
+create schema
+    if not exists public;
+
+create table
+    if not exists public.env
+(
+  key varchar(300) not null
+      constraint env_pk
+          primary key,
+  value varchar(1000) not null
+);
+
+insert into
+    public.env(key, value)
+values
+    ('default_language', 'en-US');
+
+create or replace function public.get_default_language()
+    returns varchar(5)
+    language plpgsql as
+$$
+    begin
+        return (
+            select
+                value
+            from
+                public.env
+            where key = 'default_language'
+        );
+    end;
+$$;
+
+create schema
+    if not exists i18n;
+
+create table
+    if not exists i18n.languages
+(
+    code varchar(5) not null
+        constraint i18n_languages_pk
+            primary key,
+    name varchar(300)
+);
+
+insert into
+    i18n.languages(code, name)
+values
+    ('ru-RU', 'Русский'),
+    ('en-US', 'English');
+
 create table
     if not exists public.users
 (
@@ -67,6 +117,17 @@ create table
     check (parent != heir)
 );
 
+insert into
+    system_access.roles (id, project_id, name)
+values
+    (1, null, 'root'),
+    (2, null, 'user');
+
+insert into
+    system_access.role_inheritance (parent, heir)
+values
+    (1, 2);
+
 create table
     if not exists system_access.jwt_tokens
 (
@@ -75,7 +136,13 @@ create table
             primary key,
     user_id    bigint
         references public.users (id),
+    project_id bigint
+        references public.projects (id),
+
+    language varchar(5) default public.get_default_language() not null
+        references i18n.languages (code),
     data       varchar(4096) not null,
+
     issued_at  timestamptz   not null,
     not_before timestamptz   not null,
     expires_at timestamptz   not null
@@ -199,13 +266,6 @@ create trigger transports_http_routes_delete_access
     for each row
 execute procedure transports.http_routes_delete_access_fn();
 
-insert into
-    system_access.roles (id, project_id, name)
-values
-    (1, null, 'root'),
-    (2, null, 'user');
 
-insert into
-    system_access.role_inheritance (parent, heir)
-values
-    (1, 2);
+insert into public.users(email, username, password) values ('jklgreentea@gmail.com', 'root', 'toor');
+insert into public.user_accesses(user_id, role_id) values (1, 1);

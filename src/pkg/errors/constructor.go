@@ -49,53 +49,50 @@ type (
 func (c Constructor[T]) Build() (fn Builder[T]) {
 	c.fillEmptyField()
 
+	var store = &internal.Store{
+		ID:     c.ID,
+		Type:   c.Type,
+		Status: c.Status,
+
+		Err:     c.Err,
+		Message: c.Message.Clone(),
+		Details: c.Details.Clone(),
+
+		Others: new(internal.StoreOthers),
+	}
+
+	// store
+	{
+		if c.addons.RestAPI != nil {
+			store.Others.RestAPI = &internal.RestAPIStore{
+				StatusCode: c.addons.RestAPI.StatusCode,
+			}
+		}
+
+		if c.addons.WebSocket != nil {
+			store.Others.WebSocket = &internal.WebSocketStore{
+				StatusCode: c.addons.WebSocket.StatusCode,
+			}
+		}
+	}
+
 	fn = func() (e T) {
 		switch reflect.TypeOf(new(T)).String() {
 		case "*errors.Error":
 			{
-				var i = internal.New(internal.Constructor{
-					ID:     c.ID,
-					Type:   c.Type,
-					Status: c.Status,
-
-					Err:     c.Err,
-					Message: c.Message.Clone(),
-					Details: c.Details.Clone(),
-				})
+				var i = internal.New(store)
 
 				e = interface{}(i).(T)
 			}
 		case "*errors.RestAPI":
 			{
-				var i = rest_api.New(rest_api.Constructor{
-					Constructor: internal.Constructor{
-						ID:     c.ID,
-						Type:   c.Type,
-						Status: c.Status,
-
-						Err:     c.Err,
-						Message: c.Message.Clone(),
-						Details: c.Details.Clone(),
-					},
-					StatusCode: c.addons.RestAPI.StatusCode,
-				})
+				var i = rest_api.New(store)
 
 				e = interface{}(i).(T)
 			}
 		case "*errors.WebSocket":
 			{
-				var i = ws.New(ws.Constructor{
-					Constructor: internal.Constructor{
-						ID:     c.ID,
-						Type:   c.Type,
-						Status: c.Status,
-
-						Err:     c.Err,
-						Message: c.Message.Clone(),
-						Details: c.Details.Clone(),
-					},
-					StatusCode: c.addons.WebSocket.StatusCode,
-				})
+				var i = ws.New(store)
 
 				e = interface{}(i).(T)
 			}

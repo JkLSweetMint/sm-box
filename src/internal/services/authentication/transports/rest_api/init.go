@@ -9,6 +9,7 @@ import (
 	error_list "sm-box/internal/common/errors"
 	rest_api_io "sm-box/internal/common/transports/rest_api/io"
 	"sm-box/pkg/core/components/tracer"
+	c_errors "sm-box/pkg/errors"
 )
 
 // initFiberApp - инициализация http сервера fiber.
@@ -43,7 +44,7 @@ func (eng *engine) initFiberApp() (err error) {
 
 		// Internal server
 		{
-			if err = rest_api_io.WriteError(ctx, error_list.InternalServerError_RestAPI()); err != nil {
+			if err = rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
 				eng.components.Logger.Error().
 					Format("The response could not be recorded: '%s'. ", err).Write()
 

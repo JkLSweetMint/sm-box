@@ -25,12 +25,12 @@ type (
 // MarshalJSON - упаковать в формат JSON.
 func (i *Internal) MarshalJSON() ([]byte, error) {
 	var w = &wrapper{
-		ID:     i.id,
-		Type:   i.t.String(),
-		Status: i.status.String(),
+		ID:     i.Store.ID,
+		Type:   i.Store.Type.String(),
+		Status: i.Store.Status.String(),
 
-		Message: i.message,
-		Details: i.details,
+		Message: i.Store.Message,
+		Details: i.Store.Details,
 	}
 
 	// Сообщение
@@ -50,12 +50,12 @@ func (i *Internal) MarshalJSON() ([]byte, error) {
 // MarshalXML - упаковать в формат XML.
 func (i *Internal) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	var w = &wrapper{
-		ID:     i.id,
-		Type:   i.t.String(),
-		Status: i.status.String(),
+		ID:     i.Store.ID,
+		Type:   i.Store.Type.String(),
+		Status: i.Store.Status.String(),
 
-		Message: i.message,
-		Details: i.details,
+		Message: i.Store.Message,
+		Details: i.Store.Details,
 	}
 
 	// Сообщение
@@ -95,7 +95,7 @@ func (i *Internal) UnmarshalJSON(bytes []byte) (err error) {
 			switch v := w["id"].(type) {
 			case string:
 				{
-					i.id = types.ID(v)
+					i.Store.ID = types.ID(v)
 				}
 			}
 		}
@@ -105,7 +105,7 @@ func (i *Internal) UnmarshalJSON(bytes []byte) (err error) {
 			switch v := w["type"].(type) {
 			case string:
 				{
-					i.t = types.ParseErrorType(v)
+					i.Store.Type = types.ParseErrorType(v)
 				}
 			}
 		}
@@ -115,7 +115,7 @@ func (i *Internal) UnmarshalJSON(bytes []byte) (err error) {
 			switch v := w["status"].(type) {
 			case string:
 				{
-					i.status = types.ParseStatus(v)
+					i.Store.Status = types.ParseStatus(v)
 				}
 			}
 		}
@@ -126,14 +126,14 @@ func (i *Internal) UnmarshalJSON(bytes []byte) (err error) {
 		switch v := w["message"].(type) {
 		case string:
 			{
-				i.message = new(messages.TextMessage).Text(v)
+				i.Store.Message = new(messages.TextMessage).Text(v)
 			}
 		}
 	}
 
 	// Детали
 	{
-		i.details = new(details.Details)
+		i.Store.Details = new(details.Details)
 
 		if data, ok := w["details"].(map[string]any); ok {
 			for k, v := range data {
@@ -152,14 +152,14 @@ func (i *Internal) UnmarshalJSON(bytes []byte) (err error) {
 								}
 							}
 
-							i.details.SetField(new(details.FieldKey).Add(k), m)
+							i.Store.Details.SetField(new(details.FieldKey).Add(k), m)
 						}
 					}
 
 					continue
 				}
 
-				i.details.Set(k, v)
+				i.Store.Details.Set(k, v)
 			}
 		}
 	}

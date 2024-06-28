@@ -13,10 +13,12 @@ import (
 type (
 	// JwtToken - jwt токен системы доступа.
 	JwtToken struct {
-		ID     types.ID
-		UserID types.ID
+		ID        types.ID
+		UserID    types.ID
+		ProjectID types.ID
 
-		Data string
+		Language string
+		Data     string
 
 		ExpiresAt time.Time
 		NotBefore time.Time
@@ -60,10 +62,12 @@ func (entity *JwtToken) DbModel() (model *db_models.JwtToken) {
 	}
 
 	model = &db_models.JwtToken{
-		ID:     entity.ID,
-		UserID: entity.UserID,
+		ID:        entity.ID,
+		UserID:    entity.UserID,
+		ProjectID: entity.ProjectID,
 
-		Data: entity.Data,
+		Language: entity.Language,
+		Data:     entity.Data,
 
 		ExpiresAt: entity.ExpiresAt,
 		NotBefore: entity.NotBefore,
@@ -84,10 +88,12 @@ func (entity *JwtToken) Model() (model *models.JwtTokenInfo) {
 	}
 
 	model = &models.JwtTokenInfo{
-		ID:     entity.ID,
-		UserID: entity.UserID,
+		ID:        entity.ID,
+		UserID:    entity.UserID,
+		ProjectID: entity.ProjectID,
 
-		Data: entity.Data,
+		Language: entity.Language,
+		Data:     entity.Data,
 
 		ExpiresAt: entity.ExpiresAt,
 		NotBefore: entity.NotBefore,

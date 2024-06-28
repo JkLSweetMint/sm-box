@@ -93,13 +93,16 @@ func Test_Internal_Details(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+				ctx: tt.fields.ctx,
 			}
 
 			if gotM := i.Details(); !reflect.DeepEqual(gotM, tt.wantDetails) {
@@ -238,13 +241,16 @@ func Test_Internal_Error(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+				ctx: tt.fields.ctx,
 			}
 
 			if gotS := i.Error(); gotS != tt.wantS {
@@ -329,13 +335,16 @@ func Test_Internal_ID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+				ctx: tt.fields.ctx,
 			}
 
 			if gotId := i.ID(); gotId != tt.wantId {
@@ -420,13 +429,16 @@ func Test_Internal_Message(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+				ctx: tt.fields.ctx,
 			}
 
 			if gotM := i.Message(); gotM != tt.wantM {
@@ -475,14 +487,16 @@ func Test_Internal_SetError(t *testing.T) {
 				err: errors.New("Test 1. "),
 			},
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: errors.New("Test 1. "),
-				message: new(messages.TextMessage).
-					Text("Test error. "),
-				details: new(details.Details),
+					Err: errors.New("Test 1. "),
+					Message: new(messages.TextMessage).
+						Text("Test error. "),
+					Details: new(details.Details),
+				},
 
 				ctx: context.Background(),
 			},
@@ -505,14 +519,16 @@ func Test_Internal_SetError(t *testing.T) {
 				err: errors.New("Test 2. "),
 			},
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: errors.New("Test 2. "),
-				message: new(messages.TextMessage).
-					Text("Test error. "),
-				details: new(details.Details),
+					Err: errors.New("Test 2. "),
+					Message: new(messages.TextMessage).
+						Text("Test error. "),
+					Details: new(details.Details),
+				},
 
 				ctx: context.Background(),
 			},
@@ -522,13 +538,16 @@ func Test_Internal_SetError(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+				ctx: tt.fields.ctx,
 			}
 
 			i.SetError(tt.args.err)
@@ -579,14 +598,16 @@ func Test_Internal_SetMessage(t *testing.T) {
 					Text("Test error. "),
 			},
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: errors.New("Test. "),
-				message: new(messages.TextMessage).
-					Text("Test error. "),
-				details: new(details.Details),
+					Err: errors.New("Test. "),
+					Message: new(messages.TextMessage).
+						Text("Test error. "),
+					Details: new(details.Details),
+				},
 
 				ctx: context.Background(),
 			},
@@ -610,14 +631,16 @@ func Test_Internal_SetMessage(t *testing.T) {
 					Text("Test message 2. "),
 			},
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: errors.New("Test. "),
-				message: new(messages.TextMessage).
-					Text("Test message 2. "),
-				details: new(details.Details),
+					Err: errors.New("Test. "),
+					Message: new(messages.TextMessage).
+						Text("Test message 2. "),
+					Details: new(details.Details),
+				},
 
 				ctx: context.Background(),
 			},
@@ -640,14 +663,16 @@ func Test_Internal_SetMessage(t *testing.T) {
 					Text("Test error. "),
 			},
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: nil,
-				message: new(messages.TextMessage).
-					Text("Test error. "),
-				details: new(details.Details),
+					Err: nil,
+					Message: new(messages.TextMessage).
+						Text("Test error. "),
+					Details: new(details.Details),
+				},
 
 				ctx: context.Background(),
 			},
@@ -671,14 +696,16 @@ func Test_Internal_SetMessage(t *testing.T) {
 					Text("Test message 2. "),
 			},
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: nil,
-				message: new(messages.TextMessage).
-					Text("Test message 2. "),
-				details: new(details.Details),
+					Err: nil,
+					Message: new(messages.TextMessage).
+						Text("Test message 2. "),
+					Details: new(details.Details),
+				},
 
 				ctx: context.Background(),
 			},
@@ -688,13 +715,16 @@ func Test_Internal_SetMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+				ctx: tt.fields.ctx,
 			}
 
 			i.SetMessage(tt.args.m)
@@ -823,14 +853,18 @@ func Test_Internal_Status(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+				ctx: tt.fields.ctx,
 			}
+
 			if gotS := i.Status(); gotS != tt.wantS {
 				t.Errorf("Status() = %v, want %v", gotS, tt.wantS)
 			}
@@ -912,14 +946,18 @@ func Test_Internal_String(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+				ctx: tt.fields.ctx,
 			}
+
 			if gotS := i.String(); gotS != tt.wantS {
 				t.Errorf("String() = %v, want %v", gotS, tt.wantS)
 			}
@@ -1002,14 +1040,18 @@ func Test_Internal_Type(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+				ctx: tt.fields.ctx,
 			}
+
 			if gotT := i.Type(); gotT != tt.wantT {
 				t.Errorf("Type() = %v, want %v", gotT, tt.wantT)
 			}

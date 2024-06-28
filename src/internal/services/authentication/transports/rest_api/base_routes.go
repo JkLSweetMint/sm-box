@@ -236,7 +236,7 @@ func (eng *engine) initBaseRoutes() {
 
 				// Обработка данных
 				{
-					response = error_list.Unknown_RestAPI()
+					response = c_errors.ToRestAPI(error_list.Unknown())
 					response.SetError(errors.New("Test. "))
 				}
 
@@ -299,7 +299,7 @@ func (eng *engine) initBaseRoutes() {
         "status": "unknown",
         "message": "Unknown error. ",
         "details": {
-            "timestamp": 1718005889
+            "key": "value"
         }
     }
 }

@@ -8,6 +8,7 @@ import (
 	rest_api_io "sm-box/internal/common/transports/rest_api/io"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
+	c_errors "sm-box/pkg/errors"
 )
 
 // generateToken - генерация токена.
@@ -38,7 +39,10 @@ func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *entities.JwtToken) 
 			acc.components.Logger.Error().
 				Format("Failed to generate a token for the client: '%s'. ", err).Write()
 
-			if err = rest_api_io.WriteError(ctx, error_list.InternalServerError_RestAPI()); err != nil {
+			var cErr = error_list.InternalServerError()
+			cErr.SetError(err)
+
+			if err = rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
 				acc.components.Logger.Error().
 					Format("The response could not be recorded: '%s'. ", err).Write()
 
@@ -67,7 +71,10 @@ func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *entities.JwtToken) 
 			acc.components.Logger.Error().
 				Format("The client's current could not be registered in the database: '%s'. ", err).Write()
 
-			if err = rest_api_io.WriteError(ctx, error_list.InternalServerError_RestAPI()); err != nil {
+			var cErr = error_list.InternalServerError()
+			cErr.SetError(err)
+
+			if err = rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
 				acc.components.Logger.Error().
 					Format("The response could not be recorded: '%s'. ", err).Write()
 

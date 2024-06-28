@@ -108,6 +108,7 @@ func (controller *Controller) BasicAuth(ctx context.Context, tokenData, username
 	if tok, us, cErr = controller.usecases.Authentication.BasicAuth(ctx, tokenData, username, password); cErr != nil {
 		controller.components.Logger.Error().
 			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+
 		return
 	}
 

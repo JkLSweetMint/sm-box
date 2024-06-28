@@ -79,9 +79,11 @@ func (adapter *Adapter_RestAPI) BasicAuth(ctx context.Context, tokenData, userna
 		defer func() { trc.Error(cErr).FunctionCallFinished(token, user) }()
 	}
 
-	//var proxyErr c_errors.Error
+	var proxyErr c_errors.Error
 
-	if token, user, _ = adapter.controller.BasicAuth(ctx, tokenData, username, password); cErr != nil {
+	if token, user, proxyErr = adapter.controller.BasicAuth(ctx, tokenData, username, password); proxyErr != nil {
+		cErr = c_errors.ToRestAPI(proxyErr)
+
 		adapter.components.Logger.Error().
 			Format("The controller method was executed with an error: '%s'. ", cErr).Write()
 		return

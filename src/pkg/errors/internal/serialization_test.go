@@ -140,13 +140,17 @@ func Test_Internal_MarshalJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+
+				ctx: tt.fields.ctx,
 			}
 
 			got, err := json.Marshal(i)
@@ -291,13 +295,17 @@ func Test_Internal_MarshalXML(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+
+				ctx: tt.fields.ctx,
 			}
 
 			got, err := xml.Marshal(i)
@@ -344,14 +352,16 @@ func Test_Internal_UnmarshalJSON(t *testing.T) {
 			},
 			wantErr: false,
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: nil,
-				message: new(messages.TextMessage).
-					Text("Message. "),
-				details: new(details.Details),
+					Err: nil,
+					Message: new(messages.TextMessage).
+						Text("Message. "),
+					Details: new(details.Details),
+				},
 
 				ctx: context.Background(),
 			},
@@ -364,14 +374,16 @@ func Test_Internal_UnmarshalJSON(t *testing.T) {
 			},
 			wantErr: false,
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: errors.New("Test. "),
-				message: new(messages.TextMessage).
-					Text("Message. "),
-				details: new(details.Details),
+					Err: errors.New("Test. "),
+					Message: new(messages.TextMessage).
+						Text("Message. "),
+					Details: new(details.Details),
+				},
 
 				ctx: context.Background(),
 			},
@@ -384,15 +396,17 @@ func Test_Internal_UnmarshalJSON(t *testing.T) {
 			},
 			wantErr: false,
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: nil,
-				message: new(messages.TextMessage).
-					Text("Message. "),
-				details: new(details.Details).
-					Set("key", "value"),
+					Err: nil,
+					Message: new(messages.TextMessage).
+						Text("Message. "),
+					Details: new(details.Details).
+						Set("key", "value"),
+				},
 
 				ctx: context.Background(),
 			},
@@ -405,15 +419,17 @@ func Test_Internal_UnmarshalJSON(t *testing.T) {
 			},
 			wantErr: false,
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: errors.New("Test. "),
-				message: new(messages.TextMessage).
-					Text("Message. "),
-				details: new(details.Details).
-					Set("key", "value"),
+					Err: errors.New("Test. "),
+					Message: new(messages.TextMessage).
+						Text("Message. "),
+					Details: new(details.Details).
+						Set("key", "value"),
+				},
 
 				ctx: context.Background(),
 			},
@@ -426,15 +442,17 @@ func Test_Internal_UnmarshalJSON(t *testing.T) {
 			},
 			wantErr: false,
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: nil,
-				message: new(messages.TextMessage).
-					Text("Message. "),
-				details: new(details.Details).
-					Set("key", "value"),
+					Err: nil,
+					Message: new(messages.TextMessage).
+						Text("Message. "),
+					Details: new(details.Details).
+						Set("key", "value"),
+				},
 
 				ctx: context.Background(),
 			},
@@ -447,15 +465,17 @@ func Test_Internal_UnmarshalJSON(t *testing.T) {
 			},
 			wantErr: false,
 			want: &Internal{
-				id:     "T-000001",
-				t:      types.TypeSystem,
-				status: types.StatusFatal,
+				Store: &Store{
+					ID:     "T-000001",
+					Type:   types.TypeSystem,
+					Status: types.StatusFatal,
 
-				err: errors.New("Test. "),
-				message: new(messages.TextMessage).
-					Text("Message. "),
-				details: new(details.Details).
-					Set("key", "value"),
+					Err: errors.New("Test. "),
+					Message: new(messages.TextMessage).
+						Text("Message. "),
+					Details: new(details.Details).
+						Set("key", "value"),
+				},
 
 				ctx: context.Background(),
 			},
@@ -465,13 +485,17 @@ func Test_Internal_UnmarshalJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Internal{
-				id:      tt.fields.id,
-				t:       tt.fields.t,
-				status:  tt.fields.status,
-				err:     tt.fields.err,
-				message: tt.fields.message,
-				details: tt.fields.details,
-				ctx:     tt.fields.ctx,
+				Store: &Store{
+					ID:     tt.fields.id,
+					Type:   tt.fields.t,
+					Status: tt.fields.status,
+
+					Err:     tt.fields.err,
+					Message: tt.fields.message,
+					Details: tt.fields.details,
+				},
+
+				ctx: tt.fields.ctx,
 			}
 
 			if err := json.Unmarshal(tt.args.bytes, i); (err != nil) != tt.wantErr {
