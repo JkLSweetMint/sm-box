@@ -12,7 +12,9 @@ type (
 		ID        types.ID
 		ProjectID types.ID
 
-		Name         string
+		Name     string
+		IsSystem bool
+
 		Inheritances RoleInheritances
 	}
 
@@ -78,10 +80,6 @@ func (entity *RoleInheritance) Model() (model *models.RoleInfoInheritance) {
 
 	model = &models.RoleInfoInheritance{
 		RoleInfo: entity.Role.Model(),
-	}
-
-	for _, rl := range entity.Inheritances {
-		model.Inheritances = append(model.Inheritances, rl.Model())
 	}
 
 	return

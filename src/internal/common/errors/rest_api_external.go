@@ -37,22 +37,8 @@ var (
 
 // ERA-000003
 var (
-	Unauthorized_RestAPI = c_errors.Constructor[c_errors.RestAPI]{
-		ID:     "ERA-000003",
-		Type:   types.TypeSystem,
-		Status: types.StatusError,
-
-		Message: new(messages.TextMessage).
-			Text("Not authorized. "),
-	}.RestAPI(c_errors.RestAPIConstructor{
-		StatusCode: fiber.StatusUnauthorized,
-	}).Build()
-)
-
-// ERA-000004
-var (
 	TokenHasNotBeenTransferred_RestAPI = c_errors.Constructor[c_errors.RestAPI]{
-		ID:     "ERA-000004",
+		ID:     "ERA-000003",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -63,10 +49,10 @@ var (
 	}).Build()
 )
 
-// ERA-000005
+// ERA-000004
 var (
 	Forbidden_RestAPI = c_errors.Constructor[c_errors.RestAPI]{
-		ID:     "ERA-000005",
+		ID:     "ERA-000004",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -74,5 +60,19 @@ var (
 			Text("You do not have access to visit this route. "),
 	}.RestAPI(c_errors.RestAPIConstructor{
 		StatusCode: fiber.StatusForbidden,
+	}).Build()
+)
+
+// ERA-000005
+var (
+	AnUnregisteredTokenWasTransderred_RestAPI = c_errors.Constructor[c_errors.RestAPI]{
+		ID:     "ERA-000005",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("An unregistered token was transferred. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusBadRequest,
 	}).Build()
 )

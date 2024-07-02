@@ -8,12 +8,16 @@ import (
 type (
 	// HttpRoute - модель http маршрута система для базы данных.
 	HttpRoute struct {
-		ID        types.ID `db:"id"`
-		Active    bool     `db:"active"`
-		Authorize bool     `db:"authorize"`
+		ID types.ID `db:"id"`
+
+		Name        string `db:"name"`
+		Description string `db:"description"`
 
 		Method string `db:"method"`
 		Path   string `db:"path"`
+
+		Active    bool `db:"active"`
+		Authorize bool `db:"authorize"`
 
 		RegisterTime time.Time `db:"register_time"`
 	}

@@ -3,6 +3,7 @@ package access_system
 import (
 	"context"
 	"github.com/gofiber/fiber/v3"
+	"sm-box/internal/common/objects/entities"
 	"sm-box/internal/common/transports/rest_api/components/access_system/repository"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -17,7 +18,7 @@ type AccessSystem interface {
 	AuthenticationMiddleware(ctx fiber.Ctx) (err error)
 	IdentificationMiddleware(ctx fiber.Ctx) (err error)
 
-	RegisterRoutes(list ...*fiber.Route) (err error)
+	RegisterRoutes(list ...*entities.HttpRouteConstructor) (err error)
 }
 
 // New - создание компонента системы доступа http rest api.

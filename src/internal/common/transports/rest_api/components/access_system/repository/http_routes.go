@@ -42,6 +42,8 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 		var query = `
 			select
 				routes.id,
+				routes.name,
+				routes.description,
 				routes.register_time,
 				routes.active,
 				routes.authorize
@@ -220,6 +222,8 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 		var query = `
 			select
 				routes.id,
+				routes.name,
+				routes.description,
 				routes.register_time,
 				routes.active,
 				routes.authorize
@@ -391,6 +395,8 @@ func (repo *httpRoutesRepository) RegisterRoute(ctx context.Context, route *enti
 		query = `
 			insert into 
 				transports.http_routes (
+						name, 
+						description, 
 						method, 
 						path,
 						register_time,
@@ -401,14 +407,22 @@ func (repo *httpRoutesRepository) RegisterRoute(ctx context.Context, route *enti
 						$2,
 						$3,
 						$4,
-						$5
+						$5,
+						$6,
+						$7
 					) 
 					on conflict (method, path) do update 
-						set active = true
+						set 
+						    active = true,
+						    name = $1,
+						    description = $2,
+						    authorize = $7
 		`
 	)
 
 	if _, err = repo.connector.ExecContext(ctx, query,
+		model.Name,
+		model.Description,
 		model.Method,
 		model.Path,
 		model.RegisterTime,

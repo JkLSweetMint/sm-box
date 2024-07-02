@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gofiber/fiber/v3"
 	error_list "sm-box/internal/common/errors"
+	"sm-box/internal/common/objects/entities"
 	rest_api_io "sm-box/internal/common/transports/rest_api/io"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -35,7 +36,24 @@ func (eng *engine) initBaseRoutes() {
 
 		// GET /ping
 		{
-			var route = fiber.Route{Name: "Ping-pong запрос. "}
+			var route = &entities.HttpRouteConstructor{
+				Name: "Ping-pong запрос. ",
+				Description: `
+Запрос /ping в HTTP используется для проверки работоспособности сервера. Этот запрос очень простой и обычно состоит из 
+одной строки, содержащей только слово "ping". Сервер, получив такой запрос, должен ответить сообщением об успешной 
+обработке запроса.
+
+Зачем это нужно? Во-первых, такие запросы используются при тестировании сети, чтобы убедиться, что сервер доступен и 
+работает корректно. Во-вторых, они могут использоваться в клиентском программном обеспечении для периодической проверки
+состояния соединения с сервером. Например, если клиент долгое время не получает ответов от сервера, он может отправить
+запрос /ping, чтобы понять, не отключился ли сервер.
+
+Важно отметить, что запрос /ping является информационным и не требует никаких данных от клиента. Это означает, что он 
+не занимает много времени и ресурсов сервера, поэтому его можно использовать достаточно часто без риска перегрузки 
+системы.`,
+
+				Authorize: false,
+			}
 
 			router.Get("/ping", func(ctx fiber.Ctx) (err error) {
 				type Response struct {
@@ -67,7 +85,13 @@ func (eng *engine) initBaseRoutes() {
 				}
 			}).Name(route.Name)
 
-			route = eng.app.GetRoute(route.Name)
+			route.Fill(eng.app.GetRoute(route.Name))
+
+			if err := eng.components.AccessSystem.RegisterRoutes(route); err != nil {
+				eng.components.Logger.Error().
+					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
+				return
+			}
 
 			postmanGrp.AddItem(&postman.Items{
 				Name: route.Name,
@@ -77,20 +101,8 @@ func (eng *engine) initBaseRoutes() {
 						Host:     strings.Split(eng.conf.Postman.Host, "."),
 						Path:     strings.Split(route.Path, "/"),
 					},
-					Method: postman.Method(route.Method),
-					Description: `
-Запрос /ping в HTTP используется для проверки работоспособности сервера. Этот запрос очень простой и обычно состоит из 
-одной строки, содержащей только слово "ping". Сервер, получив такой запрос, должен ответить сообщением об успешной 
-обработке запроса.
-
-Зачем это нужно? Во-первых, такие запросы используются при тестировании сети, чтобы убедиться, что сервер доступен и 
-работает корректно. Во-вторых, они могут использоваться в клиентском программном обеспечении для периодической проверки
-состояния соединения с сервером. Например, если клиент долгое время не получает ответов от сервера, он может отправить
-запрос /ping, чтобы понять, не отключился ли сервер.
-
-Важно отметить, что запрос /ping является информационным и не требует никаких данных от клиента. Это означает, что он 
-не занимает много времени и ресурсов сервера, поэтому его можно использовать достаточно часто без риска перегрузки 
-системы.`,
+					Method:      postman.Method(route.Method),
+					Description: route.Description,
 					Body: &postman.Body{
 						Mode: "raw",
 						Options: &postman.BodyOptions{
@@ -122,7 +134,25 @@ func (eng *engine) initBaseRoutes() {
 
 		// GET /health
 		{
-			var route = fiber.Route{Name: "Используется для проверки работоспособности сервера. "}
+			var route = &entities.HttpRouteConstructor{
+				Name: "Используется для проверки работоспособности сервера. ",
+				Description: `
+Запрос /health в HTTP также используется для проверки работоспособности сервера, но в отличие от /ping, он 
+предоставляет более подробную информацию о состоянии сервера. 
+
+Этот запрос обычно возвращает JSON-объект, который содержит различные метрики, связанные с работой сервера, такие как
+версия ПО, список активных подключений, информация о нагрузке на процессор и память, а также другие важные параметры.
+
+Зачем это нужно? Во-первых, такие запросы используются при развертывании новых версий ПО, чтобы убедиться, что все 
+компоненты системы работают корректно. Во-вторых, они могут использоваться в системах мониторинга для автоматического 
+обнаружения проблем в работе сервера.
+
+Важно отметить, что запрос /health является информационным и не требует никаких действий со стороны клиента. Это 
+означает, что он не занимает много времени и ресурсов сервера, поэтому его можно использовать достаточно часто без 
+риска перегрузки системы.`,
+
+				Authorize: false,
+			}
 
 			router.Get("/health", func(ctx fiber.Ctx) (err error) {
 				type Response struct {
@@ -166,7 +196,13 @@ func (eng *engine) initBaseRoutes() {
 				}
 			}).Name(route.Name)
 
-			route = eng.app.GetRoute(route.Name)
+			route.Fill(eng.app.GetRoute(route.Name))
+
+			if err := eng.components.AccessSystem.RegisterRoutes(route); err != nil {
+				eng.components.Logger.Error().
+					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
+				return
+			}
 
 			postmanGrp.AddItem(&postman.Items{
 				Name: route.Name,
@@ -176,21 +212,8 @@ func (eng *engine) initBaseRoutes() {
 						Host:     strings.Split(eng.conf.Postman.Host, "."),
 						Path:     strings.Split(route.Path, "/"),
 					},
-					Method: postman.Method(route.Method),
-					Description: `
-Запрос /health в HTTP также используется для проверки работоспособности сервера, но в отличие от /ping, он 
-предоставляет более подробную информацию о состоянии сервера. 
-
-Этот запрос обычно возвращает JSON-объект, который содержит различные метрики, связанные с работой сервера, такие как
-версия ПО, список активных подключений, информация о нагрузке на процессор и память, а также другие важные параметры.
-
-Зачем это нужно? Во-первых, такие запросы используются при развертывании новых версий ПО, чтобы убедиться, что все 
-компоненты системы работают корректно. Во-вторых, они могут использоваться в системах мониторинга для автоматического 
-обнаружения проблем в работе сервера.
-
-Важно отметить, что запрос /health является информационным и не требует никаких действий со стороны клиента. Это 
-означает, что он не занимает много времени и ресурсов сервера, поэтому его можно использовать достаточно часто без 
-риска перегрузки системы.`,
+					Method:      postman.Method(route.Method),
+					Description: route.Description,
 					Body: &postman.Body{
 						Mode: "raw",
 						Options: &postman.BodyOptions{
@@ -227,7 +250,18 @@ func (eng *engine) initBaseRoutes() {
 
 		// GET /error
 		{
-			var route = fiber.Route{Name: "Используется для получения примера ошибки для возможности обработки клиентом. "}
+			var route = &entities.HttpRouteConstructor{
+				Name: "Используется для получения примера ошибки для возможности обработки клиентом. ",
+				Description: `
+Запрос /error в HTTP используется для получения примера ошибки для возможности обработки клиентом.
+
+Важно отметить, что запрос /error является информационным и не требует никаких действий со стороны клиента. Это 
+означает, что он не занимает много времени и ресурсов сервера, поэтому его можно использовать достаточно часто без 
+риска перегрузки системы.
+`,
+
+				Authorize: false,
+			}
 
 			router.Get("/error", func(ctx fiber.Ctx) (err error) {
 				var (
@@ -256,7 +290,13 @@ func (eng *engine) initBaseRoutes() {
 				}
 			}).Name(route.Name)
 
-			route = eng.app.GetRoute(route.Name)
+			route.Fill(eng.app.GetRoute(route.Name))
+
+			if err := eng.components.AccessSystem.RegisterRoutes(route); err != nil {
+				eng.components.Logger.Error().
+					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
+				return
+			}
 
 			postmanGrp.AddItem(&postman.Items{
 				Name: route.Name,
@@ -266,14 +306,8 @@ func (eng *engine) initBaseRoutes() {
 						Host:     strings.Split(eng.conf.Postman.Host, "."),
 						Path:     strings.Split(route.Path, "/"),
 					},
-					Method: postman.Method(route.Method),
-					Description: `
-Запрос /error в HTTP используется для получения примера ошибки для возможности обработки клиентом.
-
-Важно отметить, что запрос /error является информационным и не требует никаких действий со стороны клиента. Это 
-означает, что он не занимает много времени и ресурсов сервера, поэтому его можно использовать достаточно часто без 
-риска перегрузки системы.
-`,
+					Method:      postman.Method(route.Method),
+					Description: route.Description,
 					Body: &postman.Body{
 						Mode: "raw",
 						Options: &postman.BodyOptions{

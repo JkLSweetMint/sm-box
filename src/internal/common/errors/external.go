@@ -42,8 +42,22 @@ var (
 
 // E-000003
 var (
-	ValidityPeriodOfUserTokenHasNotStarted = c_errors.Constructor[c_errors.Error]{
+	Unauthorized = c_errors.Constructor[c_errors.Error]{
 		ID:     "E-000003",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("Not authorized. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusUnauthorized,
+	}).Build()
+)
+
+// E-000004
+var (
+	ValidityPeriodOfUserTokenHasNotStarted = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000004",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -56,10 +70,10 @@ var (
 	}).Build()
 )
 
-// E-000004
+// E-000005
 var (
 	UserNotFound = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000004",
+		ID:     "E-000005",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -67,6 +81,70 @@ var (
 			Text("The user was not found. "),
 	}.RestAPI(c_errors.RestAPIConstructor{
 		StatusCode: fiber.StatusNotFound,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseNormalClosure,
+	}).Build()
+)
+
+// E-000006
+var (
+	ListUserProjectsCouldNotBeRetrieved = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000006",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("The list of user projects could not be retrieved. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusInternalServerError,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseInternalServerErr,
+	}).Build()
+)
+
+// E-000007
+var (
+	ProjectHasAlreadyBeenSelected = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000007",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("The project has already been selected, it is not possible to re-select it. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusBadRequest,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseNormalClosure,
+	}).Build()
+)
+
+// E-000008
+var (
+	ProjectNotFound = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000008",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("The project was not found. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusNotFound,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseNormalClosure,
+	}).Build()
+)
+
+// E-000009
+var (
+	NotAccessToProject = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000009",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("There is no access to the project. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusBadRequest,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
 	}).Build()

@@ -4,6 +4,7 @@ import (
 	"context"
 	"sm-box/internal/common/objects/entities"
 	"sm-box/internal/common/objects/models"
+	"sm-box/internal/common/types"
 	authentication_usecase "sm-box/internal/services/authentication/infrastructure/usecases/authentication"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -27,6 +28,9 @@ type Controller struct {
 type usecases struct {
 	Authentication interface {
 		BasicAuth(ctx context.Context, tokenData, username, password string) (token *entities.JwtToken, us *entities.User, cErr c_errors.Error)
+		SetTokenProject(ctx context.Context, tokenID, projectID types.ID) (cErr c_errors.Error)
+		GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list entities.ProjectList, cErr c_errors.Error)
+		GetToken(ctx context.Context, data string) (tok *entities.JwtToken, cErr c_errors.Error)
 	}
 }
 
@@ -120,6 +124,84 @@ func (controller *Controller) BasicAuth(ctx context.Context, tokenData, username
 
 		if us != nil {
 			user = us.Model()
+		}
+	}
+
+	return
+}
+
+// SetTokenProject - установить проект для токена.
+func (controller *Controller) SetTokenProject(ctx context.Context, tokenID, projectID types.ID) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, tokenID, projectID)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	if cErr = controller.usecases.Authentication.SetTokenProject(ctx, tokenID, projectID); cErr != nil {
+		controller.components.Logger.Error().
+			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+
+		return
+	}
+
+	return
+}
+
+// GetUserProjectsList - получение списка проектов пользователя.
+func (controller *Controller) GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list models.ProjectList, cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, tokenID, userID)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	var list_ entities.ProjectList
+
+	if list_, cErr = controller.usecases.Authentication.GetUserProjectsList(ctx, tokenID, userID); cErr != nil {
+		controller.components.Logger.Error().
+			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+
+		return
+	}
+
+	// Преобразование в модели
+	{
+		if list_ != nil {
+			list = list_.Model()
+		}
+	}
+
+	return
+}
+
+// GetToken - получение jwt токена.
+func (controller *Controller) GetToken(ctx context.Context, data string) (token *models.JwtTokenInfo, cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, data)
+		defer func() { trc.Error(cErr).FunctionCallFinished(token) }()
+	}
+
+	var tok *entities.JwtToken
+
+	if tok, cErr = controller.usecases.Authentication.GetToken(ctx, data); cErr != nil {
+		controller.components.Logger.Error().
+			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+
+		return
+	}
+
+	// Преобразование в модели
+	{
+		if tok != nil {
+			token = tok.Model()
 		}
 	}
 

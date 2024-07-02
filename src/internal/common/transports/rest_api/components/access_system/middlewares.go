@@ -57,12 +57,22 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 			data = re.FindStringSubmatch(string(value))[1]
 		}
 
+		if len(data) == 0 {
+			if err = rest_api_io.WriteError(ctx, error_list.TokenHasNotBeenTransferred_RestAPI()); err != nil {
+				acc.components.Logger.Error().
+					Format("The response could not be recorded: '%s'. ", err).Write()
+
+				return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+			}
+			return
+		}
+
 		if token, err = acc.repository.GetToken(ctx.Context(), data); err != nil {
 			acc.components.Logger.Error().
 				Format("Failed to get token data: '%s'. ", err).
 				Field("data", data).Write()
 
-			if err = rest_api_io.WriteError(ctx, error_list.TokenHasNotBeenTransferred_RestAPI()); err != nil {
+			if err = rest_api_io.WriteError(ctx, error_list.AnUnregisteredTokenWasTransderred_RestAPI()); err != nil {
 				acc.components.Logger.Error().
 					Format("The response could not be recorded: '%s'. ", err).Write()
 
@@ -76,7 +86,7 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 	{
 		if route.Authorize {
 			if token.UserID == 0 {
-				return rest_api_io.WriteError(ctx, error_list.Unauthorized_RestAPI())
+				return rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.Unauthorized()))
 			}
 		}
 	}
@@ -165,12 +175,22 @@ func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
 				return
 			}
 		} else {
+			if len(data) == 0 {
+				if err = rest_api_io.WriteError(ctx, error_list.TokenHasNotBeenTransferred_RestAPI()); err != nil {
+					acc.components.Logger.Error().
+						Format("The response could not be recorded: '%s'. ", err).Write()
+
+					return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+				}
+				return
+			}
+
 			if token, err = acc.repository.GetToken(ctx.Context(), data); err != nil {
 				acc.components.Logger.Error().
 					Format("Failed to get token data: '%s'. ", err).
 					Field("data", data).Write()
 
-				if err = rest_api_io.WriteError(ctx, error_list.TokenHasNotBeenTransferred_RestAPI()); err != nil {
+				if err = rest_api_io.WriteError(ctx, error_list.AnUnregisteredTokenWasTransderred_RestAPI()); err != nil {
 					acc.components.Logger.Error().
 						Format("The response could not be recorded: '%s'. ", err).Write()
 

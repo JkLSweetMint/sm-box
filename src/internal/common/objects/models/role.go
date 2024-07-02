@@ -8,7 +8,9 @@ type (
 		ID        types.ID `json:"id"         xml:"id,attr"`
 		ProjectID types.ID `json:"project_id" xml:"project_id,attr"`
 
-		Name         string               `json:"name"                   xml:"Name"`
+		Name     string `json:"name"      xml:"Name"`
+		IsSystem bool   `json:"is_system" xml:"is_system,attr"`
+
 		Inheritances RoleInfoInheritances `json:"inheritances,omitempty" xml:"Inheritances,omitempty>Inheritance"`
 	}
 

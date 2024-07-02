@@ -50,7 +50,7 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 				coalesce(users.email, '') as email,
 				users.username
 			from
-				public.users as users
+				users.users as users
 			where
 				users.id = $1
 		`
@@ -84,47 +84,14 @@ func (repo *usersRepository) GetUser(ctx context.Context, id types.ID) (us *enti
 
 		var (
 			rows  *sqlx.Rows
-			query = `
-				WITH RECURSIVE cte_roles (id, project_id, name, parent) AS (
-					select
-						roles.id,
-						roles.project_id,
-						roles.name,
-						0::bigint as parent
-					from
-						system_access.roles as roles
-					where
-						roles.id in (
-							select
-								user_accesses.role_id as id
-							from
-								users
-									left join user_accesses on users.id = user_accesses.user_id
-				
-							where
-								users.id = $1
-						)
-				
-					UNION ALL
-				
-					select
-						roles.id,
-						roles.project_id,
-						roles.name,
-						role_inheritance.parent as parent
-					from
-						system_access.roles as roles
-							left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
-							JOIN cte_roles cte ON cte.id = role_inheritance.parent
-				)
-				
+			query = `	
 				select
 					distinct id,
 					coalesce(project_id, 0) as project_id,
 					name,
 					coalesce(parent, 0) as parent
 				from
-					cte_roles;
+					system_access.get_user_access($1) as (id bigint, project_id bigint, name varchar, parent bigint);
 			`
 			models = make([]*Model, 0, 10)
 		)
@@ -226,7 +193,7 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 				users.username,
 				users.password
 			from
-				public.users as users
+				users.users as users
 			where
 				users.username = $1
 		`
@@ -285,46 +252,13 @@ func (repo *usersRepository) BasicAuth(ctx context.Context, username, password s
 		var (
 			rows  *sqlx.Rows
 			query = `
-				WITH RECURSIVE cte_roles (id, project_id, name, parent) AS (
-					select
-						roles.id,
-						roles.project_id,
-						roles.name,
-						0::bigint as parent
-					from
-						system_access.roles as roles
-					where
-						roles.id in (
-							select
-								user_accesses.role_id as id
-							from
-								users
-									left join user_accesses on users.id = user_accesses.user_id
-				
-							where
-								users.id = $1
-						)
-				
-					UNION ALL
-				
-					select
-						roles.id,
-						roles.project_id,
-						roles.name,
-						role_inheritance.parent as parent
-					from
-						system_access.roles as roles
-							left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
-							JOIN cte_roles cte ON cte.id = role_inheritance.parent
-				)
-				
 				select
 					distinct id,
 					coalesce(project_id, 0) as project_id,
 					name,
 					coalesce(parent, 0) as parent
 				from
-					cte_roles;
+					system_access.get_user_access($1) as (id bigint, project_id bigint, name varchar, parent bigint);
 
 			`
 			models = make([]*Model, 0, 10)

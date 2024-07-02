@@ -8,7 +8,8 @@ type (
 		ID        types.ID `db:"id"`
 		ProjectID types.ID `db:"project_id"`
 
-		Name string `db:"name"`
+		Name     string `db:"name"`
+		IsSystem bool   `db:"is_system"`
 	}
 
 	// RoleInheritance - модель наследования роли для базы данных.

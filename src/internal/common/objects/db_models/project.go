@@ -6,12 +6,17 @@ type (
 	// Project - модель проекта для базы данных.
 	Project struct {
 		ID      types.ID `db:"id"`
-		UUID    string   `db:"uuid"`
 		OwnerID types.ID `db:"owner_id"`
 
 		Name        string `db:"name"`
 		Description string `db:"description"`
 		Version     string `db:"version"`
+	}
+
+	ProjectListItem struct {
+		ID      types.ID `db:"id"`
+		Name    string   `db:"name"`
+		Version string   `db:"version"`
 	}
 
 	// ProjectOwner - модель владельца проекта для базы данных.

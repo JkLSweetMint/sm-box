@@ -7,10 +7,19 @@ type (
 	ProjectInfo struct {
 		ID types.ID `json:"id" xml:"id,attr"`
 
-		Title       string `json:"title"       xml:"Title"`
+		Name        string `json:"name"        xml:"Name"`
 		Description string `json:"description" xml:"Description"`
+		Version     string `json:"version"     xml:"Version"`
 
 		Owners *ProjectInfoOwner `json:"owners" xml:"Owners"`
+	}
+
+	ProjectList []*ProjectListItem
+
+	ProjectListItem struct {
+		ID      types.ID `json:"id"      xml:"id,attr"`
+		Name    string   `json:"name"    xml:"Name"`
+		Version string   `json:"version" xml:"version,attr"`
 	}
 
 	// ProjectInfoOwner - информация о владельце проекта.

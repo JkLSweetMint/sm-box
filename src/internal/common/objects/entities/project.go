@@ -1,7 +1,7 @@
 package entities
 
 import (
-	g_uuid "github.com/google/uuid"
+	"sm-box/internal/common/objects/models"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 )
@@ -9,8 +9,7 @@ import (
 type (
 	// Project - проект.
 	Project struct {
-		ID   types.ID
-		UUID g_uuid.UUID
+		ID types.ID
 
 		Name        string
 		Description string
@@ -22,6 +21,14 @@ type (
 	// ProjectOwner - владелец проекта.
 	ProjectOwner struct {
 		*User
+	}
+
+	ProjectList []*ProjectListItem
+
+	ProjectListItem struct {
+		ID      types.ID
+		Name    string
+		Version string
 	}
 
 	// ProjectEnvVar - переменная окружения проекта
@@ -53,4 +60,42 @@ func (entity *Project) FillEmptyFields() *Project {
 	}
 
 	return entity
+}
+
+// Model - получение модели.
+func (entity ProjectList) Model() (list models.ProjectList) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(list) }()
+	}
+
+	list = make(models.ProjectList, len(entity))
+
+	for i, item := range entity {
+		list[i] = item.Model()
+	}
+
+	return
+}
+
+// Model - получение модели.
+func (entity *ProjectListItem) Model() (model *models.ProjectListItem) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(model) }()
+	}
+
+	model = &models.ProjectListItem{
+		ID:      entity.ID,
+		Name:    entity.Name,
+		Version: entity.Version,
+	}
+
+	return
 }

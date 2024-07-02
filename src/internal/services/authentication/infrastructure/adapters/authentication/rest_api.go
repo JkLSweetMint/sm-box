@@ -3,6 +3,7 @@ package authentication_adapter
 import (
 	"context"
 	"sm-box/internal/common/objects/models"
+	"sm-box/internal/common/types"
 	authentication_controller "sm-box/internal/services/authentication/infrastructure/controllers/authentication"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -19,6 +20,9 @@ type Adapter_RestAPI struct {
 
 	controller interface {
 		BasicAuth(ctx context.Context, tokenData, username, password string) (token *models.JwtTokenInfo, user *models.UserInfo, cErr c_errors.Error)
+		SetTokenProject(ctx context.Context, tokenID, projectID types.ID) (cErr c_errors.Error)
+		GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list models.ProjectList, cErr c_errors.Error)
+		GetToken(ctx context.Context, data string) (token *models.JwtTokenInfo, cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -73,7 +77,7 @@ func New_RestAPI(ctx context.Context) (adapter *Adapter_RestAPI, err error) {
 func (adapter *Adapter_RestAPI) BasicAuth(ctx context.Context, tokenData, username, password string) (token *models.JwtTokenInfo, user *models.UserInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelController)
+		var trc = tracer.New(tracer.LevelAdapter)
 
 		trc.FunctionCall(ctx, tokenData, username, password)
 		defer func() { trc.Error(cErr).FunctionCallFinished(token, user) }()
@@ -82,6 +86,75 @@ func (adapter *Adapter_RestAPI) BasicAuth(ctx context.Context, tokenData, userna
 	var proxyErr c_errors.Error
 
 	if token, user, proxyErr = adapter.controller.BasicAuth(ctx, tokenData, username, password); proxyErr != nil {
+		cErr = c_errors.ToRestAPI(proxyErr)
+
+		adapter.components.Logger.Error().
+			Format("The controller method was executed with an error: '%s'. ", cErr).Write()
+		return
+	}
+
+	return
+}
+
+// SetTokenProject - установить проект для токена.
+func (adapter *Adapter_RestAPI) SetTokenProject(ctx context.Context, tokenID, projectID types.ID) (cErr c_errors.RestAPI) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelAdapter)
+
+		trc.FunctionCall(ctx, tokenID, projectID)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	var proxyErr c_errors.Error
+
+	if proxyErr = adapter.controller.SetTokenProject(ctx, tokenID, projectID); proxyErr != nil {
+		cErr = c_errors.ToRestAPI(proxyErr)
+
+		adapter.components.Logger.Error().
+			Format("The controller method was executed with an error: '%s'. ", cErr).Write()
+		return
+	}
+
+	return
+}
+
+// GetUserProjectsList - получение списка проектов пользователя.
+func (adapter *Adapter_RestAPI) GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list models.ProjectList, cErr c_errors.RestAPI) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelAdapter)
+
+		trc.FunctionCall(ctx, tokenID, userID)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	var proxyErr c_errors.Error
+
+	if list, proxyErr = adapter.controller.GetUserProjectsList(ctx, tokenID, userID); proxyErr != nil {
+		cErr = c_errors.ToRestAPI(proxyErr)
+
+		adapter.components.Logger.Error().
+			Format("The controller method was executed with an error: '%s'. ", cErr).Write()
+		return
+	}
+
+	return
+}
+
+// GetToken - получение jwt токена.
+func (adapter *Adapter_RestAPI) GetToken(ctx context.Context, data string) (token *models.JwtTokenInfo, cErr c_errors.RestAPI) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelAdapter)
+
+		trc.FunctionCall(ctx, data)
+		defer func() { trc.Error(cErr).FunctionCallFinished(token) }()
+	}
+
+	var proxyErr c_errors.Error
+
+	if token, proxyErr = adapter.controller.GetToken(ctx, data); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().

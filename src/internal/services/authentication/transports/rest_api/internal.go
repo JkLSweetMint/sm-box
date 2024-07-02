@@ -8,6 +8,7 @@ import (
 	"path"
 	"sm-box/internal/common/objects/models"
 	"sm-box/internal/common/transports/rest_api/components/access_system"
+	"sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/transports/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -15,7 +16,6 @@ import (
 	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/http/postman"
 	"sm-box/pkg/tools/file"
-	"strings"
 	"sync"
 	"time"
 )
@@ -38,6 +38,9 @@ type engine struct {
 type controllers struct {
 	Authentication interface {
 		BasicAuth(ctx context.Context, tokenData, username, password string) (token *models.JwtTokenInfo, user *models.UserInfo, cErr c_errors.RestAPI)
+		SetTokenProject(ctx context.Context, tokenID, projectID types.ID) (cErr c_errors.RestAPI)
+		GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list models.ProjectList, cErr c_errors.RestAPI)
+		GetToken(ctx context.Context, data string) (token *models.JwtTokenInfo, cErr c_errors.RestAPI)
 	}
 }
 
@@ -59,45 +62,6 @@ func (eng *engine) Listen() (err error) {
 
 	eng.components.Logger.Info().
 		Text("The http rest engine is listening... ").Write()
-
-	// Регистрация запросов
-	{
-		var (
-			prefix string
-			list   = make([]*fiber.Route, 0, 100)
-		)
-
-		// prefix
-		{
-			if eng.conf.Engine.Name != "" {
-				prefix += "/" + eng.conf.Engine.Name
-			}
-
-			if eng.conf.Engine.Version != "" {
-				prefix += "/" + eng.conf.Engine.Version
-			}
-		}
-
-		for _, stack := range eng.app.Stack() {
-			for _, route := range stack {
-				if strings.HasPrefix(route.Path, prefix) {
-					eng.components.Logger.Info().
-						Format("The route '%s %s' (%d) is registered. ", route.Method, route.Path, len(route.Handlers)).Write()
-
-					list = append(list, route)
-				}
-			}
-		}
-
-		// Система доступа
-		{
-			if err = eng.components.AccessSystem.RegisterRoutes(list...); err != nil {
-				eng.components.Logger.Error().
-					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
-				return
-			}
-		}
-	}
 
 	// Postman
 	{

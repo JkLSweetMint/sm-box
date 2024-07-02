@@ -96,6 +96,7 @@ func (repo *Repository) GetToken(ctx context.Context, data string) (tok *entitie
 			select
 				tokens.id,
 				coalesce(tokens.user_id, 0) as user_id,
+				coalesce(tokens.project_id, 0) as project_id,
 				tokens.issued_at,
 				tokens.not_before,
 				tokens.expires_at
@@ -127,8 +128,72 @@ func (repo *Repository) GetToken(ctx context.Context, data string) (tok *entitie
 
 		tok.ID = model.ID
 		tok.UserID = model.UserID
+		tok.ProjectID = model.ProjectID
 
 		tok.Data = data
+
+		tok.IssuedAt = model.IssuedAt
+		tok.NotBefore = model.NotBefore
+		tok.ExpiresAt = model.ExpiresAt
+	}
+
+	return
+}
+
+// GetTokenByID - получение jwt токена по ID.
+func (repo *Repository) GetTokenByID(ctx context.Context, id types.ID) (tok *entities.JwtToken, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, id)
+		defer func() { trc.Error(err).FunctionCallFinished(tok) }()
+	}
+
+	var model = new(db_models.JwtToken)
+
+	// Получение данных
+	{
+		var query = `
+			select
+				tokens.id,
+				coalesce(tokens.user_id, 0) as user_id,
+				coalesce(tokens.project_id, 0) as project_id,
+				tokens.data,
+				tokens.issued_at,
+				tokens.not_before,
+				tokens.expires_at
+			from
+				system_access.jwt_tokens as tokens
+			where
+				tokens.id = $1
+		`
+
+		var row = repo.connector.QueryRowxContext(ctx, query, id)
+
+		if err = row.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+			return
+		}
+
+		if err = row.StructScan(model); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	// Перенос в сущность
+	{
+		tok = new(entities.JwtToken)
+		tok.FillEmptyFields()
+
+		tok.ID = model.ID
+		tok.UserID = model.UserID
+		tok.ProjectID = model.ProjectID
+
+		tok.Data = model.Data
 
 		tok.IssuedAt = model.IssuedAt
 		tok.NotBefore = model.NotBefore
@@ -166,6 +231,34 @@ func (repo *Repository) SetTokenOwner(ctx context.Context, tokenID, ownerID type
 	return
 }
 
+// SetTokenProject - установить проект для токена.
+func (repo *Repository) SetTokenProject(ctx context.Context, tokenID, projectID types.ID) (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, tokenID, projectID)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var query = `
+		update 
+			system_access.jwt_tokens
+		set
+		    project_id = $1
+		where
+		    id = $2
+	`
+
+	if _, err = repo.connector.ExecContext(ctx, query, projectID, tokenID); err != nil {
+		repo.components.Logger.Error().
+			Format("Error updating an item from the database: '%s'. ", err).Write()
+		return
+	}
+
+	return
+}
+
 // BasicAuth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
 func (repo *Repository) BasicAuth(ctx context.Context, username, password string) (us *entities.User, err error) {
@@ -186,38 +279,43 @@ func (repo *Repository) BasicAuth(ctx context.Context, username, password string
 	{
 		var model = new(db_models.User)
 
-		var query = `
+		// Получение
+		{
+			var query = `
 			select
 				users.id,
 				coalesce(users.project_id, 0) as project_id,
 				coalesce(users.email, '') as email,
-				users.username,
-				users.password
+				users.username
 			from
-				public.users as users
+				users.users as users
 			where
 				users.username = $1 and 
 				users.password = $2
 		`
 
-		var row = repo.connector.QueryRowxContext(ctx, query, username, password)
+			var row = repo.connector.QueryRowxContext(ctx, query, username, password)
 
-		if err = row.Err(); err != nil {
-			repo.components.Logger.Error().
-				Format("Error when retrieving an item from the database: '%s'. ", err).Write()
-			return
+			if err = row.Err(); err != nil {
+				repo.components.Logger.Error().
+					Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+				return
+			}
+
+			if err = row.StructScan(model); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
 		}
 
-		if err = row.StructScan(model); err != nil {
-			repo.components.Logger.Error().
-				Format("Error while reading item data from the database:: '%s'. ", err).Write()
-			return
+		// Перенос в сущность
+		{
+			us.ID = model.ID
+			us.ProjectID = model.ProjectID
+			us.Email = model.Email
+			us.Username = model.Username
 		}
-
-		us.ID = model.ID
-		us.ProjectID = model.ProjectID
-		us.Email = model.Email
-		us.Username = model.Username
 	}
 
 	// Доступы
@@ -227,76 +325,74 @@ func (repo *Repository) BasicAuth(ctx context.Context, username, password string
 			*db_models.RoleInheritance
 		}
 
-		var (
-			rows  *sqlx.Rows
-			query = `
-				WITH RECURSIVE cte_roles (id, project_id, name, parent) AS (
-					select
-						roles.id,
-						roles.project_id,
-						roles.name,
-						0::bigint as parent
-					from
-						system_access.roles as roles
-					where
-						roles.id in (
-							select
-								user_accesses.role_id as id
-							from
-								users
-									left join user_accesses on users.id = user_accesses.user_id
-				
-							where
-								users.id = $1
-						)
-				
-					UNION ALL
-				
-					select
-						roles.id,
-						roles.project_id,
-						roles.name,
-						role_inheritance.parent as parent
-					from
-						system_access.roles as roles
-							left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
-							JOIN cte_roles cte ON cte.id = role_inheritance.parent
-				)
-				
+		var models = make([]*Model, 0, 10)
+
+		// Получение
+		{
+
+			var (
+				rows  *sqlx.Rows
+				query = `
 				select
 					distinct id,
 					coalesce(project_id, 0) as project_id,
 					name,
 					coalesce(parent, 0) as parent
 				from
-					cte_roles;
+					system_access.get_user_access($1) as (id bigint, project_id bigint, name varchar, parent bigint);
 			`
-			models = make([]*Model, 0, 10)
-		)
+			)
 
-		if rows, err = repo.connector.QueryxContext(ctx, query, us.ID); err != nil {
-			repo.components.Logger.Error().
-				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
-			return
-		}
-
-		for rows.Next() {
-			var model = new(Model)
-
-			if err = rows.StructScan(model); err != nil {
+			if rows, err = repo.connector.QueryxContext(ctx, query, us.ID); err != nil {
 				repo.components.Logger.Error().
-					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+					Format("Error when retrieving an items from the database: '%s'. ", err).Write()
 				return
 			}
 
-			models = append(models, model)
+			for rows.Next() {
+				var model = new(Model)
+
+				if err = rows.StructScan(model); err != nil {
+					repo.components.Logger.Error().
+						Format("Error while reading item data from the database:: '%s'. ", err).Write()
+					return
+				}
+
+				models = append(models, model)
+			}
 		}
 
-		var writeInheritance func(parent *entities.UserAccess)
+		// Перенос в сущность
+		{
+			var writeInheritance func(parent *entities.UserAccess)
 
-		writeInheritance = func(parent *entities.UserAccess) {
+			writeInheritance = func(parent *entities.UserAccess) {
+				for _, model := range models {
+					if model.Parent == parent.ID {
+						var (
+							role = &entities.Role{
+								ID:        model.ID,
+								ProjectID: model.ProjectID,
+								Name:      model.Name,
+
+								Inheritances: make(entities.RoleInheritances, 0),
+							}
+						)
+						role.FillEmptyFields()
+
+						parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
+							Role: role,
+						})
+
+						writeInheritance(&entities.UserAccess{
+							Role: role,
+						})
+					}
+				}
+			}
+
 			for _, model := range models {
-				if model.Parent == parent.ID {
+				if model.Parent == 0 {
 					var (
 						role = &entities.Role{
 							ID:        model.ID,
@@ -305,37 +401,14 @@ func (repo *Repository) BasicAuth(ctx context.Context, username, password string
 
 							Inheritances: make(entities.RoleInheritances, 0),
 						}
+						acc = &entities.UserAccess{
+							Role: role.FillEmptyFields(),
+						}
 					)
-					role.FillEmptyFields()
 
-					parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
-						Role: role,
-					})
-
-					writeInheritance(&entities.UserAccess{
-						Role: role,
-					})
+					writeInheritance(acc)
+					us.Accesses = append(us.Accesses, acc)
 				}
-			}
-		}
-
-		for _, model := range models {
-			if model.Parent == 0 {
-				var (
-					role = &entities.Role{
-						ID:        model.ID,
-						ProjectID: model.ProjectID,
-						Name:      model.Name,
-
-						Inheritances: make(entities.RoleInheritances, 0),
-					}
-					acc = &entities.UserAccess{
-						Role: role.FillEmptyFields(),
-					}
-				)
-
-				writeInheritance(acc)
-				us.Accesses = append(us.Accesses, acc)
 			}
 		}
 	}

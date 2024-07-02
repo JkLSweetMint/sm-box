@@ -2,12 +2,10 @@ package access_system
 
 import (
 	"context"
-	"github.com/gofiber/fiber/v3"
 	"sm-box/internal/common/objects/entities"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
-	"strings"
 	"time"
 )
 
@@ -36,7 +34,7 @@ type components struct {
 }
 
 // RegisterRoutes - регистрация маршрутов в системе.
-func (acc *accessSystem) RegisterRoutes(list ...*fiber.Route) (err error) {
+func (acc *accessSystem) RegisterRoutes(list ...*entities.HttpRouteConstructor) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelComponent)
@@ -45,12 +43,9 @@ func (acc *accessSystem) RegisterRoutes(list ...*fiber.Route) (err error) {
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	for _, r := range list {
-		var route = new(entities.HttpRoute).FillEmptyFields()
+	for _, constructor := range list {
+		var route = constructor.Build()
 
-		route.Active = true
-		route.Method = strings.ToUpper(r.Method)
-		route.Path = r.Path
 		route.RegisterTime = time.Now()
 
 		if err = acc.repository.RegisterRoute(acc.ctx, route); err != nil {
@@ -58,6 +53,10 @@ func (acc *accessSystem) RegisterRoutes(list ...*fiber.Route) (err error) {
 				Format("Failed to register http rest api route: '%s'. ", err).Write()
 			return
 		}
+
+		acc.components.Logger.Info().
+			Format("The route '%s %s' is registered. ", route.Method, route.Path).
+			Field("authorize", route.Authorize).Write()
 	}
 
 	return

@@ -48,8 +48,11 @@ values
     ('ru-RU', 'Русский'),
     ('en-US', 'English');
 
+create schema
+    if not exists users;
+
 create table
-    if not exists public.users
+    if not exists users.users
 (
     id         bigserial     not null
         constraint users_pk
@@ -76,11 +79,8 @@ create table
     id          bigserial                not null
         constraint projects_pk
             primary key,
-    uuid        uuid                     not null
-        constraint projects_uuid_uq
-            unique,
     owner_id    bigint                   not null
-        references public.users (id),
+        references users.users (id),
     name        varchar(300)             not null,
     description varchar(3000) default '' not null,
     version     varchar(300)  default '' not null
@@ -98,6 +98,7 @@ create table
     project_id bigint
         references public.projects (id),
     name       varchar(300) not null,
+    is_system  boolean      not null default false,
 
     check (
         id > 2
@@ -117,11 +118,68 @@ create table
     check (parent != heir)
 );
 
+create or replace function system_access.get_user_access(userID bigint)
+    returns setof record
+    language plpgsql as
+$$
+declare
+    result record;
+
+begin
+    for result in
+        WITH RECURSIVE cte_roles (id, project_id, name, parent) AS (
+            select
+                roles.id,
+                roles.project_id,
+                roles.name,
+                0::bigint as parent
+            from
+                system_access.roles as roles
+            where
+                roles.id in (
+                    select
+                        accesses.role_id as id
+                    from
+                        users.users as users
+                            left join users.accesses accesses on users.id = accesses.user_id
+
+                    where
+                        users.id = userID
+                )
+
+            UNION ALL
+
+            select
+                roles.id,
+                roles.project_id,
+                roles.name,
+                role_inheritance.parent as parent
+            from
+                system_access.roles as roles
+                    left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
+                    JOIN cte_roles cte ON cte.id = role_inheritance.parent
+        )
+
+        select
+            distinct id,
+            coalesce(project_id, 0) as project_id,
+            name,
+            coalesce(parent, 0) as parent
+        from
+            cte_roles
+        loop
+            return next result;
+        end loop;
+
+    return result;
+end;
+$$;
+
 insert into
-    system_access.roles (id, project_id, name)
+    system_access.roles (project_id, name, is_system)
 values
-    (1, null, 'root'),
-    (2, null, 'user');
+    (null, 'root', true),
+    (null, 'user', true);
 
 insert into
     system_access.role_inheritance (parent, heir)
@@ -135,7 +193,7 @@ create table
         constraint system_access_jwt_tokens_pk
             primary key,
     user_id    bigint
-        references public.users (id),
+        references users.users (id),
     project_id bigint
         references public.projects (id),
 
@@ -162,15 +220,116 @@ create table
 );
 
 create table
-    if not exists user_accesses
+    if not exists users.accesses
 (
     user_id bigint not null
-        references public.users (id),
+        references users.users (id),
     role_id bigint not null
         references system_access.roles (id),
 
     unique (user_id, role_id)
 );
+
+create or replace function users.assign_default_role_to_user_fn()
+    returns trigger
+    language plpgsql as
+$$
+declare
+    projectRoleID bigint;
+
+begin
+    if not exists(select * from users.accesses where user_id = new.id) then
+        insert into
+            users.accesses(
+            user_id,
+            role_id
+        )
+        values (
+                   new.id,
+                   2
+               );
+    end if;
+
+    if new.project_id is not null then
+        select
+            into projectRoleID roles.id
+        from
+            system_access.roles as roles
+        where
+            roles.project_id = new.project_id and
+            roles.name = 'user';
+
+        if projectRoleID is not null and projectRoleID != 0 then
+            insert into
+                users.accesses(
+                user_id,
+                role_id
+            )
+            values (
+                       new.id,
+                       projectRoleID
+                   );
+        end if;
+    end if;
+
+    return new;
+end;
+$$;
+
+create trigger assign_default_role_to_user
+    after insert on users.users
+    for each row
+execute procedure users.assign_default_role_to_user_fn();
+
+create or replace function public.create_roles_for_project_fn()
+    returns trigger
+    language plpgsql as
+$$
+declare
+    ownerRoleID bigint;
+    adminRoleID bigint;
+    userRoleID bigint;
+begin
+    insert into
+        system_access.roles (project_id, name, is_system)
+    values
+        (new.id, 'owner', true)
+    returning id into ownerRoleID;
+
+    insert into
+        system_access.roles (project_id, name, is_system)
+    values
+        (new.id, 'admin', true)
+    returning id into adminRoleID;
+
+    insert into
+        system_access.roles (project_id, name, is_system)
+    values
+        (new.id, 'user', true)
+    returning id into userRoleID;
+
+    insert into
+        system_access.role_inheritance (parent, heir)
+    values
+        (1, ownerRoleID),
+        (ownerRoleID, adminRoleID),
+        (adminRoleID, userRoleID);
+
+    if new.owner_id is not null then
+        insert into
+            users.accesses
+        values
+            (new.owner_id, ownerRoleID);
+    end if;
+
+    return new;
+end;
+$$;
+
+create trigger create_roles_for_project
+    after insert on public.projects
+    for each row
+execute procedure public.create_roles_for_project_fn();
 
 create schema
     if not exists transports;
@@ -181,6 +340,8 @@ create table
     id            bigserial                 not null
         constraint transports_http_routes_pk
             primary key,
+    name          varchar(1024)             not null,
+    description   varchar(4096)             not null default '',
     method        varchar(10)               not null,
     path          varchar(4096)             not null,
     register_time timestamptz default now() not null,
@@ -223,20 +384,20 @@ create table
     unique (route_id, role_id)
 );
 
-create function transports.create_http_route_accesses_for_root_fn()
+create or replace function transports.create_http_route_accesses_for_root_fn()
     returns trigger
     language plpgsql as
 $$
     begin
         insert into
             transports.http_route_accesses(
-                route_id,
-                role_id
-            )
-                values (
-                    new.id,
-                    1
-            );
+                    route_id,
+                    role_id
+                )
+            values (
+                new.id,
+                1
+        );
 
         return new;
     end;
@@ -247,7 +408,7 @@ create trigger transports_create_http_route_accesses_for_root
         for each row
             execute procedure transports.create_http_route_accesses_for_root_fn();
 
-create function transports.http_routes_delete_access_fn()
+create or replace function transports.http_routes_delete_access_fn()
     returns trigger
     language plpgsql as
 $$
@@ -265,7 +426,3 @@ create trigger transports_http_routes_delete_access
     before delete on transports.http_routes
     for each row
 execute procedure transports.http_routes_delete_access_fn();
-
-
-insert into public.users(email, username, password) values ('jklgreentea@gmail.com', 'root', 'toor');
-insert into public.user_accesses(user_id, role_id) values (1, 1);
