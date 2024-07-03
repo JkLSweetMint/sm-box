@@ -6,6 +6,7 @@ import (
 	"sm-box/internal/common/objects/db_models"
 	"sm-box/internal/common/objects/entities"
 	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
 	"sm-box/pkg/databases/connectors/postgresql"
 	"strings"
 )
@@ -51,10 +52,11 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 				transports.http_routes as routes
 			where
 				routes.method = $1 and
-				routes.path = $2
+				routes.path = $2 and
+				routes.system_name = $3
 		`
 
-		var row = repo.connector.QueryRowxContext(ctx, query, method, path)
+		var row = repo.connector.QueryRowxContext(ctx, query, method, path, env.Vars.SystemName)
 
 		if err = row.Err(); err != nil {
 			repo.components.Logger.Error().
@@ -232,10 +234,11 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 			where
 				routes.method = $1 and
 				routes.path = $2 and
-				routes.active is true
+				routes.active is true and
+				routes.system_name = $3
 		`
 
-		var row = repo.connector.QueryRowxContext(ctx, query, method, path)
+		var row = repo.connector.QueryRowxContext(ctx, query, method, path, env.Vars.SystemName)
 
 		if err = row.Err(); err != nil {
 			repo.components.Logger.Error().
@@ -395,6 +398,7 @@ func (repo *httpRoutesRepository) RegisterRoute(ctx context.Context, route *enti
 		query = `
 			insert into 
 				transports.http_routes (
+						system_name,
 						name, 
 						description, 
 						method, 
@@ -409,18 +413,20 @@ func (repo *httpRoutesRepository) RegisterRoute(ctx context.Context, route *enti
 						$4,
 						$5,
 						$6,
-						$7
+						$7,
+						$8
 					) 
-					on conflict (method, path) do update 
+					on conflict (system_name, method, path) do update 
 						set 
 						    active = true,
-						    name = $1,
-						    description = $2,
-						    authorize = $7
+						    name = $2,
+						    description = $3,
+						    authorize = $8
 		`
 	)
 
 	if _, err = repo.connector.ExecContext(ctx, query,
+		env.Vars.SystemName,
 		model.Name,
 		model.Description,
 		model.Method,
@@ -451,9 +457,11 @@ func (repo *httpRoutesRepository) SetInactiveRoutes(ctx context.Context) (err er
 			transports.http_routes
 		set
 		    active = false
+		where
+		    system_name = $1
 	`
 
-	if _, err = repo.connector.ExecContext(ctx, query); err != nil {
+	if _, err = repo.connector.ExecContext(ctx, query, env.Vars.SystemName); err != nil {
 		repo.components.Logger.Error().
 			Format("Error updating an item from the database: '%s'. ", err).Write()
 		return

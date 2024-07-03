@@ -46,7 +46,190 @@ insert into
     i18n.languages(code, name)
 values
     ('ru-RU', 'Русский'),
-    ('en-US', 'English');
+    ('en-US', 'English'),
+    ('zh-CN', '中文');
+
+create table
+    if not exists i18n.sections
+(
+    id     uuid          default gen_random_uuid() not null
+        constraint sections_pk
+            primary key,
+    parent uuid
+        references i18n.sections(id)
+            on delete cascade,
+
+    key    varchar(252)                             not null,
+    name   varchar(1024) default ''                 not null,
+
+    constraint check_key
+        check (key ~ '^[-0-9a-zA-Z_]{2,252}$'),
+
+    unique (key, parent)
+);
+
+create table
+    if not exists i18n.texts
+(
+    id         uuid          not null default gen_random_uuid()
+        constraint texts_pk
+            primary key,
+    language   varchar(5)    not null
+        references i18n.languages(code)
+            on delete cascade,
+    section    uuid          not null
+        references i18n.sections(id)
+            on delete cascade,
+    key        varchar(252)  not null,
+    value      varchar(4096) not null,
+
+    active    boolean        not null default true,
+    required  boolean        not null default false
+);
+
+create or replace function i18n.create_sections_fn(path varchar(1024))
+    returns void
+    language plpgsql as
+$$
+declare
+    keys varchar[];
+    sectionID uuid = null;
+    sectionKey varchar;
+    sectionParent uuid = null;
+begin
+    select
+        into keys string_to_array(path, '.');
+
+    for index in 1..(array_length(keys, 1)) loop
+            sectionKey = keys[index];
+
+            if sectionParent is null then
+                select
+                    into sectionID id
+                from
+                    i18n.sections
+                where
+                    key = sectionKey and
+                    (parent is null and sectionParent is null);
+            else
+                select
+                    into sectionID id
+                from
+                    i18n.sections
+                where
+                    key = sectionKey and
+                    parent = sectionParent;
+            end if;
+
+            if sectionID is null then
+                insert into
+                    i18n.sections(key, parent)
+                values
+                    (sectionKey, sectionParent)
+                returning id into sectionID;
+            end if;
+
+            sectionParent = sectionID;
+            sectionID = null;
+        end loop;
+end;
+$$;
+
+create or replace function i18n.create_texts_for_language_fn()
+    returns trigger
+    language plpgsql as
+$$
+begin
+    insert into
+        i18n.texts(
+            language,
+            section,
+            key,
+            value,
+            active,
+            required
+        )
+        select
+            new.code as language,
+            section,
+            key,
+            '' as value,
+            false as active,
+            required
+        from
+            i18n.texts
+        where
+            language = public.get_default_language() and required
+        group by key, section, required;
+
+    return new;
+end;
+$$;
+
+create trigger create_texts_for_language
+    after insert on i18n.languages
+    for each row
+execute procedure i18n.create_texts_for_language_fn();
+
+create or replace function i18n.create_texts_other_languages_fn()
+    returns trigger
+    language plpgsql as
+$$
+begin
+    if new.required then
+        insert into
+            i18n.texts(
+                       language,
+                       section,
+                       key,
+                       active,
+                       required
+            )
+            select
+                code,
+                new.section,
+                new.key,
+                new.active,
+                true
+            from
+                languages
+            where
+                code != new.language;
+    end if;
+
+    return new;
+end;
+$$;
+
+create trigger create_texts_other_languages
+    after insert on i18n.texts
+    for each row
+execute procedure i18n.create_texts_other_languages_fn();
+
+create or replace function i18n.update_texts_other_languages_fn()
+    returns trigger
+    language plpgsql as
+$$
+begin
+    if new.language = public.get_default_language() and new.required then
+        update
+            i18n.texts
+        set
+            required = true
+        where
+            section = new.section and
+            key = new.key and
+            not required;
+    end if;
+
+    return new;
+end;
+$$;
+
+create trigger update_texts_other_languages
+    after update on i18n.texts
+    for each row
+execute procedure i18n.update_texts_other_languages_fn();
 
 create schema
     if not exists users;
@@ -67,10 +250,10 @@ create table
     password   varchar(1024) not null,
 
     constraint check_username
-        check (username ~ '^[-0-9a-za-z_]{3,16}$'),
+        check (username ~ '^[-0-9a-zA-Z_]{3,16}$'),
 
     constraint check_email
-        check (email is null or email ~ '^[-a-za-z0-9._%+]+@[-a-za-z0-9.]+\.[a-za-z]{2,}$')
+        check (email is null or email ~ '^[-a-zA-Z0-9._%+]+@[-a-zA-Z0-9.]+\.[a-zA-Z]{2,}$')
 );
 
 create table
@@ -170,8 +353,6 @@ begin
         loop
             return next result;
         end loop;
-
-    return result;
 end;
 $$;
 
@@ -340,6 +521,7 @@ create table
     id            bigserial                 not null
         constraint transports_http_routes_pk
             primary key,
+    system_name   varchar(1024)             not null,
     name          varchar(1024)             not null,
     description   varchar(4096)             not null default '',
     method        varchar(10)               not null,
@@ -370,7 +552,7 @@ create table
     constraint check_path
         check (path ~ '^(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$'),
 
-    unique (method, path)
+    unique (system_name, method, path)
 );
 
 create table

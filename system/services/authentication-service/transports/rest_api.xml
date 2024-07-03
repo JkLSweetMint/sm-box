@@ -1,5 +1,5 @@
 <Config>
-	<Engine addr="0.0.0.0:8080" name="authentication-api" version="v1.0" domain="box.samgk.ru">
+	<Engine addr="0.0.0.0:8080" location="/authentication" name="api" version="v1.0" domain="box.samgk.ru">
 		<ServerHeader>Authentication service</ServerHeader>
 		<StrictRouting>true</StrictRouting>
 		<CaseSensitive>false</CaseSensitive>

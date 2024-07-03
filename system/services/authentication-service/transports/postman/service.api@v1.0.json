@@ -22,7 +22,8 @@
                             ],
                             "path": [
                                 "",
-                                "authentication-api",
+                                "authentication",
+                                "api",
                                 "v1.0",
                                 "sys",
                                 "ping"
@@ -61,7 +62,8 @@
                             ],
                             "path": [
                                 "",
-                                "authentication-api",
+                                "authentication",
+                                "api",
                                 "v1.0",
                                 "sys",
                                 "health"
@@ -100,7 +102,8 @@
                             ],
                             "path": [
                                 "",
-                                "authentication-api",
+                                "authentication",
+                                "api",
                                 "v1.0",
                                 "sys",
                                 "error"
@@ -141,7 +144,8 @@
                     ],
                     "path": [
                         "",
-                        "authentication-api",
+                        "authentication",
+                        "api",
                         "v1.0",
                         "basic-auth"
                     ]
@@ -198,7 +202,8 @@
                     ],
                     "path": [
                         "",
-                        "authentication-api",
+                        "authentication",
+                        "api",
                         "v1.0",
                         "projects",
                         "select"
@@ -256,7 +261,8 @@
                     ],
                     "path": [
                         "",
-                        "authentication-api",
+                        "authentication",
+                        "api",
                         "v1.0",
                         "projects",
                         "set"
@@ -292,6 +298,12 @@
                     "status": "Ɛ",
                     "code": 400,
                     "name": "Ошибка если проект уже выбран. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 404,\n    \"code_message\": \"Not Found\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"E-000008\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The project was not found. \",\n        \"details\": {}\n    }\n}\n",
+                    "status": "Ɣ",
+                    "code": 404,
+                    "name": "Ошибка если проект не найден. "
                 },
                 {
                     "body": "\n{\n    \"code\": 400,\n    \"code_message\": \"Bad Request\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"E-000009\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"There is no access to the project. \",\n        \"details\": {}\n    }\n}\n",

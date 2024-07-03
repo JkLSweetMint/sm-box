@@ -7,6 +7,14 @@
 
 ---
 
+### v24.0.28:
+- [x] Разработка системы i18n;
+- [x] Разработка [сервиса i18n](src/internal/services/i18n/service.go);
+- [x] Разработка [сервиса управления проектом](src/internal/services/project_manager/service.go);
+- [x] Разработка [сервиса управления пользователя](src/internal/services/user_manager/service.go);
+
+---
+
 ### v24.0.27:
 - [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
 

@@ -209,6 +209,9 @@ type Engine struct {
 	// Адрес сервера.
 	Addr string `json:"addr" yaml:"Addr" xml:"addr,attr"`
 
+	// Расположение сервера.
+	Location string `json:"location" yaml:"Location" xml:"location,attr"`
+
 	// Название сервера.
 	Name string `json:"name" yaml:"Name" xml:"name,attr"`
 
@@ -272,7 +275,8 @@ func (conf *Engine) Default() *Engine {
 	conf.RequestMethods = make([]string, 0)
 	conf.EnableSplittingOnParsers = false
 	conf.Addr = "0.0.0.0:8080"
-	conf.Name = "authentication-api"
+	conf.Location = "/authentication"
+	conf.Name = "api"
 	conf.Version = "v1.0"
 	conf.Domain = "box.samgk.ru"
 

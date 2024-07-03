@@ -36,7 +36,8 @@ insert into
         password
     )
 values
-    (1, 'manager@gmail.com', 'manager', 'manager');
+    (1, 'manager1@gmail.com', 'manager1', 'manager1'),
+    (2, 'manager@gmail2.com', 'manager2', 'manager2');
 
 insert into
     public.projects(

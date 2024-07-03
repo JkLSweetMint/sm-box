@@ -20,6 +20,7 @@ services:
     image: box/app:latest
     container_name: app
     restart: unless-stopped
+    attach: false
     depends_on:
       - postgres
     volumes:
@@ -44,6 +45,62 @@ services:
       - ./var/logs:/home/app/var/logs
       - ./var/test:/home/app/var/test
 
+  i18n-service:
+    image: box/i18n-service:latest
+    container_name: i18n-service
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    volumes:
+      - ./etc:/home/app/etc
+      - ./system:/home/app/system
+      - ./var/data:/home/app/var/data
+      - ./var/lib:/home/app/var/lib
+      - ./var/logs:/home/app/var/logs
+      - ./var/test:/home/app/var/test
+
+  project_manager-service:
+    image: box/project_manager-service:latest
+    container_name: project_manager-service
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    volumes:
+      - ./etc:/home/app/etc
+      - ./system:/home/app/system
+      - ./var/data:/home/app/var/data
+      - ./var/lib:/home/app/var/lib
+      - ./var/logs:/home/app/var/logs
+      - ./var/test:/home/app/var/test
+
+  setup-service:
+    image: box/setup-service:latest
+    container_name: setup-service
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    volumes:
+      - ./etc:/home/app/etc
+      - ./system:/home/app/system
+      - ./var/data:/home/app/var/data
+      - ./var/lib:/home/app/var/lib
+      - ./var/logs:/home/app/var/logs
+      - ./var/test:/home/app/var/test
+
+  user_manager-service:
+    image: box/user_manager-service:latest
+    container_name: user_manager-service
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    volumes:
+      - ./etc:/home/app/etc
+      - ./system:/home/app/system
+      - ./var/data:/home/app/var/data
+      - ./var/lib:/home/app/var/lib
+      - ./var/logs:/home/app/var/logs
+      - ./var/test:/home/app/var/test
+
   nginx:
     image: nginx:1.27.0
     container_name: proxy
@@ -51,6 +108,11 @@ services:
     attach: false
     depends_on:
       - app
+      - authentication-service
+      - i18n-service
+      - project_manager-service
+      - setup-service
+      - user_manager-service
     volumes:
       - type: bind
         source: ./system/nginx/proxy

@@ -6,6 +6,7 @@ import (
 	cache_middleware "github.com/gofiber/fiber/v3/middleware/cache"
 	compress_middleware "github.com/gofiber/fiber/v3/middleware/compress"
 	cors_middleware "github.com/gofiber/fiber/v3/middleware/cors"
+	"path"
 	error_list "sm-box/internal/common/errors"
 	rest_api_io "sm-box/internal/common/transports/rest_api/io"
 	"sm-box/pkg/core/components/tracer"
@@ -58,17 +59,9 @@ func (eng *engine) initFiberApp() (err error) {
 
 	// Маршрутизатор
 	{
-		var prefix string
+		var location = path.Join(eng.conf.Engine.Location, eng.conf.Engine.Name, eng.conf.Engine.Version)
 
-		if eng.conf.Engine.Name != "" {
-			prefix += "/" + eng.conf.Engine.Name
-		}
-
-		if eng.conf.Engine.Version != "" {
-			prefix += "/" + eng.conf.Engine.Version
-		}
-
-		eng.router = eng.app.Group(prefix)
+		eng.router = eng.app.Group(location)
 	}
 
 	// Промежуточные слои

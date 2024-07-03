@@ -1,5 +1,13 @@
 # ChangeLog:
 
+### v24.0.28:
+- Разработка системы i18n;
+- Разработка [сервиса i18n](src/internal/services/i18n/service.go);
+- Разработка [сервиса управления проектом](src/internal/services/project_manager/service.go);
+- Разработка [сервиса управления пользователя](src/internal/services/user_manager/service.go);
+
+---
+
 ### v24.0.27:
 - Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
 
@@ -8,7 +16,7 @@
 ### v24.0.26:
 - Доработки архитектуры системы;
 - Доработки системы ошибок;
-- Доработки [системы доступа http rest api](src/internal/app/transports/rest_api/components/access_system);
+- Доработки [системы доступа http rest api](src/internal/common/transports/rest_api/components/access_system);
 ---
 
 ### v24.0.25:
