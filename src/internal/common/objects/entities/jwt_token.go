@@ -1,9 +1,9 @@
-package entities
+package common_entities
 
 import (
 	"github.com/golang-jwt/jwt/v5"
-	"sm-box/internal/common/objects/db_models"
-	"sm-box/internal/common/objects/models"
+	common_db_models "sm-box/internal/common/objects/db_models"
+	common_models "sm-box/internal/common/objects/models"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -52,7 +52,7 @@ func (entity *JwtToken) FillEmptyFields() *JwtToken {
 }
 
 // DbModel - получение модели базы данных.
-func (entity *JwtToken) DbModel() (model *db_models.JwtToken) {
+func (entity *JwtToken) DbModel() (model *common_db_models.JwtToken) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -61,7 +61,7 @@ func (entity *JwtToken) DbModel() (model *db_models.JwtToken) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &db_models.JwtToken{
+	model = &common_db_models.JwtToken{
 		ID:        entity.ID,
 		UserID:    entity.UserID,
 		ProjectID: entity.ProjectID,
@@ -78,7 +78,7 @@ func (entity *JwtToken) DbModel() (model *db_models.JwtToken) {
 }
 
 // Model - получение модели.
-func (entity *JwtToken) Model() (model *models.JwtTokenInfo) {
+func (entity *JwtToken) Model() (model *common_models.JwtTokenInfo) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -87,7 +87,7 @@ func (entity *JwtToken) Model() (model *models.JwtTokenInfo) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &models.JwtTokenInfo{
+	model = &common_models.JwtTokenInfo{
 		ID:        entity.ID,
 		UserID:    entity.UserID,
 		ProjectID: entity.ProjectID,
@@ -125,7 +125,7 @@ func (entity *JwtToken) Generate(claims *jwt.RegisteredClaims) (err error) {
 }
 
 // DbModel - получение модели базы данных.
-func (entity *JwtTokenParams) DbModel() (model *db_models.JwtTokenParams) {
+func (entity *JwtTokenParams) DbModel() (model *common_db_models.JwtTokenParams) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -134,7 +134,7 @@ func (entity *JwtTokenParams) DbModel() (model *db_models.JwtTokenParams) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &db_models.JwtTokenParams{
+	model = &common_db_models.JwtTokenParams{
 		TokenID:    0,
 		RemoteAddr: entity.RemoteAddr,
 		UserAgent:  entity.UserAgent,
@@ -144,7 +144,7 @@ func (entity *JwtTokenParams) DbModel() (model *db_models.JwtTokenParams) {
 }
 
 // Model - получение модели.
-func (entity *JwtTokenParams) Model() (model *models.JwtTokenInfoParams) {
+func (entity *JwtTokenParams) Model() (model *common_models.JwtTokenInfoParams) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -153,7 +153,7 @@ func (entity *JwtTokenParams) Model() (model *models.JwtTokenInfoParams) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &models.JwtTokenInfoParams{
+	model = &common_models.JwtTokenInfoParams{
 		RemoteAddr: entity.RemoteAddr,
 		UserAgent:  entity.UserAgent,
 	}

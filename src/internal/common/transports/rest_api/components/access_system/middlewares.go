@@ -16,8 +16,8 @@ import (
 // AuthenticationMiddleware - промежуточное программное обеспечение для аутентификации пользователя.
 func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 	var (
-		route *entities.HttpRoute
-		token *entities.JwtToken
+		route *common_entities.HttpRoute
+		token *common_entities.JwtToken
 	)
 
 	// Получение маршрута
@@ -94,7 +94,7 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 	// Проверка доступа к маршруту, если требуется авторизация
 	{
 		if route.Authorize {
-			var us *entities.User
+			var us *common_entities.User
 
 			// Получение данных пользователя
 			{
@@ -151,19 +151,19 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 
 // IdentificationMiddleware - промежуточное программное обеспечение для идентификации клиента.
 func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
-	var token *entities.JwtToken
+	var token *common_entities.JwtToken
 
 	// Получение токена, если нет, то создаём
 	{
 		if data := ctx.Cookies(acc.conf.CookieKeyForToken); data == "" {
-			token = &entities.JwtToken{
+			token = &common_entities.JwtToken{
 				ID:        0,
 				UserID:    0,
 				Data:      "",
 				ExpiresAt: time.Now().Add(time.Hour * 8),
 				NotBefore: time.Now(),
 				IssuedAt:  time.Now(),
-				Params: &entities.JwtTokenParams{
+				Params: &common_entities.JwtTokenParams{
 					RemoteAddr: fmt.Sprintf("%s:%s", ctx.IP(), ctx.Port()),
 					UserAgent:  string(ctx.Request().Header.UserAgent()),
 				},
@@ -228,14 +228,14 @@ func (acc *accessSystem) IdentificationMiddleware(ctx fiber.Ctx) (err error) {
 		// Срок действия уже закончился, пересоздаём
 		{
 			if tm.After(token.ExpiresAt) {
-				token = &entities.JwtToken{
+				token = &common_entities.JwtToken{
 					ID:        0,
 					UserID:    0,
 					Data:      "",
 					ExpiresAt: time.Now().Add(time.Hour * 8),
 					NotBefore: time.Now(),
 					IssuedAt:  time.Now(),
-					Params: &entities.JwtTokenParams{
+					Params: &common_entities.JwtTokenParams{
 						RemoteAddr: fmt.Sprintf("%s:%s", ctx.IP(), ctx.Port()),
 						UserAgent:  string(ctx.Request().Header.UserAgent()),
 					},

@@ -2,8 +2,8 @@ package authentication_controller
 
 import (
 	"context"
-	"sm-box/internal/common/objects/entities"
-	"sm-box/internal/common/objects/models"
+	common_entities "sm-box/internal/common/objects/entities"
+	common_models "sm-box/internal/common/objects/models"
 	"sm-box/internal/common/types"
 	authentication_usecase "sm-box/internal/services/authentication/infrastructure/usecases/authentication"
 	"sm-box/pkg/core/components/logger"
@@ -27,10 +27,10 @@ type Controller struct {
 // usecases - логика контроллера.
 type usecases struct {
 	Authentication interface {
-		BasicAuth(ctx context.Context, tokenData, username, password string) (token *entities.JwtToken, us *entities.User, cErr c_errors.Error)
+		BasicAuth(ctx context.Context, tokenData, username, password string) (token *common_entities.JwtToken, us *common_entities.User, cErr c_errors.Error)
 		SetTokenProject(ctx context.Context, tokenID, projectID types.ID) (cErr c_errors.Error)
-		GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list entities.ProjectList, cErr c_errors.Error)
-		GetToken(ctx context.Context, data string) (tok *entities.JwtToken, cErr c_errors.Error)
+		GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list common_entities.ProjectList, cErr c_errors.Error)
+		GetToken(ctx context.Context, data string) (tok *common_entities.JwtToken, cErr c_errors.Error)
 	}
 }
 
@@ -95,7 +95,7 @@ func New(ctx context.Context) (controller *Controller, err error) {
 
 // BasicAuth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (controller *Controller) BasicAuth(ctx context.Context, tokenData, username, password string) (token *models.JwtTokenInfo, user *models.UserInfo, cErr c_errors.Error) {
+func (controller *Controller) BasicAuth(ctx context.Context, tokenData, username, password string) (token *common_models.JwtTokenInfo, user *common_models.UserInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
@@ -105,8 +105,8 @@ func (controller *Controller) BasicAuth(ctx context.Context, tokenData, username
 	}
 
 	var (
-		tok *entities.JwtToken
-		us  *entities.User
+		tok *common_entities.JwtToken
+		us  *common_entities.User
 	)
 
 	if tok, us, cErr = controller.usecases.Authentication.BasicAuth(ctx, tokenData, username, password); cErr != nil {
@@ -151,7 +151,7 @@ func (controller *Controller) SetTokenProject(ctx context.Context, tokenID, proj
 }
 
 // GetUserProjectsList - получение списка проектов пользователя.
-func (controller *Controller) GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list models.ProjectList, cErr c_errors.Error) {
+func (controller *Controller) GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list common_models.ProjectList, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
@@ -160,7 +160,7 @@ func (controller *Controller) GetUserProjectsList(ctx context.Context, tokenID, 
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
-	var list_ entities.ProjectList
+	var list_ common_entities.ProjectList
 
 	if list_, cErr = controller.usecases.Authentication.GetUserProjectsList(ctx, tokenID, userID); cErr != nil {
 		controller.components.Logger.Error().
@@ -180,7 +180,7 @@ func (controller *Controller) GetUserProjectsList(ctx context.Context, tokenID, 
 }
 
 // GetToken - получение jwt токена.
-func (controller *Controller) GetToken(ctx context.Context, data string) (token *models.JwtTokenInfo, cErr c_errors.Error) {
+func (controller *Controller) GetToken(ctx context.Context, data string) (token *common_models.JwtTokenInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
@@ -189,7 +189,7 @@ func (controller *Controller) GetToken(ctx context.Context, data string) (token 
 		defer func() { trc.Error(cErr).FunctionCallFinished(token) }()
 	}
 
-	var tok *entities.JwtToken
+	var tok *common_entities.JwtToken
 
 	if tok, cErr = controller.usecases.Authentication.GetToken(ctx, data); cErr != nil {
 		controller.components.Logger.Error().

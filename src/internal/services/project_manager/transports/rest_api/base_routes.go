@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/gofiber/fiber/v3"
 	error_list "sm-box/internal/common/errors"
-	"sm-box/internal/common/objects/entities"
+	common_entities "sm-box/internal/common/objects/entities"
 	rest_api_io "sm-box/internal/common/transports/rest_api/io"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -36,7 +36,7 @@ func (eng *engine) initBaseRoutes() {
 
 		// GET /ping
 		{
-			var route = &entities.HttpRouteConstructor{
+			var route = &common_entities.HttpRouteConstructor{
 				Name: "Ping-pong запрос. ",
 				Description: `
 Запрос /ping в HTTP используется для проверки работоспособности сервера. Этот запрос очень простой и обычно состоит из 
@@ -134,7 +134,7 @@ func (eng *engine) initBaseRoutes() {
 
 		// GET /health
 		{
-			var route = &entities.HttpRouteConstructor{
+			var route = &common_entities.HttpRouteConstructor{
 				Name: "Используется для проверки работоспособности сервера. ",
 				Description: `
 Запрос /health в HTTP также используется для проверки работоспособности сервера, но в отличие от /ping, он 
@@ -250,7 +250,7 @@ func (eng *engine) initBaseRoutes() {
 
 		// GET /error
 		{
-			var route = &entities.HttpRouteConstructor{
+			var route = &common_entities.HttpRouteConstructor{
 				Name: "Используется для получения примера ошибки для возможности обработки клиентом. ",
 				Description: `
 Запрос /error в HTTP используется для получения примера ошибки для возможности обработки клиентом.

@@ -5,8 +5,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"regexp"
 	error_list "sm-box/internal/common/errors"
-	"sm-box/internal/common/objects/entities"
-	"sm-box/internal/common/objects/models"
+	common_entities "sm-box/internal/common/objects/entities"
+	common_models "sm-box/internal/common/objects/models"
 	rest_api_io "sm-box/internal/common/transports/rest_api/io"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
@@ -32,7 +32,7 @@ func (eng *engine) initRoutes() {
 
 	// /basic-auth
 	{
-		var route = &entities.HttpRouteConstructor{
+		var route = &common_entities.HttpRouteConstructor{
 			Name: "Запрос для базовой авторизации пользователя. ",
 			Description: `
 Используется для аутентификации пользователя по логину и паролю. Этот запрос принимает два параметра: username 
@@ -49,8 +49,8 @@ func (eng *engine) initRoutes() {
 				Password string `json:"password"`
 			}
 			type Response struct {
-				Token *models.JwtTokenInfo `json:"token" xml:"Token"`
-				User  *models.UserInfo     `json:"user"  xml:"User"`
+				Token *common_models.JwtTokenInfo `json:"token" xml:"Token"`
+				User  *common_models.UserInfo     `json:"user"  xml:"User"`
 			}
 
 			var (
@@ -234,7 +234,7 @@ func (eng *engine) initRoutes() {
 
 		// /select
 		{
-			var route = &entities.HttpRouteConstructor{
+			var route = &common_entities.HttpRouteConstructor{
 				Name: "Получение списка проектов пользователя для выбора после авторизации. ",
 				Description: `
 Используется для получение списка проектов пользователя для выбора после авторизации. 
@@ -246,14 +246,14 @@ func (eng *engine) initRoutes() {
 
 			router.Get("/select", func(ctx fiber.Ctx) (err error) {
 				type Response struct {
-					Projects models.ProjectList `json:"projects" xml:"Projects"`
+					Projects common_models.ProjectList `json:"projects" xml:"Projects"`
 				}
 
 				var response = new(Response)
 
 				// Обработка
 				{
-					var tok *models.JwtTokenInfo
+					var tok *common_models.JwtTokenInfo
 
 					// Получение токена
 					{
@@ -429,7 +429,7 @@ func (eng *engine) initRoutes() {
 
 		// /set
 		{
-			var route = &entities.HttpRouteConstructor{
+			var route = &common_entities.HttpRouteConstructor{
 				Name:        "Выбрать проект пользователя для дальнейше работы после авторизации. ",
 				Description: ``,
 
@@ -469,7 +469,7 @@ func (eng *engine) initRoutes() {
 
 				// Обработка
 				{
-					var tok *models.JwtTokenInfo
+					var tok *common_models.JwtTokenInfo
 
 					// Получение токена
 					{

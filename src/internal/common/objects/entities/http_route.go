@@ -1,8 +1,8 @@
-package entities
+package common_entities
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"sm-box/internal/common/objects/db_models"
+	common_db_models "sm-box/internal/common/objects/db_models"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 	"strings"
@@ -65,7 +65,7 @@ func (entity *HttpRoute) FillEmptyFields() *HttpRoute {
 }
 
 // DbModel - получение модели базы данных.
-func (entity *HttpRoute) DbModel() (model *db_models.HttpRoute) {
+func (entity *HttpRoute) DbModel() (model *common_db_models.HttpRoute) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -74,7 +74,7 @@ func (entity *HttpRoute) DbModel() (model *db_models.HttpRoute) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &db_models.HttpRoute{
+	model = &common_db_models.HttpRoute{
 		ID: entity.ID,
 
 		Name:        entity.Name,

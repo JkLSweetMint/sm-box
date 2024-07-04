@@ -1,4 +1,4 @@
-package entities
+package common_entities
 
 import (
 	"sm-box/internal/common/objects/models"
@@ -94,7 +94,7 @@ func (entity *User) checkUserRoleInheritancesForHttpRouteAccesses(userAccess Rol
 }
 
 // Model - получение модели.
-func (entity *User) Model() (model *models.UserInfo) {
+func (entity *User) Model() (model *common_models.UserInfo) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -103,13 +103,13 @@ func (entity *User) Model() (model *models.UserInfo) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &models.UserInfo{
+	model = &common_models.UserInfo{
 		ID:        entity.ID,
 		ProjectID: entity.ProjectID,
 		Email:     entity.Email,
 		Username:  entity.Username,
 		Password:  entity.Password,
-		Accesses:  make(models.UserInfoAccesses, 0),
+		Accesses:  make(common_models.UserInfoAccesses, 0),
 	}
 
 	for _, acc := range entity.Accesses {
@@ -120,7 +120,7 @@ func (entity *User) Model() (model *models.UserInfo) {
 }
 
 // Model - получение модели.
-func (entity *UserAccess) Model() (model *models.UserInfoAccess) {
+func (entity *UserAccess) Model() (model *common_models.UserInfoAccess) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -129,7 +129,7 @@ func (entity *UserAccess) Model() (model *models.UserInfoAccess) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &models.UserInfoAccess{
+	model = &common_models.UserInfoAccess{
 		RoleInfo: entity.Role.Model(),
 	}
 

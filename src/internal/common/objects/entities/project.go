@@ -1,7 +1,7 @@
-package entities
+package common_entities
 
 import (
-	"sm-box/internal/common/objects/models"
+	common_models "sm-box/internal/common/objects/models"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 )
@@ -63,7 +63,7 @@ func (entity *Project) FillEmptyFields() *Project {
 }
 
 // Model - получение модели.
-func (entity ProjectList) Model() (list models.ProjectList) {
+func (entity ProjectList) Model() (list common_models.ProjectList) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -72,7 +72,7 @@ func (entity ProjectList) Model() (list models.ProjectList) {
 		defer func() { trc.FunctionCallFinished(list) }()
 	}
 
-	list = make(models.ProjectList, len(entity))
+	list = make(common_models.ProjectList, len(entity))
 
 	for i, item := range entity {
 		list[i] = item.Model()
@@ -82,7 +82,7 @@ func (entity ProjectList) Model() (list models.ProjectList) {
 }
 
 // Model - получение модели.
-func (entity *ProjectListItem) Model() (model *models.ProjectListItem) {
+func (entity *ProjectListItem) Model() (model *common_models.ProjectListItem) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -91,7 +91,7 @@ func (entity *ProjectListItem) Model() (model *models.ProjectListItem) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &models.ProjectListItem{
+	model = &common_models.ProjectListItem{
 		ID:      entity.ID,
 		Name:    entity.Name,
 		Version: entity.Version,

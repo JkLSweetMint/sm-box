@@ -42,13 +42,6 @@ create table
     name varchar(300)
 );
 
-insert into
-    i18n.languages(code, name)
-values
-    ('ru-RU', 'Русский'),
-    ('en-US', 'English'),
-    ('zh-CN', '中文');
-
 create table
     if not exists i18n.sections
 (
@@ -83,12 +76,27 @@ create table
     key        varchar(252)  not null,
     value      varchar(4096) not null,
 
-    active    boolean        not null default true,
-    required  boolean        not null default false
+    unique (language, section, key)
+);
+
+create table
+    if not exists i18n.draft_texts
+(
+    id         uuid          not null default gen_random_uuid()
+        constraint draft_texts_pk
+            primary key,
+    language   varchar(5)    not null
+        references i18n.languages(code)
+            on delete cascade,
+    section    uuid          not null
+        references i18n.sections(id)
+            on delete cascade,
+    key        varchar(252)  not null,
+    value      varchar(4096) not null
 );
 
 create or replace function i18n.create_sections_fn(path varchar(1024))
-    returns void
+    returns uuid
     language plpgsql as
 $$
 declare
@@ -101,6 +109,7 @@ begin
         into keys string_to_array(path, '.');
 
     for index in 1..(array_length(keys, 1)) loop
+            sectionID = null;
             sectionKey = keys[index];
 
             if sectionParent is null then
@@ -130,8 +139,9 @@ begin
             end if;
 
             sectionParent = sectionID;
-            sectionID = null;
         end loop;
+
+    return sectionID;
 end;
 $$;
 
@@ -145,22 +155,18 @@ begin
             language,
             section,
             key,
-            value,
-            active,
-            required
+            value
         )
         select
             new.code as language,
             section,
             key,
-            '' as value,
-            false as active,
-            required
+            '' as value
         from
             i18n.texts
         where
-            language = public.get_default_language() and required
-        group by key, section, required;
+            language = public.get_default_language()
+        group by key, section;
 
     return new;
 end;
@@ -176,25 +182,33 @@ create or replace function i18n.create_texts_other_languages_fn()
     language plpgsql as
 $$
 begin
-    if new.required then
+    if new.language = public.get_default_language() then
         insert into
             i18n.texts(
-                       language,
-                       section,
-                       key,
-                       active,
-                       required
+                language,
+                section,
+                key,
+                value
             )
             select
-                code,
-                new.section,
-                new.key,
-                new.active,
-                true
+                languages.code as language,
+                new.section as section,
+                new.key as key,
+                '' as value
             from
-                languages
+                i18n.languages as languages
             where
-                code != new.language;
+                languages.code != new.language and
+                (
+                    select
+                        count(*)
+                    from
+                        i18n.texts
+                    where
+                        language = languages.code and
+                        section = new.section and
+                        key = new.key
+                ) = 0;
     end if;
 
     return new;
@@ -206,30 +220,324 @@ create trigger create_texts_other_languages
     for each row
 execute procedure i18n.create_texts_other_languages_fn();
 
-create or replace function i18n.update_texts_other_languages_fn()
-    returns trigger
+create or replace function i18n.write_text(lang varchar(5), path varchar(1024), val varchar(4096))
+    returns void
     language plpgsql as
 $$
+declare
+    keys varchar[];
+    key_ varchar(256);
+    sectionID uuid;
 begin
-    if new.language = public.get_default_language() and new.required then
-        update
-            i18n.texts
-        set
-            required = true
-        where
-            section = new.section and
-            key = new.key and
-            not required;
-    end if;
+    select
+        into keys string_to_array(path, '.');
 
-    return new;
+    key_ = keys[array_length(keys, 1)];
+    path = array_to_string(keys[:array_length(keys, 1)-1],'.');
+
+    select
+        into sectionID i18n.create_sections_fn(path);
+
+    insert into
+        i18n.texts(
+        language,
+        section,
+        key,
+        value
+    ) values (
+             lang,
+             sectionID,
+             key_,
+             val
+         ) on conflict (language, section, key) do
+    update set
+        value = val;
 end;
 $$;
 
-create trigger update_texts_other_languages
-    after update on i18n.texts
-    for each row
-execute procedure i18n.update_texts_other_languages_fn();
+create or replace function i18n.write_draft_text(lang varchar(5), path varchar(1024), val varchar(4096))
+    returns void
+    language plpgsql as
+$$
+declare
+    keys varchar[];
+    key_ varchar(256);
+    sectionID uuid;
+begin
+    select
+        into keys string_to_array(path, '.');
+
+    key_ = keys[array_length(keys, 1)];
+    path = array_to_string(keys[:array_length(keys, 1)-1],'.');
+
+    select
+        into sectionID i18n.create_sections_fn(path);
+
+    insert into
+        i18n.draft_texts(
+        language,
+        section,
+        key,
+        value
+    ) values (
+                 lang,
+                 sectionID,
+                 key_,
+                 val
+             );
+end;
+$$;
+
+create or replace function i18n.update_draft_text(textID uuid, val varchar(4096))
+    returns void
+    language plpgsql as
+$$
+begin
+    update
+        i18n.draft_texts
+    set
+        value = val
+    where
+        id = textID;
+end;
+$$;
+
+create or replace function i18n.assemble_dictionary(lang varchar(5), path varchar(1024))
+    returns setof record
+    language plpgsql as
+$$
+declare
+    result record;
+
+    keys varchar[];
+    sectionID uuid = null;
+    sectionKey varchar;
+    sectionParent uuid = null;
+
+begin
+    select
+        into keys string_to_array(path, '.');
+
+    for index in 1..(array_length(keys, 1)) loop
+            sectionID = null;
+            sectionKey = keys[index];
+
+            if sectionParent is null then
+                select
+                    into sectionID id
+                from
+                    i18n.sections
+                where
+                    key = sectionKey and
+                    (parent is null and sectionParent is null);
+            else
+                select
+                    into sectionID id
+                from
+                    i18n.sections
+                where
+                    key = sectionKey and
+                    parent = sectionParent;
+            end if;
+
+            sectionParent = sectionID;
+        end loop;
+
+    for result in
+        WITH RECURSIVE cte_sections (id, parent, key, full_key) AS (
+            select
+                sections.id,
+                sections.parent,
+                sections.key,
+                path as full_key
+            from
+                i18n.sections as sections
+            where
+                sections.id = sectionID
+
+            UNION ALL
+
+            select
+                sections.id,
+                sections.parent,
+                sections.key,
+                cte.full_key || '.' || sections.key as full_key
+            from
+                i18n.sections as sections
+                    JOIN cte_sections cte ON cte.id = sections.parent
+        )
+
+        select
+            (cte.full_key || '.' || texts.key)::varchar(1024) as key,
+            texts.value as value
+        from
+            i18n.texts as texts
+                left join cte_sections cte ON texts.section = cte.id
+        where
+            cte.id = texts.section and
+            texts.language = lang
+
+        loop
+            return next result;
+        end loop;
+end;
+$$;
+
+create or replace function i18n.assemble_dictionary_for_edit(lang varchar(5), path varchar(1024))
+    returns setof record
+    language plpgsql as
+$$
+declare
+    result record;
+
+    keys varchar[];
+    sectionID uuid = null;
+    sectionKey varchar;
+    sectionParent uuid = null;
+
+begin
+    select
+        into keys string_to_array(path, '.');
+
+    for index in 1..(array_length(keys, 1)) loop
+            sectionID = null;
+            sectionKey = keys[index];
+
+            if sectionParent is null then
+                select
+                    into sectionID id
+                from
+                    i18n.sections
+                where
+                    key = sectionKey and
+                    (parent is null and sectionParent is null);
+            else
+                select
+                    into sectionID id
+                from
+                    i18n.sections
+                where
+                    key = sectionKey and
+                    parent = sectionParent;
+            end if;
+
+            sectionParent = sectionID;
+        end loop;
+
+    for result in
+        WITH RECURSIVE cte_sections (id, parent, key, full_key) AS (
+            select
+                sections.id,
+                sections.parent,
+                sections.key,
+                path as full_key
+            from
+                i18n.sections as sections
+            where
+                sections.id = sectionID
+
+            UNION ALL
+
+            select
+                sections.id,
+                sections.parent,
+                sections.key,
+                cte.full_key || '.' || sections.key as full_key
+            from
+                i18n.sections as sections
+                    JOIN cte_sections cte ON cte.id = sections.parent
+        )
+
+        select
+            texts.id as id,
+            texts.language as language,
+            (cte.full_key || '.' || texts.key)::varchar(1024) as key,
+            texts.value as value,
+            false as is_draft
+        from
+            i18n.texts as texts
+                left join cte_sections cte ON texts.section = cte.id
+        where
+            cte.id = texts.section and
+            texts.language = lang
+
+        UNION ALL
+
+        select
+            texts.id as id,
+            texts.language as language,
+            (cte.full_key || '.' || texts.key)::varchar(1024) as key,
+            texts.value as value,
+            true as is_draft
+        from
+            i18n.draft_texts as texts
+                left join cte_sections cte ON texts.section = cte.id
+        where
+            cte.id = texts.section and
+            texts.language = lang
+
+
+        loop
+            return next result;
+        end loop;
+end;
+$$;
+
+create or replace function i18n.draft_to_text(textID uuid)
+    returns void
+    language plpgsql as
+$$
+declare
+begin
+    insert into
+        i18n.texts(
+        language,
+        section,
+        key,
+        value
+    )
+        (
+            select
+                language,
+                section,
+                key,
+                value
+            from
+                i18n.draft_texts as draft
+            where
+                id = textID
+        )
+    on conflict (language, section, key)
+        do update
+        set
+            value = (select value from i18n.draft_texts where id = textID);
+end;
+$$;
+
+create or replace function i18n.text_to_draft(textID uuid)
+    returns void
+    language plpgsql as
+$$
+declare
+begin
+    insert into
+        i18n.draft_texts(
+            language,
+            section,
+            key,
+            value
+        )
+        select
+            texts.language,
+            texts.section,
+            texts.key,
+            texts.value
+        from
+            i18n.texts as texts
+        where
+            texts.id = textID;
+end;
+$$;
 
 create schema
     if not exists users;
@@ -270,13 +578,13 @@ create table
 );
 
 create schema
-    if not exists system_access;
+    if not exists access_system;
 
 create table
-    if not exists system_access.roles
+    if not exists access_system.roles
 (
     id         bigserial    not null
-        constraint system_access_roles_pk
+        constraint access_system_roles_pk
             primary key,
     project_id bigint
         references public.projects (id),
@@ -291,17 +599,17 @@ create table
 );
 
 create table
-    if not exists system_access.role_inheritance
+    if not exists access_system.role_inheritance
 (
     parent bigint not null
-        references system_access.roles (id),
+        references access_system.roles (id),
     heir   bigint not null
-        references system_access.roles (id),
+        references access_system.roles (id),
 
     check (parent != heir)
 );
 
-create or replace function system_access.get_user_access(userID bigint)
+create or replace function access_system.get_user_access(userID bigint)
     returns setof record
     language plpgsql as
 $$
@@ -317,7 +625,7 @@ begin
                 roles.name,
                 0::bigint as parent
             from
-                system_access.roles as roles
+                access_system.roles as roles
             where
                 roles.id in (
                     select
@@ -338,8 +646,8 @@ begin
                 roles.name,
                 role_inheritance.parent as parent
             from
-                system_access.roles as roles
-                    left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
+                access_system.roles as roles
+                    left join access_system.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
                     JOIN cte_roles cte ON cte.id = role_inheritance.parent
         )
 
@@ -350,28 +658,28 @@ begin
             coalesce(parent, 0) as parent
         from
             cte_roles
-        loop
-            return next result;
-        end loop;
+    loop
+        return next result;
+    end loop;
 end;
 $$;
 
 insert into
-    system_access.roles (project_id, name, is_system)
+    access_system.roles (project_id, name, is_system)
 values
     (null, 'root', true),
     (null, 'user', true);
 
 insert into
-    system_access.role_inheritance (parent, heir)
+    access_system.role_inheritance (parent, heir)
 values
     (1, 2);
 
 create table
-    if not exists system_access.jwt_tokens
+    if not exists access_system.jwt_tokens
 (
     id         bigserial     not null
-        constraint system_access_jwt_tokens_pk
+        constraint access_system_jwt_tokens_pk
             primary key,
     user_id    bigint
         references users.users (id),
@@ -388,10 +696,10 @@ create table
 );
 
 create table
-    if not exists system_access.jwt_token_params
+    if not exists access_system.jwt_token_params
 (
     token_id    bigint        not null
-        constraint system_access_jwt_token_token_id_uq
+        constraint access_system_jwt_token_token_id_uq
             unique,
     remote_addr varchar(1024) not null,
     user_agent  varchar(4096) not null,
@@ -406,7 +714,7 @@ create table
     user_id bigint not null
         references users.users (id),
     role_id bigint not null
-        references system_access.roles (id),
+        references access_system.roles (id),
 
     unique (user_id, role_id)
 );
@@ -435,7 +743,7 @@ begin
         select
             into projectRoleID roles.id
         from
-            system_access.roles as roles
+            access_system.roles as roles
         where
             roles.project_id = new.project_id and
             roles.name = 'user';
@@ -472,25 +780,25 @@ declare
     userRoleID bigint;
 begin
     insert into
-        system_access.roles (project_id, name, is_system)
+        access_system.roles (project_id, name, is_system)
     values
         (new.id, 'owner', true)
     returning id into ownerRoleID;
 
     insert into
-        system_access.roles (project_id, name, is_system)
+        access_system.roles (project_id, name, is_system)
     values
         (new.id, 'admin', true)
     returning id into adminRoleID;
 
     insert into
-        system_access.roles (project_id, name, is_system)
+        access_system.roles (project_id, name, is_system)
     values
         (new.id, 'user', true)
     returning id into userRoleID;
 
     insert into
-        system_access.role_inheritance (parent, heir)
+        access_system.role_inheritance (parent, heir)
     values
         (1, ownerRoleID),
         (ownerRoleID, adminRoleID),
@@ -561,7 +869,7 @@ create table
     route_id bigint not null
         references transports.http_routes (id),
     role_id  bigint not null
-        references system_access.roles (id),
+        references access_system.roles (id),
 
     unique (route_id, role_id)
 );

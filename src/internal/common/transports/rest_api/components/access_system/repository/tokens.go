@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"sm-box/internal/common/objects/db_models"
+	common_db_models "sm-box/internal/common/objects/db_models"
 	"sm-box/internal/common/objects/entities"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/databases/connectors/postgresql"
@@ -18,7 +18,7 @@ type tokensRepository struct {
 }
 
 // GetToken - получение jwt токена.
-func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *entities.JwtToken, err error) {
+func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *common_entities.JwtToken, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -29,7 +29,7 @@ func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *e
 
 	// Основные данные
 	{
-		var model = new(db_models.JwtToken)
+		var model = new(common_db_models.JwtToken)
 
 		// Получение данных
 		{
@@ -41,7 +41,7 @@ func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *e
 				tokens.not_before,
 				tokens.expires_at
 			from
-				system_access.jwt_tokens as tokens
+				access_system.jwt_tokens as tokens
 			where
 				tokens.data = $1
 		`
@@ -63,7 +63,7 @@ func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *e
 
 		// Перенос в сущность
 		{
-			tok = new(entities.JwtToken)
+			tok = new(common_entities.JwtToken)
 			tok.FillEmptyFields()
 
 			tok.ID = model.ID
@@ -79,7 +79,7 @@ func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *e
 
 	// Параметры
 	{
-		var model = new(db_models.JwtTokenParams)
+		var model = new(common_db_models.JwtTokenParams)
 
 		// Получение данных
 		{
@@ -88,7 +88,7 @@ func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *e
 				params.remote_addr,
 				params.user_agent
 			from
-				system_access.jwt_token_params as params
+				access_system.jwt_token_params as params
 			where
 				params.token_id = $1
 		`
@@ -110,7 +110,7 @@ func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *e
 
 		// Перенос в сущность
 		{
-			tok.Params = new(entities.JwtTokenParams)
+			tok.Params = new(common_entities.JwtTokenParams)
 
 			tok.Params.RemoteAddr = model.RemoteAddr
 			tok.Params.UserAgent = model.UserAgent
@@ -121,7 +121,7 @@ func (repo *tokensRepository) GetToken(ctx context.Context, data string) (tok *e
 }
 
 // RegisterToken - регистрация jwt токена.
-func (repo *tokensRepository) RegisterToken(ctx context.Context, tok *entities.JwtToken) (err error) {
+func (repo *tokensRepository) RegisterToken(ctx context.Context, tok *common_entities.JwtToken) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -136,7 +136,7 @@ func (repo *tokensRepository) RegisterToken(ctx context.Context, tok *entities.J
 			model = tok.DbModel()
 			query = `
 			insert into 
-				system_access.jwt_tokens (
+				access_system.jwt_tokens (
 						data, 
 						expires_at, 
 						not_before,
@@ -176,7 +176,7 @@ func (repo *tokensRepository) RegisterToken(ctx context.Context, tok *entities.J
 			model = tok.Params.DbModel()
 			query = `
 			insert into 
-				system_access.jwt_token_params (
+				access_system.jwt_token_params (
 						token_id, 
 						remote_addr, 
 						user_agent

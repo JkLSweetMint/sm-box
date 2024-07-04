@@ -3,8 +3,8 @@ package projects_repository
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
-	"sm-box/internal/common/objects/db_models"
-	"sm-box/internal/common/objects/entities"
+	common_db_models "sm-box/internal/common/objects/db_models"
+	common_entities "sm-box/internal/common/objects/entities"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -79,7 +79,7 @@ func New(ctx context.Context) (repo *Repository, err error) {
 }
 
 // GetListByUser - получение списка проектов пользователя.
-func (repo *Repository) GetListByUser(ctx context.Context, userID types.ID) (list entities.ProjectList, err error) {
+func (repo *Repository) GetListByUser(ctx context.Context, userID types.ID) (list common_entities.ProjectList, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -103,7 +103,7 @@ func (repo *Repository) GetListByUser(ctx context.Context, userID types.ID) (lis
 						select
 							distinct coalesce(project_id, 0) as project_id
 						from
-							system_access.get_user_access($1) as (id bigint, project_id bigint, name varchar, parent bigint)
+							access_system.get_user_access($1) as (id bigint, project_id bigint, name varchar, parent bigint)
 						where
 							project_id != 0
 					)
@@ -117,10 +117,10 @@ func (repo *Repository) GetListByUser(ctx context.Context, userID types.ID) (lis
 		return
 	}
 
-	list = make(entities.ProjectList, 0)
+	list = make(common_entities.ProjectList, 0)
 
 	for rows.Next() {
-		var model = new(db_models.ProjectListItem)
+		var model = new(common_db_models.ProjectListItem)
 
 		if err = rows.StructScan(model); err != nil {
 			repo.components.Logger.Error().
@@ -128,7 +128,7 @@ func (repo *Repository) GetListByUser(ctx context.Context, userID types.ID) (lis
 			return
 		}
 
-		list = append(list, &entities.ProjectListItem{
+		list = append(list, &common_entities.ProjectListItem{
 			ID:      model.ID,
 			Name:    model.Name,
 			Version: model.Version,
@@ -139,7 +139,7 @@ func (repo *Repository) GetListByUser(ctx context.Context, userID types.ID) (lis
 }
 
 // GetByID - получение проекта по ID.
-func (repo *Repository) GetByID(ctx context.Context, id types.ID) (project *entities.Project, err error) {
+func (repo *Repository) GetByID(ctx context.Context, id types.ID) (project *common_entities.Project, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -150,7 +150,7 @@ func (repo *Repository) GetByID(ctx context.Context, id types.ID) (project *enti
 
 	// Основные данные
 	{
-		var model = new(db_models.Project)
+		var model = new(common_db_models.Project)
 
 		// Получение
 		{
@@ -185,7 +185,7 @@ func (repo *Repository) GetByID(ctx context.Context, id types.ID) (project *enti
 
 		// Перенос в сущность
 		{
-			project = new(entities.Project)
+			project = new(common_entities.Project)
 			project.FillEmptyFields()
 
 			project.ID = model.ID
@@ -200,7 +200,7 @@ func (repo *Repository) GetByID(ctx context.Context, id types.ID) (project *enti
 
 	// Владелец
 	{
-		var model = new(db_models.User)
+		var model = new(common_db_models.User)
 
 		// Получение
 		{
@@ -257,7 +257,7 @@ func (repo *Repository) CheckAccess(ctx context.Context, userID, projectID types
 						select
 							distinct coalesce(project_id, 0) as project_id
 						from
-							system_access.get_user_access($1) as (id bigint, project_id bigint, name varchar, parent bigint)
+							access_system.get_user_access($1) as (id bigint, project_id bigint, name varchar, parent bigint)
 						where
 							project_id != 0
 					) as exist

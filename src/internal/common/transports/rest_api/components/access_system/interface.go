@@ -18,7 +18,7 @@ type AccessSystem interface {
 	AuthenticationMiddleware(ctx fiber.Ctx) (err error)
 	IdentificationMiddleware(ctx fiber.Ctx) (err error)
 
-	RegisterRoutes(list ...*entities.HttpRouteConstructor) (err error)
+	RegisterRoutes(list ...*common_entities.HttpRouteConstructor) (err error)
 }
 
 // New - создание компонента системы доступа http rest api.

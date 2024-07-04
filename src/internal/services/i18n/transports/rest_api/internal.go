@@ -6,11 +6,14 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"os"
 	"path"
+	common_models "sm-box/internal/common/objects/models"
 	"sm-box/internal/common/transports/rest_api/components/access_system"
+	"sm-box/internal/services/i18n/infrastructure/objects/models"
 	"sm-box/internal/services/i18n/transports/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
+	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/http/postman"
 	"sm-box/pkg/tools/file"
 	"sync"
@@ -32,7 +35,16 @@ type engine struct {
 }
 
 // controllers - контроллеры движка.
-type controllers struct{}
+type controllers struct {
+	Texts interface {
+		AssembleDictionary(ctx context.Context, lang string, paths []string) (dictionary models.Dictionary, cErr c_errors.RestAPI)
+	}
+	Languages interface {
+	}
+	Identification interface {
+		GetToken(ctx context.Context, data string) (token *common_models.JwtTokenInfo, cErr c_errors.RestAPI)
+	}
+}
 
 // components - компоненты движка http rest api сервиса.
 type components struct {

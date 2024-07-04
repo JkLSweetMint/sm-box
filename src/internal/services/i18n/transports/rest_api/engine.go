@@ -3,6 +3,9 @@ package rest_api
 import (
 	"context"
 	"sm-box/internal/common/transports/rest_api/components/access_system"
+	identification_adapter "sm-box/internal/services/i18n/infrastructure/adapters/identification"
+	languages_adapter "sm-box/internal/services/i18n/infrastructure/adapters/languages"
+	texts_adapter "sm-box/internal/services/i18n/infrastructure/adapters/texts"
 	"sm-box/internal/services/i18n/transports/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -65,6 +68,26 @@ func New(ctx context.Context) (eng Engine, err error) {
 	{
 		ref.controllers = new(controllers)
 
+		// Texts
+		{
+			if ref.controllers.Texts, err = texts_adapter.New_RestAPI(ctx); err != nil {
+				return
+			}
+		}
+
+		// Languages
+		{
+			if ref.controllers.Languages, err = languages_adapter.New_RestAPI(ctx); err != nil {
+				return
+			}
+		}
+
+		// Identification
+		{
+			if ref.controllers.Identification, err = identification_adapter.New_RestAPI(ctx); err != nil {
+				return
+			}
+		}
 	}
 
 	// Postman

@@ -16,15 +16,15 @@ type accessSystem struct {
 
 	components *components
 	repository interface {
-		GetUser(ctx context.Context, id types.ID) (us *entities.User, err error)
+		GetUser(ctx context.Context, id types.ID) (us *common_entities.User, err error)
 
-		GetRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error)
-		GetActiveRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error)
-		RegisterRoute(ctx context.Context, route *entities.HttpRoute) (err error)
+		GetRoute(ctx context.Context, method, path string) (route *common_entities.HttpRoute, err error)
+		GetActiveRoute(ctx context.Context, method, path string) (route *common_entities.HttpRoute, err error)
+		RegisterRoute(ctx context.Context, route *common_entities.HttpRoute) (err error)
 		SetInactiveRoutes(ctx context.Context) (err error)
 
-		GetToken(ctx context.Context, data string) (tok *entities.JwtToken, err error)
-		RegisterToken(ctx context.Context, tok *entities.JwtToken) (err error)
+		GetToken(ctx context.Context, data string) (tok *common_entities.JwtToken, err error)
+		RegisterToken(ctx context.Context, tok *common_entities.JwtToken) (err error)
 	}
 }
 
@@ -34,7 +34,7 @@ type components struct {
 }
 
 // RegisterRoutes - регистрация маршрутов в системе.
-func (acc *accessSystem) RegisterRoutes(list ...*entities.HttpRouteConstructor) (err error) {
+func (acc *accessSystem) RegisterRoutes(list ...*common_entities.HttpRouteConstructor) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelComponent)

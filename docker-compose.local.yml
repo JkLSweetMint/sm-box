@@ -12,7 +12,8 @@ services:
       PGTZ: 'GMT-4'
     volumes:
       - ./system/database:/var/lib/postgresql/data
-      - ./src/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./src/migrations/001-init.sql:/docker-entrypoint-initdb.d/001-init.sql
+      - ./src/migrations/002-i18n.sql:/docker-entrypoint-initdb.d/002-i18n.sql
     ports:
       - "8081:5432"
 
@@ -52,9 +53,9 @@ services:
       - ./var/test:/home/app/var/test
 
   i18n-service:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.i18n-service
+    build:
+      context: .
+      dockerfile: Dockerfile.i18n-service
     image: box/i18n-service:latest
     container_name: i18n-service
     restart: unless-stopped

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	error_list "sm-box/internal/common/errors"
-	"sm-box/internal/common/objects/entities"
+	common_entities "sm-box/internal/common/objects/entities"
 	"sm-box/internal/common/types"
 	authentication_repository "sm-box/internal/services/authentication/infrastructure/repositories/authentication"
 	projects_repository "sm-box/internal/services/authentication/infrastructure/repositories/projects"
@@ -30,15 +30,15 @@ type UseCase struct {
 // repositories - репозитории логики.
 type repositories struct {
 	Authentication interface {
-		GetToken(ctx context.Context, data string) (tok *entities.JwtToken, err error)
-		GetTokenByID(ctx context.Context, id types.ID) (tok *entities.JwtToken, err error)
+		GetToken(ctx context.Context, data string) (tok *common_entities.JwtToken, err error)
+		GetTokenByID(ctx context.Context, id types.ID) (tok *common_entities.JwtToken, err error)
 		SetTokenOwner(ctx context.Context, tokenID, ownerID types.ID) (err error)
 		SetTokenProject(ctx context.Context, tokenID, projectID types.ID) (err error)
-		BasicAuth(ctx context.Context, username, password string) (us *entities.User, err error)
+		BasicAuth(ctx context.Context, username, password string) (us *common_entities.User, err error)
 	}
 	Projects interface {
-		GetListByUser(ctx context.Context, userID types.ID) (list entities.ProjectList, err error)
-		GetByID(ctx context.Context, id types.ID) (project *entities.Project, err error)
+		GetListByUser(ctx context.Context, userID types.ID) (list common_entities.ProjectList, err error)
+		GetByID(ctx context.Context, id types.ID) (project *common_entities.Project, err error)
 		CheckAccess(ctx context.Context, userID, projectID types.ID) (exist bool, err error)
 	}
 }
@@ -111,7 +111,7 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 
 // BasicAuth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (usecase *UseCase) BasicAuth(ctx context.Context, tokenData, username, password string) (tok *entities.JwtToken, us *entities.User, cErr c_errors.Error) {
+func (usecase *UseCase) BasicAuth(ctx context.Context, tokenData, username, password string) (tok *common_entities.JwtToken, us *common_entities.User, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
@@ -268,7 +268,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, tokenID, projectID 
 		Field("token", tokenID).
 		Field("project_id", projectID).Write()
 
-	var tok *entities.JwtToken
+	var tok *common_entities.JwtToken
 
 	// Получение токена
 	{
@@ -395,7 +395,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, tokenID, projectID 
 }
 
 // GetUserProjectsList - получение списка проектов пользователя.
-func (usecase *UseCase) GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list entities.ProjectList, cErr c_errors.Error) {
+func (usecase *UseCase) GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list common_entities.ProjectList, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
@@ -409,7 +409,7 @@ func (usecase *UseCase) GetUserProjectsList(ctx context.Context, tokenID, userID
 		Field("token", tokenID).
 		Field("user_id", userID).Write()
 
-	var tok *entities.JwtToken
+	var tok *common_entities.JwtToken
 
 	// Получение токена
 	{
@@ -499,7 +499,7 @@ func (usecase *UseCase) GetUserProjectsList(ctx context.Context, tokenID, userID
 }
 
 // GetToken - получение jwt токена.
-func (usecase *UseCase) GetToken(ctx context.Context, data string) (tok *entities.JwtToken, cErr c_errors.Error) {
+func (usecase *UseCase) GetToken(ctx context.Context, data string) (tok *common_entities.JwtToken, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)

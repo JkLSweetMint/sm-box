@@ -12,7 +12,7 @@ import (
 )
 
 // generateToken - генерация токена.
-func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *entities.JwtToken) (err error) {
+func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *common_entities.JwtToken) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelComponentInternal)

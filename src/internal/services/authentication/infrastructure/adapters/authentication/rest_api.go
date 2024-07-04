@@ -2,7 +2,7 @@ package authentication_adapter
 
 import (
 	"context"
-	"sm-box/internal/common/objects/models"
+	common_models "sm-box/internal/common/objects/models"
 	"sm-box/internal/common/types"
 	authentication_controller "sm-box/internal/services/authentication/infrastructure/controllers/authentication"
 	"sm-box/pkg/core/components/logger"
@@ -19,10 +19,10 @@ type Adapter_RestAPI struct {
 	components *components
 
 	controller interface {
-		BasicAuth(ctx context.Context, tokenData, username, password string) (token *models.JwtTokenInfo, user *models.UserInfo, cErr c_errors.Error)
+		BasicAuth(ctx context.Context, tokenData, username, password string) (token *common_models.JwtTokenInfo, user *common_models.UserInfo, cErr c_errors.Error)
 		SetTokenProject(ctx context.Context, tokenID, projectID types.ID) (cErr c_errors.Error)
-		GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list models.ProjectList, cErr c_errors.Error)
-		GetToken(ctx context.Context, data string) (token *models.JwtTokenInfo, cErr c_errors.Error)
+		GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list common_models.ProjectList, cErr c_errors.Error)
+		GetToken(ctx context.Context, data string) (token *common_models.JwtTokenInfo, cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -74,7 +74,7 @@ func New_RestAPI(ctx context.Context) (adapter *Adapter_RestAPI, err error) {
 
 // BasicAuth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (adapter *Adapter_RestAPI) BasicAuth(ctx context.Context, tokenData, username, password string) (token *models.JwtTokenInfo, user *models.UserInfo, cErr c_errors.RestAPI) {
+func (adapter *Adapter_RestAPI) BasicAuth(ctx context.Context, tokenData, username, password string) (token *common_models.JwtTokenInfo, user *common_models.UserInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
@@ -120,7 +120,7 @@ func (adapter *Adapter_RestAPI) SetTokenProject(ctx context.Context, tokenID, pr
 }
 
 // GetUserProjectsList - получение списка проектов пользователя.
-func (adapter *Adapter_RestAPI) GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list models.ProjectList, cErr c_errors.RestAPI) {
+func (adapter *Adapter_RestAPI) GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list common_models.ProjectList, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
@@ -143,7 +143,7 @@ func (adapter *Adapter_RestAPI) GetUserProjectsList(ctx context.Context, tokenID
 }
 
 // GetToken - получение jwt токена.
-func (adapter *Adapter_RestAPI) GetToken(ctx context.Context, data string) (token *models.JwtTokenInfo, cErr c_errors.RestAPI) {
+func (adapter *Adapter_RestAPI) GetToken(ctx context.Context, data string) (token *common_models.JwtTokenInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)

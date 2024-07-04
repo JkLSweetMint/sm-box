@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"os"
 	"path"
-	"sm-box/internal/common/objects/models"
+	common_models "sm-box/internal/common/objects/models"
 	"sm-box/internal/common/transports/rest_api/components/access_system"
 	"sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/transports/rest_api/config"
@@ -37,10 +37,10 @@ type engine struct {
 // controllers - контроллеры движка.
 type controllers struct {
 	Authentication interface {
-		BasicAuth(ctx context.Context, tokenData, username, password string) (token *models.JwtTokenInfo, user *models.UserInfo, cErr c_errors.RestAPI)
+		BasicAuth(ctx context.Context, tokenData, username, password string) (token *common_models.JwtTokenInfo, user *common_models.UserInfo, cErr c_errors.RestAPI)
 		SetTokenProject(ctx context.Context, tokenID, projectID types.ID) (cErr c_errors.RestAPI)
-		GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list models.ProjectList, cErr c_errors.RestAPI)
-		GetToken(ctx context.Context, data string) (token *models.JwtTokenInfo, cErr c_errors.RestAPI)
+		GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list common_models.ProjectList, cErr c_errors.RestAPI)
+		GetToken(ctx context.Context, data string) (token *common_models.JwtTokenInfo, cErr c_errors.RestAPI)
 	}
 }
 

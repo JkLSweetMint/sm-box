@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
-	"sm-box/internal/common/objects/db_models"
+	common_db_models "sm-box/internal/common/objects/db_models"
 	"sm-box/internal/common/objects/entities"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -21,7 +21,7 @@ type httpRoutesRepository struct {
 }
 
 // GetRoute - получение http маршрута.
-func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error) {
+func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path string) (route *common_entities.HttpRoute, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -32,13 +32,13 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 
 	// Подготовка
 	{
-		route = new(entities.HttpRoute).FillEmptyFields()
+		route = new(common_entities.HttpRoute).FillEmptyFields()
 		method = strings.ToUpper(method)
 	}
 
 	// Основные данные
 	{
-		var model = new(db_models.HttpRoute)
+		var model = new(common_db_models.HttpRoute)
 
 		var query = `
 			select
@@ -81,8 +81,8 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 	// Доступы
 	{
 		type Model struct {
-			*db_models.Role
-			*db_models.RoleInheritance
+			*common_db_models.Role
+			*common_db_models.RoleInheritance
 		}
 
 		var (
@@ -95,7 +95,7 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 						roles.name,
 						0::bigint as parent
 					from
-						system_access.roles as roles
+						access_system.roles as roles
 					where
 						roles.id in (
 							select
@@ -116,8 +116,8 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 						roles.name,
 						role_inheritance.parent as parent
 					from
-						system_access.roles as roles
-							left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
+						access_system.roles as roles
+							left join access_system.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
 							JOIN cte_roles cte ON cte.id = role_inheritance.parent
 				)
 				
@@ -150,27 +150,27 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 			models = append(models, model)
 		}
 
-		var writeInheritance func(parent *entities.HttpRouteAccess)
+		var writeInheritance func(parent *common_entities.HttpRouteAccess)
 
-		writeInheritance = func(parent *entities.HttpRouteAccess) {
+		writeInheritance = func(parent *common_entities.HttpRouteAccess) {
 			for _, model := range models {
 				if model.Parent == parent.ID {
 					var (
-						role = &entities.Role{
+						role = &common_entities.Role{
 							ID:        model.ID,
 							ProjectID: model.ProjectID,
 							Name:      model.Name,
 
-							Inheritances: make(entities.RoleInheritances, 0),
+							Inheritances: make(common_entities.RoleInheritances, 0),
 						}
 					)
 					role.FillEmptyFields()
 
-					parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
+					parent.Inheritances = append(parent.Inheritances, &common_entities.RoleInheritance{
 						Role: role,
 					})
 
-					writeInheritance(&entities.HttpRouteAccess{
+					writeInheritance(&common_entities.HttpRouteAccess{
 						Role: role,
 					})
 				}
@@ -180,14 +180,14 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 		for _, model := range models {
 			if model.Parent == 0 {
 				var (
-					role = &entities.Role{
+					role = &common_entities.Role{
 						ID:        model.ID,
 						ProjectID: model.ProjectID,
 						Name:      model.Name,
 
-						Inheritances: make(entities.RoleInheritances, 0),
+						Inheritances: make(common_entities.RoleInheritances, 0),
 					}
-					acc = &entities.HttpRouteAccess{
+					acc = &common_entities.HttpRouteAccess{
 						Role: role.FillEmptyFields(),
 					}
 				)
@@ -202,7 +202,7 @@ func (repo *httpRoutesRepository) GetRoute(ctx context.Context, method, path str
 }
 
 // GetActiveRoute - получение активного http маршрута.
-func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, path string) (route *entities.HttpRoute, err error) {
+func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, path string) (route *common_entities.HttpRoute, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -213,13 +213,13 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 
 	// Подготовка
 	{
-		route = new(entities.HttpRoute).FillEmptyFields()
+		route = new(common_entities.HttpRoute).FillEmptyFields()
 		method = strings.ToUpper(method)
 	}
 
 	// Основные данные
 	{
-		var model = new(db_models.HttpRoute)
+		var model = new(common_db_models.HttpRoute)
 
 		var query = `
 			select
@@ -263,8 +263,8 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 	// Доступы
 	{
 		type Model struct {
-			*db_models.Role
-			*db_models.RoleInheritance
+			*common_db_models.Role
+			*common_db_models.RoleInheritance
 		}
 
 		var (
@@ -277,7 +277,7 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 						roles.name,
 						0::bigint as parent
 					from
-						system_access.roles as roles
+						access_system.roles as roles
 					where
 						roles.id in (
 							select
@@ -298,8 +298,8 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 						roles.name,
 						role_inheritance.parent as parent
 					from
-						system_access.roles as roles
-							left join system_access.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
+						access_system.roles as roles
+							left join access_system.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
 							JOIN cte_roles cte ON cte.id = role_inheritance.parent
 				)
 				
@@ -332,27 +332,27 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 			models = append(models, model)
 		}
 
-		var writeInheritance func(parent *entities.HttpRouteAccess)
+		var writeInheritance func(parent *common_entities.HttpRouteAccess)
 
-		writeInheritance = func(parent *entities.HttpRouteAccess) {
+		writeInheritance = func(parent *common_entities.HttpRouteAccess) {
 			for _, model := range models {
 				if model.Parent == parent.ID {
 					var (
-						role = &entities.Role{
+						role = &common_entities.Role{
 							ID:        model.ID,
 							ProjectID: model.ProjectID,
 							Name:      model.Name,
 
-							Inheritances: make(entities.RoleInheritances, 0),
+							Inheritances: make(common_entities.RoleInheritances, 0),
 						}
 					)
 					role.FillEmptyFields()
 
-					parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
+					parent.Inheritances = append(parent.Inheritances, &common_entities.RoleInheritance{
 						Role: role,
 					})
 
-					writeInheritance(&entities.HttpRouteAccess{
+					writeInheritance(&common_entities.HttpRouteAccess{
 						Role: role,
 					})
 				}
@@ -362,14 +362,14 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 		for _, model := range models {
 			if model.Parent == 0 {
 				var (
-					role = &entities.Role{
+					role = &common_entities.Role{
 						ID:        model.ID,
 						ProjectID: model.ProjectID,
 						Name:      model.Name,
 
-						Inheritances: make(entities.RoleInheritances, 0),
+						Inheritances: make(common_entities.RoleInheritances, 0),
 					}
-					acc = &entities.HttpRouteAccess{
+					acc = &common_entities.HttpRouteAccess{
 						Role: role.FillEmptyFields(),
 					}
 				)
@@ -384,7 +384,7 @@ func (repo *httpRoutesRepository) GetActiveRoute(ctx context.Context, method, pa
 }
 
 // RegisterRoute - регистрация http маршрута.
-func (repo *httpRoutesRepository) RegisterRoute(ctx context.Context, route *entities.HttpRoute) (err error) {
+func (repo *httpRoutesRepository) RegisterRoute(ctx context.Context, route *common_entities.HttpRoute) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)

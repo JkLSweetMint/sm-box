@@ -1,5 +1,11 @@
 # ChangeLog:
 
+### v24.0.29:
+- Разработка системы i18n;
+- Разработка [сервиса i18n](src/internal/services/i18n/service.go);
+
+---
+
 ### v24.0.28:
 - Разработка системы i18n;
 - Разработка [сервиса i18n](src/internal/services/i18n/service.go);

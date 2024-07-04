@@ -44,7 +44,9 @@ func (conn *connector) connect() (err error) {
 				Format("An error occurred while connecting to the database: '%s'. ", err).
 				Field("database", conn.conf.ConnectionString()).Write()
 
-			if !strings.HasSuffix(err.Error(), "connect: connection refused") || attempt == 5 {
+			if (!strings.HasSuffix(err.Error(), "connect: connection refused") &&
+				!strings.HasSuffix(err.Error(), "pq: the database system is starting up")) ||
+				attempt == 5 {
 				return
 			}
 
@@ -52,7 +54,7 @@ func (conn *connector) connect() (err error) {
 				Text("Trying to connect to the database again...").
 				Field("database", conn.conf.ConnectionString()).Write()
 
-			time.Sleep(time.Second)
+			time.Sleep(2 * time.Second)
 			continue
 		}
 

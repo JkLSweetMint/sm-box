@@ -1,4 +1,4 @@
-package db_models
+package common_db_models
 
 import "sm-box/internal/common/types"
 

@@ -1,7 +1,7 @@
-package entities
+package common_entities
 
 import (
-	"sm-box/internal/common/objects/models"
+	common_models "sm-box/internal/common/objects/models"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 )
@@ -45,7 +45,7 @@ func (entity *Role) FillEmptyFields() *Role {
 }
 
 // Model - получение модели.
-func (entity *Role) Model() (model *models.RoleInfo) {
+func (entity *Role) Model() (model *common_models.RoleInfo) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -54,11 +54,11 @@ func (entity *Role) Model() (model *models.RoleInfo) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &models.RoleInfo{
+	model = &common_models.RoleInfo{
 		ID:           entity.ID,
 		ProjectID:    entity.ProjectID,
 		Name:         entity.Name,
-		Inheritances: make(models.RoleInfoInheritances, 0),
+		Inheritances: make(common_models.RoleInfoInheritances, 0),
 	}
 
 	for _, rl := range entity.Inheritances {
@@ -69,7 +69,7 @@ func (entity *Role) Model() (model *models.RoleInfo) {
 }
 
 // Model - получение модели.
-func (entity *RoleInheritance) Model() (model *models.RoleInfoInheritance) {
+func (entity *RoleInheritance) Model() (model *common_models.RoleInfoInheritance) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -78,7 +78,7 @@ func (entity *RoleInheritance) Model() (model *models.RoleInfoInheritance) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &models.RoleInfoInheritance{
+	model = &common_models.RoleInfoInheritance{
 		RoleInfo: entity.Role.Model(),
 	}
 

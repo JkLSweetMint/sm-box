@@ -12,7 +12,7 @@ import (
 
 func init() {
 	env.Vars.SystemName = "user_manager-service"
-	env.Version = "24.0.28"
+	env.Version = "24.0.29"
 
 	configurator.PbDir = path.Join(configurator.PbDir, "/services", env.Vars.SystemName)
 	configurator.PrtDir = path.Join(configurator.PrtDir, "/services", env.Vars.SystemName)

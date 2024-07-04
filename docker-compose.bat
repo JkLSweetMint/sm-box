@@ -1,1 +1,1 @@
-docker rmi -f box/authentication-service:latest; docker-compose -f ./docker-compose.local.yml up --remove-orphans
+docker-compose -f ./docker-compose.local.yml up --build
