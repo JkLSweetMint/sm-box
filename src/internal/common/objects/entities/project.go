@@ -62,8 +62,8 @@ func (entity *Project) FillEmptyFields() *Project {
 	return entity
 }
 
-// Model - получение модели.
-func (entity ProjectList) Model() (list common_models.ProjectList) {
+// ToModel - получение модели.
+func (entity ProjectList) ToModel() (list common_models.ProjectList) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -75,14 +75,14 @@ func (entity ProjectList) Model() (list common_models.ProjectList) {
 	list = make(common_models.ProjectList, len(entity))
 
 	for i, item := range entity {
-		list[i] = item.Model()
+		list[i] = item.ToModel()
 	}
 
 	return
 }
 
-// Model - получение модели.
-func (entity *ProjectListItem) Model() (model *common_models.ProjectListItem) {
+// ToModel - получение модели.
+func (entity *ProjectListItem) ToModel() (model *common_models.ProjectListItem) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)

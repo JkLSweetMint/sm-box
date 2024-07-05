@@ -64,8 +64,8 @@ func (entity *HttpRoute) FillEmptyFields() *HttpRoute {
 	return entity
 }
 
-// DbModel - получение модели базы данных.
-func (entity *HttpRoute) DbModel() (model *common_db_models.HttpRoute) {
+// ToDbModel - получение модели базы данных.
+func (entity *HttpRoute) ToDbModel() (model *common_db_models.HttpRoute) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)

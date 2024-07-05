@@ -111,7 +111,7 @@ func (controller *Controller) AssembleDictionary(ctx context.Context, lang strin
 	// Преобразование в модели
 	{
 		if dict != nil {
-			dictionary = dict.Model()
+			dictionary = dict.ToModel()
 		}
 	}
 

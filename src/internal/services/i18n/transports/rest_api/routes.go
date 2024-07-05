@@ -30,6 +30,869 @@ func (eng *engine) initRoutes() {
 
 	var router = eng.router
 
+	// /languages
+	{
+		var (
+			router     = router.Group("/languages")
+			postmanGrp = eng.postman.AddItemGroup("Языки локализации. ")
+		)
+
+		// GET /list
+		{
+			var route = &common_entities.HttpRouteConstructor{
+				Name: "Получение списка языков локализации. ",
+				Description: `
+Используется для получение языков локализации.
+`,
+				Authorize: false,
+			}
+
+			router.Get("/list", func(ctx fiber.Ctx) (err error) {
+				type Response struct {
+					List []*models.Language `json:"list" xml:"List"`
+				}
+
+				var (
+					response = new(Response)
+				)
+
+				// Обработка
+				{
+					var cErr c_errors.RestAPI
+
+					if response.List, cErr = eng.controllers.Languages.GetList(ctx.Context()); cErr != nil {
+						eng.components.Logger.Error().
+							Format("Couldn't get a list of localization languages: '%s'. ", cErr).Write()
+
+						return rest_api_io.WriteError(ctx, cErr)
+					}
+				}
+
+				// Отправка ответа
+				{
+					if err = rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+						eng.components.Logger.Error().
+							Format("The response could not be recorded: '%s'. ", err).Write()
+
+						return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+					}
+					return
+				}
+			}).Name(route.Name)
+
+			route.Fill(eng.app.GetRoute(route.Name))
+
+			if err := eng.components.AccessSystem.RegisterRoutes(route); err != nil {
+				eng.components.Logger.Error().
+					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
+				return
+			}
+
+			postmanGrp.AddItem(&postman.Items{
+				Name: route.Name,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: eng.conf.Postman.Protocol,
+						Host:     strings.Split(eng.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: route.Description,
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+					{
+						Name:   "Успешный ответ. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "list": [
+            {
+                "code": "en-US",
+                "name": "English",
+                "active": true
+            },
+            {
+                "code": "ru-RU",
+                "name": "Русский",
+                "active": true
+            },
+            {
+                "code": "zh-CN",
+                "name": "中文",
+                "active": true
+            }
+        ]
+    }
+}
+`,
+					},
+					{
+						Name:   "Языки локализации не найдены. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "list": []
+    }
+}
+`,
+					},
+				},
+			})
+		}
+
+		// DELETE /
+		{
+			var route = &common_entities.HttpRouteConstructor{
+				Name: "Удаление языка локализации. ",
+				Description: `
+Используется для удаления языка локализации.
+`,
+				Authorize: true,
+			}
+
+			router.Delete("/", func(ctx fiber.Ctx) (err error) {
+				type Request struct {
+					Code string `json:"code"`
+				}
+				type Response struct{}
+
+				var (
+					request  = new(Request)
+					response = new(Response)
+				)
+
+				// Чтение данных
+				{
+					if err = ctx.Bind().Body(request); err != nil {
+						eng.components.Logger.Error().
+							Format("The request body data could not be read: '%s'. ", err).Write()
+
+						if err = rest_api_io.WriteError(ctx, error_list.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+							eng.components.Logger.Error().
+								Format("The response could not be recorded: '%s'. ", err).Write()
+
+							var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+							cErr.SetError(err)
+
+							return rest_api_io.WriteError(ctx, cErr)
+						}
+
+						return
+					}
+				}
+
+				// Обработка
+				{
+					var cErr c_errors.RestAPI
+
+					if cErr = eng.controllers.Languages.Remove(ctx.Context(), request.Code); cErr != nil {
+						eng.components.Logger.Error().
+							Format("The localization language could not be deleted: '%s'. ", cErr).Write()
+
+						return rest_api_io.WriteError(ctx, cErr)
+					}
+				}
+
+				// Отправка ответа
+				{
+					if err = rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+						eng.components.Logger.Error().
+							Format("The response could not be recorded: '%s'. ", err).Write()
+
+						return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+					}
+					return
+				}
+			}).Name(route.Name)
+
+			route.Fill(eng.app.GetRoute(route.Name))
+
+			if err := eng.components.AccessSystem.RegisterRoutes(route); err != nil {
+				eng.components.Logger.Error().
+					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
+				return
+			}
+
+			postmanGrp.AddItem(&postman.Items{
+				Name: route.Name,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: eng.conf.Postman.Protocol,
+						Host:     strings.Split(eng.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: route.Description,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw: `
+{
+   "code": ""
+}
+`,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
+			})
+		}
+
+		// PUT /
+		{
+			var route = &common_entities.HttpRouteConstructor{
+				Name: "Обновления данных язык локализации. ",
+				Description: `
+Используется для обновления данных языка локализации.
+`,
+				Authorize: true,
+			}
+
+			router.Put("/", func(ctx fiber.Ctx) (err error) {
+				type Request struct {
+					Code string `json:"code"`
+					Name string `json:"name"`
+				}
+				type Response struct{}
+
+				var (
+					request  = new(Request)
+					response = new(Response)
+				)
+
+				// Чтение данных
+				{
+					if err = ctx.Bind().Body(request); err != nil {
+						eng.components.Logger.Error().
+							Format("The request body data could not be read: '%s'. ", err).Write()
+
+						if err = rest_api_io.WriteError(ctx, error_list.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+							eng.components.Logger.Error().
+								Format("The response could not be recorded: '%s'. ", err).Write()
+
+							var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+							cErr.SetError(err)
+
+							return rest_api_io.WriteError(ctx, cErr)
+						}
+
+						return
+					}
+				}
+
+				// Обработка
+				{
+					var cErr c_errors.RestAPI
+
+					if cErr = eng.controllers.Languages.Update(ctx.Context(), request.Code, request.Name); cErr != nil {
+						eng.components.Logger.Error().
+							Format("The localization language data could not be updated: '%s'. ", cErr).Write()
+
+						return rest_api_io.WriteError(ctx, cErr)
+					}
+				}
+
+				// Отправка ответа
+				{
+					if err = rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+						eng.components.Logger.Error().
+							Format("The response could not be recorded: '%s'. ", err).Write()
+
+						return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+					}
+					return
+				}
+			}).Name(route.Name)
+
+			route.Fill(eng.app.GetRoute(route.Name))
+
+			if err := eng.components.AccessSystem.RegisterRoutes(route); err != nil {
+				eng.components.Logger.Error().
+					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
+				return
+			}
+
+			postmanGrp.AddItem(&postman.Items{
+				Name: route.Name,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: eng.conf.Postman.Protocol,
+						Host:     strings.Split(eng.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: route.Description,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw: `
+{
+	"code": "",
+	"name": "",
+}
+`,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
+			})
+		}
+
+		// POST /
+		{
+			var route = &common_entities.HttpRouteConstructor{
+				Name: "Создание языка локализации. ",
+				Description: `
+Используется для создания языка локализации.
+`,
+				Authorize: true,
+			}
+
+			router.Put("/", func(ctx fiber.Ctx) (err error) {
+				type Request struct {
+					Code string `json:"code"`
+					Name string `json:"name"`
+				}
+				type Response struct{}
+
+				var (
+					request  = new(Request)
+					response = new(Response)
+				)
+
+				// Чтение данных
+				{
+					if err = ctx.Bind().Body(request); err != nil {
+						eng.components.Logger.Error().
+							Format("The request body data could not be read: '%s'. ", err).Write()
+
+						if err = rest_api_io.WriteError(ctx, error_list.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+							eng.components.Logger.Error().
+								Format("The response could not be recorded: '%s'. ", err).Write()
+
+							var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+							cErr.SetError(err)
+
+							return rest_api_io.WriteError(ctx, cErr)
+						}
+
+						return
+					}
+				}
+
+				// Обработка
+				{
+					var cErr c_errors.RestAPI
+
+					if cErr = eng.controllers.Languages.Create(ctx.Context(), request.Code, request.Name); cErr != nil {
+						eng.components.Logger.Error().
+							Format("The localization language could not be created: '%s'. ", cErr).Write()
+
+						return rest_api_io.WriteError(ctx, cErr)
+					}
+				}
+
+				// Отправка ответа
+				{
+					if err = rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+						eng.components.Logger.Error().
+							Format("The response could not be recorded: '%s'. ", err).Write()
+
+						return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+					}
+					return
+				}
+			}).Name(route.Name)
+
+			route.Fill(eng.app.GetRoute(route.Name))
+
+			if err := eng.components.AccessSystem.RegisterRoutes(route); err != nil {
+				eng.components.Logger.Error().
+					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
+				return
+			}
+
+			postmanGrp.AddItem(&postman.Items{
+				Name: route.Name,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: eng.conf.Postman.Protocol,
+						Host:     strings.Split(eng.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: route.Description,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw: `
+{
+	"code": "",
+	"name": "",
+}
+`,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
+			})
+		}
+
+		// POST /activate
+		{
+			var route = &common_entities.HttpRouteConstructor{
+				Name: "Активация языка локализации. ",
+				Description: `
+Используется для активации языка локализации.
+`,
+				Authorize: true,
+			}
+
+			router.Post("/activate", func(ctx fiber.Ctx) (err error) {
+				type Request struct {
+					Code string `json:"code"`
+				}
+				type Response struct{}
+
+				var (
+					request  = new(Request)
+					response = new(Response)
+				)
+
+				// Чтение данных
+				{
+					if err = ctx.Bind().Body(request); err != nil {
+						eng.components.Logger.Error().
+							Format("The request body data could not be read: '%s'. ", err).Write()
+
+						if err = rest_api_io.WriteError(ctx, error_list.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+							eng.components.Logger.Error().
+								Format("The response could not be recorded: '%s'. ", err).Write()
+
+							var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+							cErr.SetError(err)
+
+							return rest_api_io.WriteError(ctx, cErr)
+						}
+
+						return
+					}
+				}
+
+				// Обработка
+				{
+					var cErr c_errors.RestAPI
+
+					if cErr = eng.controllers.Languages.Activate(ctx.Context(), request.Code); cErr != nil {
+						eng.components.Logger.Error().
+							Format("The localization language could not be activated: '%s'. ", cErr).Write()
+
+						return rest_api_io.WriteError(ctx, cErr)
+					}
+				}
+
+				// Отправка ответа
+				{
+					if err = rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+						eng.components.Logger.Error().
+							Format("The response could not be recorded: '%s'. ", err).Write()
+
+						return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+					}
+					return
+				}
+			}).Name(route.Name)
+
+			route.Fill(eng.app.GetRoute(route.Name))
+
+			if err := eng.components.AccessSystem.RegisterRoutes(route); err != nil {
+				eng.components.Logger.Error().
+					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
+				return
+			}
+
+			postmanGrp.AddItem(&postman.Items{
+				Name: route.Name,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: eng.conf.Postman.Protocol,
+						Host:     strings.Split(eng.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: route.Description,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw: `
+{
+	"code": ""
+}
+`,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
+			})
+		}
+
+		// POST /deactivate
+		{
+			var route = &common_entities.HttpRouteConstructor{
+				Name: "Деактивация языка локализации. ",
+				Description: `
+Используется для деактивации языка локализации.
+`,
+				Authorize: true,
+			}
+
+			router.Post("/deactivate", func(ctx fiber.Ctx) (err error) {
+				type Request struct {
+					Code string `json:"code"`
+				}
+				type Response struct{}
+
+				var (
+					request  = new(Request)
+					response = new(Response)
+				)
+
+				// Чтение данных
+				{
+					if err = ctx.Bind().Body(request); err != nil {
+						eng.components.Logger.Error().
+							Format("The request body data could not be read: '%s'. ", err).Write()
+
+						if err = rest_api_io.WriteError(ctx, error_list.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+							eng.components.Logger.Error().
+								Format("The response could not be recorded: '%s'. ", err).Write()
+
+							var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+							cErr.SetError(err)
+
+							return rest_api_io.WriteError(ctx, cErr)
+						}
+
+						return
+					}
+				}
+
+				// Обработка
+				{
+					var cErr c_errors.RestAPI
+
+					if cErr = eng.controllers.Languages.Deactivate(ctx.Context(), request.Code); cErr != nil {
+						eng.components.Logger.Error().
+							Format("The localization language could not be deactivated: '%s'. ", cErr).Write()
+
+						return rest_api_io.WriteError(ctx, cErr)
+					}
+				}
+
+				// Отправка ответа
+				{
+					if err = rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+						eng.components.Logger.Error().
+							Format("The response could not be recorded: '%s'. ", err).Write()
+
+						return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+					}
+					return
+				}
+			}).Name(route.Name)
+
+			route.Fill(eng.app.GetRoute(route.Name))
+
+			if err := eng.components.AccessSystem.RegisterRoutes(route); err != nil {
+				eng.components.Logger.Error().
+					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
+				return
+			}
+
+			postmanGrp.AddItem(&postman.Items{
+				Name: route.Name,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: eng.conf.Postman.Protocol,
+						Host:     strings.Split(eng.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: route.Description,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw: `
+{
+	"code": ""
+}
+`,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
+			})
+		}
+
+		// POST /set
+		{
+			var route = &common_entities.HttpRouteConstructor{
+				Name: "Установить язык локализации пользователю. ",
+				Description: `
+Используется для установка языка локализации пользователю по токену.
+`,
+				Authorize: false,
+			}
+
+			router.Post("/set", func(ctx fiber.Ctx) (err error) {
+				type Request struct {
+					Code string `json:"code"`
+				}
+				type Response struct{}
+
+				var (
+					request  = new(Request)
+					response = new(Response)
+				)
+
+				// Чтение данных
+				{
+					if err = ctx.Bind().Body(request); err != nil {
+						eng.components.Logger.Error().
+							Format("The request body data could not be read: '%s'. ", err).Write()
+
+						if err = rest_api_io.WriteError(ctx, error_list.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+							eng.components.Logger.Error().
+								Format("The response could not be recorded: '%s'. ", err).Write()
+
+							var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+							cErr.SetError(err)
+
+							return rest_api_io.WriteError(ctx, cErr)
+						}
+
+						return
+					}
+				}
+
+				// Обработка
+				{
+
+				}
+
+				// Отправка ответа
+				{
+					if err = rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+						eng.components.Logger.Error().
+							Format("The response could not be recorded: '%s'. ", err).Write()
+
+						return rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+					}
+					return
+				}
+			}).Name(route.Name)
+
+			route.Fill(eng.app.GetRoute(route.Name))
+
+			if err := eng.components.AccessSystem.RegisterRoutes(route); err != nil {
+				eng.components.Logger.Error().
+					Format("An error occurred during the registration of http router routes: '%s'. ", err).Write()
+				return
+			}
+
+			postmanGrp.AddItem(&postman.Items{
+				Name: route.Name,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: eng.conf.Postman.Protocol,
+						Host:     strings.Split(eng.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: route.Description,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw: `
+{
+	"code": ""
+}
+`,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
+			})
+		}
+	}
+
 	// /texts
 	{
 		var (
@@ -37,7 +900,7 @@ func (eng *engine) initRoutes() {
 			postmanGrp = eng.postman.AddItemGroup("Текста локализации. ")
 		)
 
-		// /dictionary
+		// GET /dictionary
 		{
 			var route = &common_entities.HttpRouteConstructor{
 				Name: "Получение текстов локализации на секции. ",

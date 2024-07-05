@@ -394,7 +394,7 @@ func (repo *httpRoutesRepository) RegisterRoute(ctx context.Context, route *comm
 	}
 
 	var (
-		model = route.DbModel()
+		model = route.ToDbModel()
 		query = `
 			insert into 
 				transports.http_routes (

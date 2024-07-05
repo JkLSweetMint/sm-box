@@ -30,7 +30,7 @@ func (eng *engine) initRoutes() {
 
 	var router = eng.router
 
-	// /basic-auth
+	// POST /basic-auth
 	{
 		var route = &common_entities.HttpRouteConstructor{
 			Name: "Запрос для базовой авторизации пользователя. ",
@@ -232,7 +232,7 @@ func (eng *engine) initRoutes() {
 	{
 		var router = router.Group("/projects")
 
-		// /select
+		// GET /select
 		{
 			var route = &common_entities.HttpRouteConstructor{
 				Name: "Получение списка проектов пользователя для выбора после авторизации. ",
@@ -427,7 +427,7 @@ func (eng *engine) initRoutes() {
 			})
 		}
 
-		// /set
+		// POST /set
 		{
 			var route = &common_entities.HttpRouteConstructor{
 				Name:        "Выбрать проект пользователя для дальнейше работы после авторизации. ",

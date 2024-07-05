@@ -119,11 +119,11 @@ func (controller *Controller) BasicAuth(ctx context.Context, tokenData, username
 	// Преобразование в модели
 	{
 		if tok != nil {
-			token = tok.Model()
+			token = tok.ToModel()
 		}
 
 		if us != nil {
-			user = us.Model()
+			user = us.ToModel()
 		}
 	}
 
@@ -172,7 +172,7 @@ func (controller *Controller) GetUserProjectsList(ctx context.Context, tokenID, 
 	// Преобразование в модели
 	{
 		if list_ != nil {
-			list = list_.Model()
+			list = list_.ToModel()
 		}
 	}
 
@@ -201,7 +201,7 @@ func (controller *Controller) GetToken(ctx context.Context, data string) (token 
 	// Преобразование в модели
 	{
 		if tok != nil {
-			token = tok.Model()
+			token = tok.ToModel()
 		}
 	}
 

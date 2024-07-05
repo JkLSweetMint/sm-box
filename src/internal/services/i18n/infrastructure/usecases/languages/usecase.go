@@ -2,9 +2,12 @@ package languages_usecase
 
 import (
 	"context"
+	error_list "sm-box/internal/common/errors"
+	"sm-box/internal/services/i18n/infrastructure/objects/entities"
 	languages_repository "sm-box/internal/services/i18n/infrastructure/repositories/languages"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
+	c_errors "sm-box/pkg/errors"
 )
 
 const (
@@ -23,6 +26,7 @@ type UseCase struct {
 // repositories - репозитории логики.
 type repositories struct {
 	Languages interface {
+		GetList(ctx context.Context) (list []*entities.Language, err error)
 	}
 }
 
@@ -81,6 +85,101 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 	usecase.components.Logger.Info().
 		Format("A '%s' usecase has been created. ", "languages").
 		Field("config", usecase.conf).Write()
+
+	return
+}
+
+// GetList - получение списка языков.
+func (usecase *UseCase) GetList(ctx context.Context) (list []*entities.Language, cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelUseCase)
+
+		trc.FunctionCall(ctx)
+		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
+	}
+
+	// Получение
+	{
+		var err error
+
+		if list, err = usecase.repositories.Languages.GetList(ctx); err != nil {
+			list = nil
+
+			usecase.components.Logger.Error().
+				Format("Couldn't get localization languages: '%s'. ", err).Write()
+
+			cErr = error_list.InternalServerError()
+			cErr.SetError(err)
+			return
+		}
+	}
+
+	return
+}
+
+// Remove - удаление языка.
+// Текста и ресурсы локализации так же удаляются.
+func (usecase *UseCase) Remove(ctx context.Context, code string) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelUseCase)
+
+		trc.FunctionCall(ctx, code)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	return
+}
+
+// Update - обновление данных языка.
+func (usecase *UseCase) Update(ctx context.Context, code, name string) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelUseCase)
+
+		trc.FunctionCall(ctx, code, name)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	return
+}
+
+// Create - создание языка.
+func (usecase *UseCase) Create(ctx context.Context, code string, name string) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelUseCase)
+
+		trc.FunctionCall(ctx, code, name)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	return
+}
+
+// Activate - активировать язык.
+func (usecase *UseCase) Activate(ctx context.Context, code string) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelUseCase)
+
+		trc.FunctionCall(ctx, code)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	return
+}
+
+// Deactivate - деактивировать язык.
+func (usecase *UseCase) Deactivate(ctx context.Context, code string) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelUseCase)
+
+		trc.FunctionCall(ctx, code)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
 
 	return
 }

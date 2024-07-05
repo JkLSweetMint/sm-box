@@ -93,8 +93,8 @@ func (entity *User) checkUserRoleInheritancesForHttpRouteAccesses(userAccess Rol
 	return
 }
 
-// Model - получение модели.
-func (entity *User) Model() (model *common_models.UserInfo) {
+// ToModel - получение модели.
+func (entity *User) ToModel() (model *common_models.UserInfo) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -113,14 +113,14 @@ func (entity *User) Model() (model *common_models.UserInfo) {
 	}
 
 	for _, acc := range entity.Accesses {
-		model.Accesses = append(model.Accesses, acc.Model())
+		model.Accesses = append(model.Accesses, acc.ToModel())
 	}
 
 	return
 }
 
-// Model - получение модели.
-func (entity *UserAccess) Model() (model *common_models.UserInfoAccess) {
+// ToModel - получение модели.
+func (entity *UserAccess) ToModel() (model *common_models.UserInfoAccess) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -130,7 +130,7 @@ func (entity *UserAccess) Model() (model *common_models.UserInfoAccess) {
 	}
 
 	model = &common_models.UserInfoAccess{
-		RoleInfo: entity.Role.Model(),
+		RoleInfo: entity.Role.ToModel(),
 	}
 
 	return

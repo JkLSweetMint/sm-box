@@ -11,7 +11,7 @@ type (
 	// Text - текст.
 	Text struct {
 		ID       uuid.UUID
-		Language Language
+		Language string
 		Section  uuid.UUID
 		Key      string
 		Value    string
@@ -21,8 +21,8 @@ type (
 	Dictionary []*Text
 )
 
-// Model - получение модели.
-func (entity Dictionary) Model() (model models.Dictionary) {
+// ToModel - получение модели.
+func (entity Dictionary) ToModel() (model models.Dictionary) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)

@@ -36,10 +36,11 @@ create schema
 create table
     if not exists i18n.languages
 (
-    code varchar(5) not null
+    code   varchar(5)            not null
         constraint i18n_languages_pk
             primary key,
-    name varchar(300)
+    name   varchar(300),
+    active boolean default false not null
 );
 
 create table

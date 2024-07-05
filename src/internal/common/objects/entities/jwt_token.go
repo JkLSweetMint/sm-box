@@ -51,8 +51,8 @@ func (entity *JwtToken) FillEmptyFields() *JwtToken {
 	return entity
 }
 
-// DbModel - получение модели базы данных.
-func (entity *JwtToken) DbModel() (model *common_db_models.JwtToken) {
+// ToDbModel - получение модели базы данных.
+func (entity *JwtToken) ToDbModel() (model *common_db_models.JwtToken) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -77,8 +77,8 @@ func (entity *JwtToken) DbModel() (model *common_db_models.JwtToken) {
 	return
 }
 
-// Model - получение модели.
-func (entity *JwtToken) Model() (model *common_models.JwtTokenInfo) {
+// ToModel - получение модели.
+func (entity *JwtToken) ToModel() (model *common_models.JwtTokenInfo) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -124,8 +124,8 @@ func (entity *JwtToken) Generate(claims *jwt.RegisteredClaims) (err error) {
 	return
 }
 
-// DbModel - получение модели базы данных.
-func (entity *JwtTokenParams) DbModel() (model *common_db_models.JwtTokenParams) {
+// ToDbModel - получение модели базы данных.
+func (entity *JwtTokenParams) ToDbModel() (model *common_db_models.JwtTokenParams) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -143,8 +143,8 @@ func (entity *JwtTokenParams) DbModel() (model *common_db_models.JwtTokenParams)
 	return
 }
 
-// Model - получение модели.
-func (entity *JwtTokenParams) Model() (model *common_models.JwtTokenInfoParams) {
+// ToModel - получение модели.
+func (entity *JwtTokenParams) ToModel() (model *common_models.JwtTokenInfoParams) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)

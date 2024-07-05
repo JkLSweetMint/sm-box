@@ -111,7 +111,7 @@ func (controller *Controller) GetToken(ctx context.Context, data string) (token 
 	// Преобразование в модели
 	{
 		if tok != nil {
-			token = tok.Model()
+			token = tok.ToModel()
 		}
 	}
 

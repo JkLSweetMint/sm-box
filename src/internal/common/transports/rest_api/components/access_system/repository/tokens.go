@@ -133,7 +133,7 @@ func (repo *tokensRepository) RegisterToken(ctx context.Context, tok *common_ent
 	// Основные данные
 	{
 		var (
-			model = tok.DbModel()
+			model = tok.ToDbModel()
 			query = `
 			insert into 
 				access_system.jwt_tokens (
@@ -173,7 +173,7 @@ func (repo *tokensRepository) RegisterToken(ctx context.Context, tok *common_ent
 	// Параметры
 	{
 		var (
-			model = tok.Params.DbModel()
+			model = tok.Params.ToDbModel()
 			query = `
 			insert into 
 				access_system.jwt_token_params (

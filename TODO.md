@@ -7,6 +7,12 @@
 
 ---
 
+### v24.0.30:
+- [x] Разработка системы i18n;
+- [x] Разработка [сервиса i18n](src/internal/services/i18n/service.go);
+
+---
+
 ### v24.0.29:
 - [x] Разработка системы i18n;
 - [x] Разработка [сервиса i18n](src/internal/services/i18n/service.go);

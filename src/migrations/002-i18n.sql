@@ -1,9 +1,9 @@
 insert into
-    i18n.languages(code, name)
+    i18n.languages(code, name, active)
 values
-    ('ru-RU', 'Русский'),
-    ('en-US', 'English'),
-    ('zh-CN', '中文');
+    ('ru-RU', 'Русский', true),
+    ('en-US', 'English', true),
+    ('zh-CN', '中文', true);
 
 select
     i18n.write_text('en-US', 'toasts.error.title', 'An error occured');

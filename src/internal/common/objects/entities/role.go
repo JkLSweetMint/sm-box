@@ -44,8 +44,8 @@ func (entity *Role) FillEmptyFields() *Role {
 	return entity
 }
 
-// Model - получение модели.
-func (entity *Role) Model() (model *common_models.RoleInfo) {
+// ToModel - получение модели.
+func (entity *Role) ToModel() (model *common_models.RoleInfo) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -62,14 +62,14 @@ func (entity *Role) Model() (model *common_models.RoleInfo) {
 	}
 
 	for _, rl := range entity.Inheritances {
-		model.Inheritances = append(model.Inheritances, rl.Model())
+		model.Inheritances = append(model.Inheritances, rl.ToModel())
 	}
 
 	return
 }
 
-// Model - получение модели.
-func (entity *RoleInheritance) Model() (model *common_models.RoleInfoInheritance) {
+// ToModel - получение модели.
+func (entity *RoleInheritance) ToModel() (model *common_models.RoleInfoInheritance) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -79,7 +79,7 @@ func (entity *RoleInheritance) Model() (model *common_models.RoleInfoInheritance
 	}
 
 	model = &common_models.RoleInfoInheritance{
-		RoleInfo: entity.Role.Model(),
+		RoleInfo: entity.Role.ToModel(),
 	}
 
 	return

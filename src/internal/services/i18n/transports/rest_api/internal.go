@@ -40,6 +40,13 @@ type controllers struct {
 		AssembleDictionary(ctx context.Context, lang string, paths []string) (dictionary models.Dictionary, cErr c_errors.RestAPI)
 	}
 	Languages interface {
+		GetList(ctx context.Context) (list []*models.Language, cErr c_errors.RestAPI)
+		Remove(ctx context.Context, code string) (cErr c_errors.RestAPI)
+		Update(ctx context.Context, code, name string) (cErr c_errors.RestAPI)
+		Create(ctx context.Context, code string, name string) (cErr c_errors.RestAPI)
+
+		Activate(ctx context.Context, code string) (cErr c_errors.RestAPI)
+		Deactivate(ctx context.Context, code string) (cErr c_errors.RestAPI)
 	}
 	Identification interface {
 		GetToken(ctx context.Context, data string) (token *common_models.JwtTokenInfo, cErr c_errors.RestAPI)
