@@ -14,7 +14,7 @@ type service struct {
 
 	components  *components
 	controllers *controllers
-	transports  *transports
+	transport   *transport
 }
 
 // Serve - запуск сервиса.
@@ -86,7 +86,7 @@ func (srv *service) Controllers() Controllers {
 	return srv.controllers
 }
 
-// Transports - получение транспортной части сервиса.
-func (srv *service) Transports() Transports {
-	return srv.transports
+// Transport - получение транспортной части сервиса.
+func (srv *service) Transport() Transport {
+	return srv.transport
 }

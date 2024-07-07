@@ -1,18 +1,12 @@
 package service
 
 import (
-	rest_api_conf "sm-box/internal/services/authentication/transports/rest_api/config"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
 )
 
 // Config - конфигурация сервиса.
 type Config struct{}
-
-// ConfigTransports - конфигурация транспортной части сервиса
-type ConfigTransports struct {
-	RestAPI *rest_api_conf.Config `json:"rest_api" yaml:"RestAPI" xml:"RestAPI"`
-}
 
 // Read - чтение конфигурации.
 func (conf *Config) Read() (err error) {

@@ -21,10 +21,23 @@ func (srv *service) serve(ctx context.Context) (err error) {
 
 	// Транспортная часть
 	{
+		env.Synchronization.WaitGroup.Add(2)
+
 		go func() {
-			if err = srv.Transports().RestApi().Listen(); err != nil {
+			defer env.Synchronization.WaitGroup.Done()
+
+			if err = srv.Transport().Servers().HttpRestApi().Listen(); err != nil {
 				srv.Components().Logger().Error().
-					Format("Failed to launch 'http rest api': '%s'. ", err).Write()
+					Format("Failed to launch 'http rest api server': '%s'. ", err).Write()
+			}
+		}()
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			if err = srv.Transport().Servers().GrpcAuthenticationService().Listen(); err != nil {
+				srv.Components().Logger().Error().
+					Format("Failed to launch 'grpc server authentication service': '%s'. ", err).Write()
 			}
 		}()
 	}
@@ -50,9 +63,14 @@ func (srv *service) shutdown(ctx context.Context) (err error) {
 
 	// Транспортная часть
 	{
-		if err = srv.Transports().RestApi().Shutdown(); err != nil {
+		if err = srv.Transport().Servers().HttpRestApi().Shutdown(); err != nil {
 			srv.Components().Logger().Error().
-				Format("Failed to stop 'http rest api': '%s'. ", err).Write()
+				Format("Failed to stop 'http rest api server': '%s'. ", err).Write()
+		}
+
+		if err = srv.Transport().Servers().GrpcAuthenticationService().Shutdown(); err != nil {
+			srv.Components().Logger().Error().
+				Format("Failed to stop 'grpc server authentication service': '%s'. ", err).Write()
 		}
 	}
 

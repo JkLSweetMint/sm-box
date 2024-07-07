@@ -1,31 +1,9 @@
 package service
 
-import (
-	"context"
-	common_models "sm-box/internal/common/objects/models"
-	"sm-box/internal/common/types"
-	c_errors "sm-box/pkg/errors"
-)
-
 // Controllers - описание контроллеров сервиса.
 type Controllers interface {
-	Authentication() authenticationController
-}
-
-// authenticationController - описание контроллера аутентификации.
-type authenticationController interface {
-	BasicAuth(ctx context.Context, tokenData, username, password string) (token *common_models.JwtTokenInfo, user *common_models.UserInfo, cErr c_errors.Error)
-	SetTokenProject(ctx context.Context, tokenID, projectID types.ID) (cErr c_errors.Error)
-	GetUserProjectsList(ctx context.Context, tokenID, userID types.ID) (list common_models.ProjectList, cErr c_errors.Error)
-	GetToken(ctx context.Context, data string) (token *common_models.JwtTokenInfo, cErr c_errors.Error)
 }
 
 // controllers - контроллеры сервиса.
 type controllers struct {
-	authentication authenticationController
-}
-
-// Authentication - получение контроллера аутентификации.
-func (c *controllers) Authentication() authenticationController {
-	return c.authentication
 }

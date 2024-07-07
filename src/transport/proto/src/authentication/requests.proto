@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package authentication;
+
+option go_package = "./";
+
+import "src/transport/proto/src/authentication/models.proto";
+
+message EmptyRequest {}
+
+message RegisterHttpRoutesRequest {
+    repeated HttpRouteConstructor Constructors = 1;
+}

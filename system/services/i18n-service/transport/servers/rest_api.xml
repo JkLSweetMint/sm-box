@@ -1,0 +1,80 @@
+<Config>
+	<Server addr="0.0.0.0:8080" location="/i18n" name="api" version="v1.0" domain="box.samgk.ru">
+		<ServerHeader>Authentication service</ServerHeader>
+		<StrictRouting>true</StrictRouting>
+		<CaseSensitive>false</CaseSensitive>
+		<Immutable>false</Immutable>
+		<UnescapePath>false</UnescapePath>
+		<BodyLimit>4194304</BodyLimit>
+		<Concurrency>262144</Concurrency>
+		<ReadTimeout>0</ReadTimeout>
+		<WriteTimeout>0</WriteTimeout>
+		<IdleTimeout>0</IdleTimeout>
+		<ReadBufferSize>4096</ReadBufferSize>
+		<WriteBufferSize>4096</WriteBufferSize>
+		<CompressedFileSuffix>.service.gz</CompressedFileSuffix>
+		<ProxyHeader></ProxyHeader>
+		<GETOnly>false</GETOnly>
+		<DisableKeepalive>false</DisableKeepalive>
+		<DisableDefaultDate>false</DisableDefaultDate>
+		<DisableDefaultContentType>false</DisableDefaultContentType>
+		<DisableHeaderNormalizing>false</DisableHeaderNormalizing>
+		<AppName>Authentication service</AppName>
+		<StreamRequestBody>false</StreamRequestBody>
+		<DisablePreParseMultipartForm>false</DisablePreParseMultipartForm>
+		<ReduceMemoryUsage>false</ReduceMemoryUsage>
+		<Network>tcp4</Network>
+		<EnableTrustedProxyCheck>false</EnableTrustedProxyCheck>
+		<EnableIPValidation>false</EnableIPValidation>
+		<EnableSplittingOnParsers>false</EnableSplittingOnParsers>
+	</Server>
+	<Middlewares>
+		<Compress enable="true">
+			<Level>1</Level>
+		</Compress>
+		<Cache enable="true">
+			<Expiration>60000000000</Expiration>
+			<CacheHeader>X-Cache</CacheHeader>
+			<CacheControl>false</CacheControl>
+			<StoreResponseHeaders>false</StoreResponseHeaders>
+			<MaxBytes>0</MaxBytes>
+			<Methods>
+				<Method>GET</Method>
+				<Method>HEAD</Method>
+			</Methods>
+		</Cache>
+		<Cors enable="true">
+			<AllowOrigins></AllowOrigins>
+			<AllowMethods>
+				<AllowMethod>GET</AllowMethod>
+				<AllowMethod>POST</AllowMethod>
+				<AllowMethod>HEAD</AllowMethod>
+				<AllowMethod>PUT</AllowMethod>
+				<AllowMethod>DELETE</AllowMethod>
+				<AllowMethod>PATCH</AllowMethod>
+				<AllowMethod>OPTIONS</AllowMethod>
+			</AllowMethods>
+			<AllowHeaders>
+				<AllowHeader>Origin</AllowHeader>
+				<AllowHeader>Access-Control-Allow-Headers</AllowHeader>
+				<AllowHeader>Access-Control-Allow-Origin</AllowHeader>
+				<AllowHeader>Access-Control-Allow-Credentials</AllowHeader>
+				<AllowHeader>Content-Type</AllowHeader>
+				<AllowHeader>Content-Length</AllowHeader>
+				<AllowHeader>Accept-Encoding</AllowHeader>
+				<AllowHeader>Cookie</AllowHeader>
+				<AllowHeader>Authorization</AllowHeader>
+				<AllowHeader>RequestURL</AllowHeader>
+				<AllowHeader>Set-Cookie</AllowHeader>
+				<AllowHeader>X-Requested-With</AllowHeader>
+			</AllowHeaders>
+			<AllowCredentials>false</AllowCredentials>
+			<ExposeHeaders>
+				<ExposeHeader>Content-Disposition</ExposeHeader>
+				<ExposeHeader>Content-Length</ExposeHeader>
+			</ExposeHeaders>
+			<MaxAge>36000</MaxAge>
+			<AllowPrivateNetwork>true</AllowPrivateNetwork>
+		</Cors>
+	</Middlewares>
+</Config>

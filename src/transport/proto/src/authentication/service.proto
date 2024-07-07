@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package authentication;
+
+option go_package = "./";
+
+import "src/transport/proto/src/authentication/requests.proto";
+import "src/transport/proto/src/authentication/response.proto";
+
+service Authentication {
+  rpc RegisterHttpRoutes(RegisterHttpRoutesRequest) returns (EmptyResponse);
+}

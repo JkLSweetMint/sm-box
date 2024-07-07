@@ -5,22 +5,20 @@ services:
     restart: unless-stopped
     attach: false
     environment:
-      POSTGRES_DB: "box"
       POSTGRES_USER: "root"
       POSTGRES_PASSWORD: "3bxMue16ztXPR635"
       TZ: 'GMT-4'
       PGTZ: 'GMT-4'
     volumes:
       - ./system/database:/var/lib/postgresql/data
-      - ./src/migrations/001-init.sql:/docker-entrypoint-initdb.d/001-init.sql
-      - ./src/migrations/002-i18n.sql:/docker-entrypoint-initdb.d/002-i18n.sql
+      - ./src/migrations/:/docker-entrypoint-initdb.d/
     ports:
       - "8081:5432"
 
   app:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.app
+    build:
+      context: .
+      dockerfile: Dockerfile.app
     image: box/app:latest
     container_name: app
     restart: unless-stopped
@@ -36,9 +34,9 @@ services:
       - ./var/test:/home/app/var/test
 
   authentication-service:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.authentication-service
+    build:
+      context: .
+      dockerfile: Dockerfile.authentication-service
     image: box/authentication-service:latest
     container_name: authentication-service
     restart: unless-stopped
@@ -51,6 +49,8 @@ services:
       - ./var/lib:/home/app/var/lib
       - ./var/logs:/home/app/var/logs
       - ./var/test:/home/app/var/test
+    ports:
+      - 30000:8081
 
   i18n-service:
     build:
@@ -61,57 +61,7 @@ services:
     restart: unless-stopped
     depends_on:
       - postgres
-    volumes:
-      - ./etc:/home/app/etc
-      - ./system:/home/app/system
-      - ./var/data:/home/app/var/data
-      - ./var/lib:/home/app/var/lib
-      - ./var/logs:/home/app/var/logs
-      - ./var/test:/home/app/var/test
-
-  project_manager-service:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.project_manager-service
-    image: box/project_manager-service:latest
-    container_name: project_manager-service
-    restart: unless-stopped
-    depends_on:
-      - postgres
-    volumes:
-      - ./etc:/home/app/etc
-      - ./system:/home/app/system
-      - ./var/data:/home/app/var/data
-      - ./var/lib:/home/app/var/lib
-      - ./var/logs:/home/app/var/logs
-      - ./var/test:/home/app/var/test
-
-  setup-service:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.setup-service
-    image: box/setup-service:latest
-    container_name: setup-service
-    restart: unless-stopped
-    depends_on:
-      - postgres
-    volumes:
-      - ./etc:/home/app/etc
-      - ./system:/home/app/system
-      - ./var/data:/home/app/var/data
-      - ./var/lib:/home/app/var/lib
-      - ./var/logs:/home/app/var/logs
-      - ./var/test:/home/app/var/test
-
-  user_manager-service:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.user_manager-service
-    image: box/user_manager-service:latest
-    container_name: user_manager-service
-    restart: unless-stopped
-    depends_on:
-      - postgres
+      - authentication-service
     volumes:
       - ./etc:/home/app/etc
       - ./system:/home/app/system
@@ -124,14 +74,10 @@ services:
     image: nginx:1.27.0
     container_name: proxy
     restart: unless-stopped
-    attach: false
+#    attach: false
     depends_on:
       - app
-      - authentication-service
       - i18n-service
-      - project_manager-service
-      - setup-service
-      - user_manager-service
     volumes:
       - type: bind
         source: ./system/nginx/proxy

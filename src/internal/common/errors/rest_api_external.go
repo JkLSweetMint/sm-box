@@ -17,7 +17,7 @@ var (
 		Message: new(messages.TextMessage).
 			Text("The route was not found. "),
 	}.RestAPI(c_errors.RestAPIConstructor{
-		StatusCode: fiber.StatusNotFound,
+		StatusCode: fiber.StatusForbidden,
 	}).Build()
 )
 
@@ -45,7 +45,7 @@ var (
 		Message: new(messages.TextMessage).
 			Text("The token has not been transferred. "),
 	}.RestAPI(c_errors.RestAPIConstructor{
-		StatusCode: fiber.StatusNotFound,
+		StatusCode: fiber.StatusForbidden,
 	}).Build()
 )
 
@@ -73,6 +73,6 @@ var (
 		Message: new(messages.TextMessage).
 			Text("An unregistered token was transferred. "),
 	}.RestAPI(c_errors.RestAPIConstructor{
-		StatusCode: fiber.StatusBadRequest,
+		StatusCode: fiber.StatusForbidden,
 	}).Build()
 )

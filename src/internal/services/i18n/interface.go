@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"sm-box/internal/services/i18n/transports/rest_api"
+	"sm-box/internal/services/i18n/transport/servers/http_rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
 	"sm-box/pkg/core/components/logger"
@@ -21,7 +21,7 @@ type Service interface {
 
 	Components() Components
 	Controllers() Controllers
-	Transports() Transports
+	Transport() Transport
 }
 
 // New - создание сервиса.
@@ -67,14 +67,20 @@ func New() (srv_ Service, err error) {
 	// Контроллеры
 	{
 		ref.controllers = new(controllers)
+
 	}
 
 	// Транспортная часть
 	{
-		ref.transports = new(transports)
+		ref.transport = new(transport)
+		ref.transport.servers = new(transportServers)
+		ref.transport.gateways = new(transportGateways)
 
-		if ref.transports.restApi, err = rest_api.New(ref.Ctx()); err != nil {
-			return
+		// Сервера
+		{
+			if ref.transport.servers.httpRestApi, err = http_rest_api.New(ref.Ctx()); err != nil {
+				return
+			}
 		}
 	}
 

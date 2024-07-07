@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	authentication_controller "sm-box/internal/services/authentication/infrastructure/controllers/authentication"
-	"sm-box/internal/services/authentication/transports/rest_api"
+	"sm-box/internal/services/authentication/transport/servers/grpc_authentication_srv"
+	"sm-box/internal/services/authentication/transport/servers/http_rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
 	"sm-box/pkg/core/components/logger"
@@ -22,7 +22,7 @@ type Service interface {
 
 	Components() Components
 	Controllers() Controllers
-	Transports() Transports
+	Transport() Transport
 }
 
 // New - создание сервиса.
@@ -69,20 +69,23 @@ func New() (srv_ Service, err error) {
 	{
 		ref.controllers = new(controllers)
 
-		// Authentication
-		{
-			if ref.controllers.authentication, err = authentication_controller.New(ref.Ctx()); err != nil {
-				return
-			}
-		}
 	}
 
 	// Транспортная часть
 	{
-		ref.transports = new(transports)
+		ref.transport = new(transport)
+		ref.transport.servers = new(transportServers)
+		ref.transport.gateways = new(transportGateways)
 
-		if ref.transports.restApi, err = rest_api.New(ref.Ctx()); err != nil {
-			return
+		// Сервера
+		{
+			if ref.transport.servers.httpRestApi, err = http_rest_api.New(ref.Ctx()); err != nil {
+				return
+			}
+
+			if ref.transport.servers.grpcAuthenticationService, err = grpc_authentication_srv.New(ref.Ctx()); err != nil {
+				return
+			}
 		}
 	}
 

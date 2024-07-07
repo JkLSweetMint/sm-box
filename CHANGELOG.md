@@ -1,5 +1,11 @@
 # ChangeLog:
 
+### v24.0.31:
+- Переработка всей системы;
+- Реализация системы доступа через nginx auth module;
+
+---
+
 ### v24.0.30:
 - Разработка системы i18n;
 - Разработка [сервиса i18n](src/internal/services/i18n/service.go);
@@ -28,7 +34,7 @@
 ### v24.0.26:
 - Доработки архитектуры системы;
 - Доработки системы ошибок;
-- Доработки [системы доступа http rest api](src/internal/common/transports/rest_api/components/access_system);
+- Доработки [системы доступа http rest api](src/pkg/transports/rest_api/components/access_system);
 ---
 
 ### v24.0.25:
