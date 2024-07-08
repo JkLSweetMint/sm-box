@@ -29,20 +29,6 @@
 		<EnableSplittingOnParsers>false</EnableSplittingOnParsers>
 	</Server>
 	<Middlewares>
-		<Compress enable="true">
-			<Level>1</Level>
-		</Compress>
-		<Cache enable="true">
-			<Expiration>60000000000</Expiration>
-			<CacheHeader>X-Cache</CacheHeader>
-			<CacheControl>false</CacheControl>
-			<StoreResponseHeaders>false</StoreResponseHeaders>
-			<MaxBytes>0</MaxBytes>
-			<Methods>
-				<Method>GET</Method>
-				<Method>HEAD</Method>
-			</Methods>
-		</Cache>
 		<Cors enable="true">
 			<AllowOrigins></AllowOrigins>
 			<AllowMethods>

@@ -1,4 +1,4 @@
-package common_models
+package models
 
 import (
 	"sm-box/internal/common/types"
@@ -13,7 +13,7 @@ type (
 		ProjectID types.ID `json:"project_id" xml:"project_id,attr"`
 
 		Language string `json:"language" xml:"language,attr"`
-		Data     string `json:"data"     xml:"Data"`
+		Raw      string `json:"raw"      xml:"Raw"`
 
 		ExpiresAt time.Time `json:"expires_at" xml:"expires_at,attr"`
 		NotBefore time.Time `json:"not_before" xml:"not_before,attr"`

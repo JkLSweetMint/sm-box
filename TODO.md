@@ -7,6 +7,14 @@
 
 ---
 
+### v24.0.32:
+- [x] Доработки системы доступа через nginx auth module;
+- [x] Добавление кэширования в nginx;
+- [x] Создание [сервиса управления пользователями](src/internal/services/users/service.go)
+- [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+
+---
+
 ### v24.0.31:
 - [x] Переработка всей системы;
 - [x] Реализация системы доступа через nginx auth module;

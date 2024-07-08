@@ -2,7 +2,6 @@ package jwt_tokens_repository
 
 import (
 	"context"
-	"sm-box/internal/services/authentication/objects/db_models"
 	"sm-box/internal/services/authentication/objects/entities"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -68,109 +67,6 @@ func New(ctx context.Context, conf *Config) (repo *Repository, err error) {
 	return
 }
 
-// Get - получение jwt токена.
-func (repo *Repository) Get(ctx context.Context, data string) (tok *entities.JwtToken, err error) {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelRepository)
-
-		trc.FunctionCall(ctx, data)
-		defer func() { trc.Error(err).FunctionCallFinished(tok) }()
-	}
-
-	// Основные данные
-	{
-		var model = new(db_models.JwtToken)
-
-		// Получение данных
-		{
-			var query = `
-			select
-				tokens.id,
-				coalesce(tokens.user_id, 0) as user_id,
-				tokens.issued_at,
-				tokens.not_before,
-				tokens.expires_at
-			from
-				tokens.jwt as tokens
-			where
-				tokens.data = $1
-		`
-
-			var row = repo.connector.QueryRowxContext(ctx, query, data)
-
-			if err = row.Err(); err != nil {
-				repo.components.Logger.Error().
-					Format("Error when retrieving an item from the database: '%s'. ", err).Write()
-				return
-			}
-
-			if err = row.StructScan(model); err != nil {
-				repo.components.Logger.Error().
-					Format("Error while reading item data from the database:: '%s'. ", err).Write()
-				return
-			}
-		}
-
-		// Перенос в сущность
-		{
-			tok = new(entities.JwtToken)
-			tok.FillEmptyFields()
-
-			tok.ID = model.ID
-			tok.UserID = model.UserID
-
-			tok.Data = data
-
-			tok.IssuedAt = model.IssuedAt
-			tok.NotBefore = model.NotBefore
-			tok.ExpiresAt = model.ExpiresAt
-		}
-	}
-
-	// Параметры
-	{
-		var model = new(db_models.JwtTokenParams)
-
-		// Получение данных
-		{
-			var query = `
-			select
-				params.remote_addr,
-				params.user_agent
-			from
-				tokens.jwt_params as params
-			where
-				params.token_id = $1
-		`
-
-			var row = repo.connector.QueryRowxContext(ctx, query, tok.ID)
-
-			if err = row.Err(); err != nil {
-				repo.components.Logger.Error().
-					Format("Error when retrieving an item from the database: '%s'. ", err).Write()
-				return
-			}
-
-			if err = row.StructScan(model); err != nil {
-				repo.components.Logger.Error().
-					Format("Error while reading item data from the database:: '%s'. ", err).Write()
-				return
-			}
-		}
-
-		// Перенос в сущность
-		{
-			tok.Params = new(entities.JwtTokenParams)
-
-			tok.Params.RemoteAddr = model.RemoteAddr
-			tok.Params.UserAgent = model.UserAgent
-		}
-	}
-
-	return
-}
-
 // Register - регистрация jwt токена.
 func (repo *Repository) Register(ctx context.Context, tok *entities.JwtToken) (err error) {
 	// tracer
@@ -188,7 +84,7 @@ func (repo *Repository) Register(ctx context.Context, tok *entities.JwtToken) (e
 			query = `
 			insert into 
 				tokens.jwt (
-						data, 
+						raw, 
 						expires_at, 
 						not_before,
 						issued_at
@@ -203,7 +99,7 @@ func (repo *Repository) Register(ctx context.Context, tok *entities.JwtToken) (e
 		)
 
 		var row = repo.connector.QueryRowxContext(ctx, query,
-			model.Data,
+			model.Raw,
 			model.ExpiresAt,
 			model.NotBefore,
 			model.IssuedAt)

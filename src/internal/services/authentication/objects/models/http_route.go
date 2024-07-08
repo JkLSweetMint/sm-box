@@ -1,4 +1,4 @@
-package common_models
+package models
 
 import (
 	"sm-box/internal/common/types"
@@ -9,11 +9,14 @@ type (
 	HttpRouteInfo struct {
 		ID types.ID `json:"id" xml:"id,attr"`
 
+		SystemName  string `json:"system_name" xml:"SystemName"`
 		Name        string `json:"name"        xml:"Name"`
 		Description string `json:"description" xml:"Description"`
 
-		Method string `json:"method" xml:"method,attr"`
-		Path   string `json:"path"   xml:"path,attr"`
+		Protocols  []string `json:"protocols"   xml:"protocols,attr"`
+		Method     string   `json:"method"      xml:"method,attr"`
+		Path       string   `json:"path"        xml:"path,attr"`
+		RegexpPath string   `json:"regexp_path" xml:"regexp_path,attr"`
 
 		Active    bool `json:"active"    xml:"active,attr"`
 		Authorize bool `json:"authorize" xml:"authorize,attr"`

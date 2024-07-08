@@ -588,14 +588,17 @@ select
 select
     public.write_text('en-US', 'auth.project-select.form.title', 'Select a project'),
     public.write_text('en-US', 'auth.project-select.form.inputs.select.label', 'Search options...'),
+    public.write_text('en-US', 'auth.project-select.form.inputs.select.not_found', 'No result found.'),
     public.write_text('en-US', 'auth.project-select.form.buttons.confirm.text', 'Confirm');
 
 select
     public.write_text('ru-RU', 'auth.project-select.form.title', 'Выберите проект'),
     public.write_text('ru-RU', 'auth.project-select.form.inputs.select.label', 'Параметры поиска...'),
+    public.write_text('ru-RU', 'auth.project-select.form.inputs.select.not_found', 'Ничего не найдено.'),
     public.write_text('ru-RU', 'auth.project-select.form.buttons.confirm.text', 'Подтвердить');
 
 select
     public.write_text('zh-CN', 'auth.project-select.form.title', '选择项目'),
     public.write_text('zh-CN', 'auth.project-select.form.inputs.select.label', '搜索选项。'),
+    public.write_text('zh-CN', 'auth.project-select.form.inputs.select.not_found', '什么也没找到。'),
     public.write_text('zh-CN', 'auth.project-select.form.buttons.confirm.text', '确认');

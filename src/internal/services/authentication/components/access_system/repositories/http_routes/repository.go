@@ -71,12 +71,12 @@ func New(ctx context.Context, conf *Config) (repo *Repository, err error) {
 }
 
 // Get - получение http маршрута.
-func (repo *Repository) Get(ctx context.Context, method, path string) (route *entities.HttpRoute, err error) {
+func (repo *Repository) Get(ctx context.Context, protocol, method, path string) (route *entities.HttpRoute, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
 
-		trc.FunctionCall(ctx, method, path)
+		trc.FunctionCall(ctx, protocol, method, path)
 		defer func() { trc.Error(err).FunctionCallFinished(route) }()
 	}
 
@@ -95,18 +95,22 @@ func (repo *Repository) Get(ctx context.Context, method, path string) (route *en
 			var query = `
 			select
 				routes.id,
+				routes.system_name,
 				routes.name,
 				routes.description,
+				routes.protocols,
+				coalesce(routes.regexp_path, '') as regexp_path,
 				routes.active,
 				routes.authorize
 			from
 				transports.http_routes as routes
 			where
 				routes.method = $1 and
-				routes.path = $2
+				(routes.path = $2 or $2 ~ routes.regexp_path) and
+				$3 = any(routes.protocols)
 		`
 
-			var row = repo.connector.QueryRowxContext(ctx, query, method, path)
+			var row = repo.connector.QueryRowxContext(ctx, query, method, path, protocol)
 
 			if err = row.Err(); err != nil {
 				repo.components.Logger.Error().
@@ -124,11 +128,15 @@ func (repo *Repository) Get(ctx context.Context, method, path string) (route *en
 		// Преобразование в сущность
 		{
 			route.ID = model.ID
+
+			route.SystemName = model.SystemName
 			route.Name = model.Name
 			route.Description = model.Description
 
+			route.Protocols = model.Protocols
 			route.Method = method
 			route.Path = path
+			route.RegexpPath = model.RegexpPath
 
 			route.Active = model.Active
 			route.Authorize = model.Authorize
@@ -184,12 +192,12 @@ func (repo *Repository) Get(ctx context.Context, method, path string) (route *en
 }
 
 // GetActive - получение активного http маршрута.
-func (repo *Repository) GetActive(ctx context.Context, method, path string) (route *entities.HttpRoute, err error) {
+func (repo *Repository) GetActive(ctx context.Context, protocol, method, path string) (route *entities.HttpRoute, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
 
-		trc.FunctionCall(ctx, method, path)
+		trc.FunctionCall(ctx, protocol, method, path)
 		defer func() { trc.Error(err).FunctionCallFinished(route) }()
 	}
 
@@ -208,18 +216,22 @@ func (repo *Repository) GetActive(ctx context.Context, method, path string) (rou
 			var query = `
 				select
 					routes.id,
+					routes.system_name,
 					routes.name,
 					routes.description,
+					routes.protocols,
+					coalesce(routes.regexp_path, '') as regexp_path,
 					routes.authorize
 				from
 					transports.http_routes as routes
 				where
 					routes.method = $1 and
-					routes.path = $2 and
-					routes.active
+					routes.active and
+					(routes.path = $2 or $2 ~ routes.regexp_path) and
+					$3 = any(routes.protocols)
 			`
 
-			var row = repo.connector.QueryRowxContext(ctx, query, method, path)
+			var row = repo.connector.QueryRowxContext(ctx, query, method, path, protocol)
 
 			if err = row.Err(); err != nil {
 				repo.components.Logger.Error().
@@ -237,11 +249,15 @@ func (repo *Repository) GetActive(ctx context.Context, method, path string) (rou
 		// Преобразование в сущность
 		{
 			route.ID = model.ID
+
+			route.SystemName = model.SystemName
 			route.Name = model.Name
 			route.Description = model.Description
 
+			route.Protocols = model.Protocols
 			route.Method = method
 			route.Path = path
+			route.RegexpPath = model.RegexpPath
 
 			route.Active = true
 			route.Authorize = model.Authorize

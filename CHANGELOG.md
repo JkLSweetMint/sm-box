@@ -1,5 +1,14 @@
 # ChangeLog:
 
+### v24.0.32:
+- Доработки системы доступа через nginx auth module;
+- Добавление кэширования в nginx;
+- Создание [сервиса управления пользователями](src/internal/services/users/service.go)
+- Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+- Доработки архитектуры базы данных;
+
+---
+
 ### v24.0.31:
 - Переработка всей системы;
 - Реализация системы доступа через nginx auth module;

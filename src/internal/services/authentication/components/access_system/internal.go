@@ -1,7 +1,6 @@
 package access_system
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 	error_list "sm-box/internal/common/errors"
@@ -24,38 +23,26 @@ func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *entities.JwtToken) 
 
 	// Генерация данных токена
 	{
-		var claims = &jwt.RegisteredClaims{
-			Issuer: env.Vars.SystemName,
-			Audience: jwt.ClaimStrings{
-				string(ctx.Request().Header.UserAgent()),
-			},
-			ExpiresAt: &jwt.NumericDate{Time: token.ExpiresAt},
-			NotBefore: &jwt.NumericDate{Time: token.NotBefore},
-			IssuedAt:  &jwt.NumericDate{Time: token.IssuedAt},
+		var claims = jwt.MapClaims{
+			"exp": &jwt.NumericDate{Time: token.ExpiresAt},
+			"iat": &jwt.NumericDate{Time: token.IssuedAt},
+			"nbf": &jwt.NumericDate{Time: token.NotBefore},
+			"iss": env.Vars.SystemName,
+
+			"user_id":    token.UserID,
+			"project_id": token.ProjectID,
 		}
 
-		fmt.Printf("%+v\n", claims)
+		var tok = jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
-		if err = token.Generate(claims); err != nil {
-			acc.components.Logger.Error().
-				Format("Failed to generate a token for the client: '%s'. ", err).Write()
-
-			var cErr = error_list.InternalServerError()
-			cErr.SetError(err)
-
-			if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
-				acc.components.Logger.Error().
-					Format("The response could not be recorded: '%s'. ", err).Write()
-
-				return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
-			}
+		if token.Raw, err = tok.SignedString(env.Vars.EncryptionKeys.Private); err != nil {
 			return
 		}
 	}
 
 	var cookie = &fiber.Cookie{
 		Name:        acc.conf.CookieKeyForToken,
-		Value:       token.Data,
+		Value:       token.Raw,
 		Path:        "/",
 		Domain:      acc.conf.CookieDomain,
 		MaxAge:      0,
@@ -65,8 +52,6 @@ func (acc *accessSystem) generateToken(ctx fiber.Ctx, token *entities.JwtToken) 
 		SameSite:    fiber.CookieSameSiteLaxMode,
 		SessionOnly: false,
 	}
-
-	fmt.Printf("%+v\n", cookie)
 
 	ctx.Cookie(cookie)
 

@@ -45,7 +45,7 @@ create table
     project_id bigint,
 
     language   varchar(5)    not null default public.get_default_language(),
-    data       varchar(4096) not null,
+    raw        varchar(4096) not null,
 
     issued_at  timestamptz   not null,
     not_before timestamptz   not null,
@@ -57,8 +57,9 @@ create table
 (
     token_id    bigint        not null
         references tokens.jwt(id)
-        constraint jwt_token_params_uq
-            unique,
+            on delete cascade
+                constraint jwt_token_params_uq
+                    unique,
     remote_addr varchar(1024) not null,
     user_agent  varchar(4096) not null,
 
@@ -72,22 +73,27 @@ create schema
 create table
     if not exists transports.http_routes
 (
-    id            bigserial                 not null
+    id            bigserial                  not null
         constraint transports_http_routes_pk
             primary key,
-    system_name   varchar(1024)             not null,
-    name          varchar(1024)             not null,
-    description   varchar(4096)             not null default '',
-    method        varchar(10)               not null,
-    path          varchar(4096)             not null,
-    active        boolean     default false not null,
-    authorize     boolean     default false not null
+    system_name   varchar(1024)              not null,
+    name          varchar(1024)              not null,
+    description   varchar(4096) default ''   not null,
+    protocols     varchar(10)[] default '{}' not null,
+    method        varchar(10)                not null,
+    path          varchar(4096),
+    regexp_path   varchar(4096),
+    active        boolean       default false not null,
+    authorize     boolean       default false not null
 
-        constraint check_active
-            check (active is true or active is false),
+    constraint check_active
+        check (active is true or active is false),
 
     constraint check_authorize
         check (authorize is true or authorize is false),
+
+    constraint check_protocols
+        check (protocols <@ ARRAY['http'::varchar(1024), 'https'::varchar(1024), 'ws'::varchar(1024), 'wss'::varchar(1024)]),
 
     constraint check_method
         check (
@@ -103,9 +109,9 @@ create table
             ),
 
     constraint check_path
-        check (path ~ '^(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$'),
+        check (((path is not null and path ~ '^(?:[-a-zA-Z0-9()*@:%_\+.~#?&\/=]*)$') or regexp_path is not null)),
 
-    unique (system_name, method, path)
+    unique (system_name, protocols, method, path)
 );
 
 create table

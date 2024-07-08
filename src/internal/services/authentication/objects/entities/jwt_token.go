@@ -4,7 +4,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/db_models"
-	common_models "sm-box/internal/services/authentication/objects/models"
+	"sm-box/internal/services/authentication/objects/models"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	"time"
@@ -18,7 +18,7 @@ type (
 		ProjectID types.ID
 
 		Language string
-		Data     string
+		Raw      string
 
 		ExpiresAt time.Time
 		NotBefore time.Time
@@ -67,7 +67,7 @@ func (entity *JwtToken) ToDbModel() (model *db_models.JwtToken) {
 		ProjectID: entity.ProjectID,
 
 		Language: entity.Language,
-		Data:     entity.Data,
+		Raw:      entity.Raw,
 
 		ExpiresAt: entity.ExpiresAt,
 		NotBefore: entity.NotBefore,
@@ -78,7 +78,7 @@ func (entity *JwtToken) ToDbModel() (model *db_models.JwtToken) {
 }
 
 // ToModel - получение модели.
-func (entity *JwtToken) ToModel() (model *common_models.JwtTokenInfo) {
+func (entity *JwtToken) ToModel() (model *models.JwtTokenInfo) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -87,13 +87,13 @@ func (entity *JwtToken) ToModel() (model *common_models.JwtTokenInfo) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &common_models.JwtTokenInfo{
+	model = &models.JwtTokenInfo{
 		ID:        entity.ID,
 		UserID:    entity.UserID,
 		ProjectID: entity.ProjectID,
 
 		Language: entity.Language,
-		Data:     entity.Data,
+		Raw:      entity.Raw,
 
 		ExpiresAt: entity.ExpiresAt,
 		NotBefore: entity.NotBefore,
@@ -103,23 +103,47 @@ func (entity *JwtToken) ToModel() (model *common_models.JwtTokenInfo) {
 	return
 }
 
-// Generate - генерация данных токена.
-func (entity *JwtToken) Generate(claims *jwt.RegisteredClaims) (err error) {
+// Parse - парсинг данных токена.
+func (entity *JwtToken) Parse(data string) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
 
-		trc.FunctionCall(claims)
+		trc.FunctionCall(data)
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	var tok = jwt.New(jwt.SigningMethodRS256)
+	var t *jwt.Token
 
-	tok.Claims = claims
-
-	if entity.Data, err = tok.SignedString(env.Vars.EncryptionKeys.Private); err != nil {
+	if t, err = jwt.Parse(data, func(t *jwt.Token) (interface{}, error) {
+		return env.Vars.EncryptionKeys.Public, nil
+	}); err != nil {
 		return
 	}
+
+	entity.Raw = t.Raw
+
+	var (
+		expirationTime, notBefore, issuedAt *jwt.NumericDate
+	)
+
+	if expirationTime, err = t.Claims.GetExpirationTime(); err != nil {
+		return
+	}
+
+	if notBefore, err = t.Claims.GetNotBefore(); err != nil {
+		return
+	}
+
+	if issuedAt, err = t.Claims.GetIssuedAt(); err != nil {
+		return
+	}
+
+	entity.ExpiresAt = expirationTime.Time
+	entity.NotBefore = notBefore.Time
+	entity.IssuedAt = issuedAt.Time
+
+	//fmt.Printf("\n\n\n%+v\n\n\n", t.Claims.(jwt.MapClaims))
 
 	return
 }
@@ -144,7 +168,7 @@ func (entity *JwtTokenParams) ToDbModel() (model *db_models.JwtTokenParams) {
 }
 
 // ToModel - получение модели.
-func (entity *JwtTokenParams) ToModel() (model *common_models.JwtTokenInfoParams) {
+func (entity *JwtTokenParams) ToModel() (model *models.JwtTokenInfoParams) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
@@ -153,7 +177,7 @@ func (entity *JwtTokenParams) ToModel() (model *common_models.JwtTokenInfoParams
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
-	model = &common_models.JwtTokenInfoParams{
+	model = &models.JwtTokenInfoParams{
 		RemoteAddr: entity.RemoteAddr,
 		UserAgent:  entity.UserAgent,
 	}

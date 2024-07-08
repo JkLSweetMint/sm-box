@@ -2,6 +2,8 @@ package http_rest_api
 
 import (
 	"context"
+	languages_adapter "sm-box/internal/services/i18n/infrastructure/adapters/languages"
+	texts_adapter "sm-box/internal/services/i18n/infrastructure/adapters/texts"
 	"sm-box/internal/services/i18n/transport/servers/http_rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -56,6 +58,19 @@ func New(ctx context.Context) (srv Server, err error) {
 	{
 		ref.controllers = new(controllers)
 
+		// Texts
+		{
+			if ref.controllers.Texts, err = texts_adapter.New_HttpRestAPI(ctx); err != nil {
+				return
+			}
+		}
+
+		// Languages
+		{
+			if ref.controllers.Languages, err = languages_adapter.New_HttpRestAPI(ctx); err != nil {
+				return
+			}
+		}
 	}
 
 	// fiber

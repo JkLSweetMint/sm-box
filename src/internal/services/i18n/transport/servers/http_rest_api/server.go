@@ -3,9 +3,11 @@ package http_rest_api
 import (
 	"context"
 	"github.com/gofiber/fiber/v3"
+	models2 "sm-box/internal/services/i18n/objects/models"
 	"sm-box/internal/services/i18n/transport/servers/http_rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
+	c_errors "sm-box/pkg/errors"
 	"sync"
 	"time"
 )
@@ -24,6 +26,18 @@ type server struct {
 
 // controllers - контроллеры сервера.
 type controllers struct {
+	Texts interface {
+		AssembleDictionary(ctx context.Context, lang string, paths []string) (dictionary models2.Dictionary, cErr c_errors.RestAPI)
+	}
+	Languages interface {
+		GetList(ctx context.Context) (list []*models2.Language, cErr c_errors.RestAPI)
+		Remove(ctx context.Context, code string) (cErr c_errors.RestAPI)
+		Update(ctx context.Context, code, name string) (cErr c_errors.RestAPI)
+		Create(ctx context.Context, code string, name string) (cErr c_errors.RestAPI)
+
+		Activate(ctx context.Context, code string) (cErr c_errors.RestAPI)
+		Deactivate(ctx context.Context, code string) (cErr c_errors.RestAPI)
+	}
 }
 
 // components - компоненты сервера.

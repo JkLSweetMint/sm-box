@@ -12,11 +12,14 @@ type (
 	HttpRoute struct {
 		ID types.ID
 
+		SystemName  string
 		Name        string
 		Description string
 
-		Method string
-		Path   string
+		Protocols  []string
+		Method     string
+		Path       string
+		RegexpPath string
 
 		Active    bool
 		Authorize bool
@@ -61,11 +64,14 @@ func (entity *HttpRoute) ToDbModel() (model *db_models.HttpRoute) {
 	model = &db_models.HttpRoute{
 		ID: entity.ID,
 
+		SystemName:  entity.SystemName,
 		Name:        entity.Name,
 		Description: entity.Description,
 
-		Method: strings.ToUpper(entity.Method),
-		Path:   entity.Path,
+		Protocols:  entity.Protocols,
+		Method:     strings.ToUpper(entity.Method),
+		Path:       entity.Path,
+		RegexpPath: entity.RegexpPath,
 
 		Active:    entity.Active,
 		Authorize: entity.Authorize,

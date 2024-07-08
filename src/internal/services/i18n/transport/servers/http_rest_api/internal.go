@@ -3,8 +3,6 @@ package http_rest_api
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v3"
-	cache_middleware "github.com/gofiber/fiber/v3/middleware/cache"
-	compress_middleware "github.com/gofiber/fiber/v3/middleware/compress"
 	cors_middleware "github.com/gofiber/fiber/v3/middleware/cors"
 	"path"
 	error_list "sm-box/internal/common/errors"
@@ -66,18 +64,6 @@ func (srv *server) initFiberServer() (err error) {
 
 	// Промежуточные слои
 	{
-		if srv.conf.Middlewares != nil &&
-			srv.conf.Middlewares.Compress != nil &&
-			srv.conf.Middlewares.Compress.Enable {
-			srv.app.Use(compress_middleware.New(srv.conf.Middlewares.Compress.ToFiberConfig()))
-		}
-
-		if srv.conf.Middlewares != nil &&
-			srv.conf.Middlewares.Cache != nil &&
-			srv.conf.Middlewares.Cache.Enable {
-			srv.app.Use(cache_middleware.New(srv.conf.Middlewares.Cache.ToFiberConfig()))
-		}
-
 		if srv.conf.Middlewares != nil &&
 			srv.conf.Middlewares.Cors != nil &&
 			srv.conf.Middlewares.Cors.Enable {

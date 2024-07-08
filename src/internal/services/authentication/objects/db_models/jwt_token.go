@@ -13,7 +13,7 @@ type (
 		ProjectID types.ID `db:"project_id"`
 
 		Language string `db:"language"`
-		Data     string `db:"data"`
+		Raw      string `db:"raw"`
 
 		ExpiresAt time.Time `db:"expires_at"`
 		NotBefore time.Time `db:"not_before"`

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gofiber/fiber/v3"
+	"net/url"
 	error_list "sm-box/internal/common/errors"
 	"sm-box/internal/services/authentication/objects/entities"
 	"sm-box/pkg/core/components/logger"
@@ -35,11 +36,10 @@ type (
 	// repositories - репозитории компонента.
 	repositories struct {
 		HttpRoutes interface {
-			Get(ctx context.Context, method, path string) (route *entities.HttpRoute, err error)
-			GetActive(ctx context.Context, method, path string) (route *entities.HttpRoute, err error)
+			Get(ctx context.Context, protocol, method, path string) (route *entities.HttpRoute, err error)
+			GetActive(ctx context.Context, protocol, method, path string) (route *entities.HttpRoute, err error)
 		}
 		JwtTokens interface {
-			Get(ctx context.Context, data string) (tok *entities.JwtToken, err error)
 			Register(ctx context.Context, tok *entities.JwtToken) (err error)
 		}
 	}
@@ -60,7 +60,7 @@ func (acc *accessSystem) AuthenticationMiddlewareForRestAPI(ctx fiber.Ctx) (err 
 				token = &entities.JwtToken{
 					ID:        0,
 					UserID:    0,
-					Data:      "",
+					Raw:       "",
 					ExpiresAt: time.Now().Add(time.Hour),
 					NotBefore: time.Now(),
 					IssuedAt:  time.Now(),
@@ -86,7 +86,10 @@ func (acc *accessSystem) AuthenticationMiddlewareForRestAPI(ctx fiber.Ctx) (err 
 					return
 				}
 
-				if token, err = acc.repositories.JwtTokens.Get(ctx.Context(), data); err != nil {
+				token = new(entities.JwtToken)
+				token.FillEmptyFields()
+
+				if err = token.Parse(data); err != nil {
 					acc.components.Logger.Error().
 						Format("Failed to get token data: '%s'. ", err).
 						Field("data", data).Write()
@@ -132,7 +135,7 @@ func (acc *accessSystem) AuthenticationMiddlewareForRestAPI(ctx fiber.Ctx) (err 
 					token = &entities.JwtToken{
 						ID:        0,
 						UserID:    0,
-						Data:      "",
+						Raw:       "",
 						ExpiresAt: time.Now().Add(time.Hour),
 						NotBefore: time.Now(),
 						IssuedAt:  time.Now(),
@@ -157,15 +160,46 @@ func (acc *accessSystem) AuthenticationMiddlewareForRestAPI(ctx fiber.Ctx) (err 
 		// Получение маршрута
 		{
 			var (
-				method = string(ctx.Request().Header.Method())
-				path   = string(ctx.Request().Header.Peek("X-Original-URI"))
+				protocol string
+				method   = string(ctx.Request().Header.Method())
+				urlStr   = string(ctx.Request().Header.Peek("X-Original-URL"))
+				u        *url.URL
 			)
 
-			if route, err = acc.repositories.HttpRoutes.GetActive(ctx.Context(), method, path); err != nil {
+			// Парсинг URL
+			{
+				if u, err = url.Parse(urlStr); err != nil {
+					acc.components.Logger.Error().
+						Format("The URL could not be parsed: '%s'. ", err).
+						Field("method", method).
+						Field("url", urlStr).Write()
+
+					if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+						acc.components.Logger.Error().
+							Format("The response could not be recorded: '%s'. ", err).Write()
+
+						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+					}
+					return
+				}
+			}
+
+			protocol = u.Scheme
+
+			if string(ctx.Request().Header.Peek("Upgrade")) == "websocket" {
+				switch protocol {
+				case "http":
+					protocol = "ws"
+				case "https":
+					protocol = "wss"
+				}
+			}
+
+			if route, err = acc.repositories.HttpRoutes.GetActive(ctx.Context(), protocol, method, u.Path); err != nil {
 				acc.components.Logger.Error().
 					Format("Failed to get a route: '%s'. ", err).
 					Field("method", method).
-					Field("path", path).Write()
+					Field("path", u.Path).Write()
 
 				if err = http_rest_api_io.WriteError(ctx, error_list.RouteNotFound_RestAPI()); err != nil {
 					acc.components.Logger.Error().
