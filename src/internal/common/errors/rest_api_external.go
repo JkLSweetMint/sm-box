@@ -62,17 +62,3 @@ var (
 		StatusCode: fiber.StatusForbidden,
 	}).Build()
 )
-
-// ERA-000005
-var (
-	AnUnregisteredTokenWasTransderred_RestAPI = c_errors.Constructor[c_errors.RestAPI]{
-		ID:     "ERA-000005",
-		Type:   types.TypeSystem,
-		Status: types.StatusError,
-
-		Message: new(messages.TextMessage).
-			Text("An unregistered token was transferred. "),
-	}.RestAPI(c_errors.RestAPIConstructor{
-		StatusCode: fiber.StatusForbidden,
-	}).Build()
-)

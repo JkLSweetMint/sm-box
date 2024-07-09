@@ -14,19 +14,24 @@ services:
       - ./src/migrations/:/docker-entrypoint-initdb.d/
     ports:
       - "8081:5432"
+    networks:
+      - system
 
   app:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.app
+    build:
+      context: .
+      dockerfile: Dockerfile.app
     image: box/app:latest
     container_name: app
     restart: unless-stopped
     attach: false
     depends_on:
       - postgres
+    networks:
+      - system
     volumes:
       - ./etc:/home/app/etc
+      - ./src:/home/app/src
       - ./system:/home/app/system
       - ./var/data:/home/app/var/data
       - ./var/lib:/home/app/var/lib
@@ -40,10 +45,14 @@ services:
     image: box/authentication-service:latest
     container_name: authentication-service
     restart: unless-stopped
+#    attach: false
     depends_on:
       - postgres
+    networks:
+      - system
     volumes:
       - ./etc:/home/app/etc
+      - ./src:/home/app/src
       - ./system:/home/app/system
       - ./var/data:/home/app/var/data
       - ./var/lib:/home/app/var/lib
@@ -57,11 +66,15 @@ services:
     image: box/i18n-service:latest
     container_name: i18n-service
     restart: unless-stopped
+#    attach: false
     depends_on:
       - postgres
       - authentication-service
+    networks:
+      - system
     volumes:
       - ./etc:/home/app/etc
+      - ./src:/home/app/src
       - ./system:/home/app/system
       - ./var/data:/home/app/var/data
       - ./var/lib:/home/app/var/lib
@@ -69,17 +82,21 @@ services:
       - ./var/test:/home/app/var/test
 
   users-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.users-service
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.users-service
     image: box/users-service:latest
     container_name: users-service
     restart: unless-stopped
+#    attach: false
     depends_on:
       - postgres
       - authentication-service
+    networks:
+      - system
     volumes:
       - ./etc:/home/app/etc
+      - ./src:/home/app/src
       - ./system:/home/app/system
       - ./var/data:/home/app/var/data
       - ./var/lib:/home/app/var/lib
@@ -90,16 +107,30 @@ services:
     image: nginx:1.27.0
     container_name: proxy
     restart: unless-stopped
-#    attach: false
+    attach: false
     depends_on:
       - app
       - i18n-service
       - users-service
+    networks:
+      - system
     volumes:
       - type: bind
         source: ./system/nginx
         target: /etc/nginx
         consistency: cached
+      - type: bind
+        source: ./var/www/dashboard
+        target: /var/www/dashboard
+        consistency: cached
+      - type: bind
+        source: ./var/logs/nginx
+        target: /var/log/nginx
+        consistency: cached
     ports:
       - "80:80"
       - "443:443"
+
+networks:
+  system:
+    driver: bridge

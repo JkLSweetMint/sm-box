@@ -2,12 +2,12 @@ package app
 
 import "sm-box/pkg/core/components/logger"
 
-// Components - описание компонентов коробки.
+// Components - описание компонентов приложения.
 type Components interface {
 	Logger() logger.Logger
 }
 
-// components - компоненты коробки.
+// components - компоненты приложения.
 type components struct {
 	logger logger.Logger
 }

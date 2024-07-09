@@ -41,10 +41,11 @@ create table
     id         bigserial     not null
         constraint jwt_tokens_pk
             primary key,
+    parent_id  bigint,
+
     user_id    bigint,
     project_id bigint,
 
-    language   varchar(5)    not null default public.get_default_language(),
     raw        varchar(4096) not null,
 
     issued_at  timestamptz   not null,
@@ -60,6 +61,8 @@ create table
             on delete cascade
                 constraint jwt_token_params_uq
                     unique,
+
+    language    varchar(5)    not null default public.get_default_language(),
     remote_addr varchar(1024) not null,
     user_agent  varchar(4096) not null,
 

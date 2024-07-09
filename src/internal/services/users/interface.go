@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
-	"sm-box/internal/services/users/transport/servers/http_rest_api"
+	grpc_authentication_srv "sm-box/internal/services/users/transport/servers/grpc/authentication_service"
+	grpc_users_srv "sm-box/internal/services/users/transport/servers/grpc/users_service"
+	http_rest_api "sm-box/internal/services/users/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
 	"sm-box/pkg/core/components/logger"
@@ -67,7 +69,6 @@ func New() (srv_ Service, err error) {
 	// Контроллеры
 	{
 		ref.controllers = new(controllers)
-
 	}
 
 	// Транспортная часть
@@ -76,9 +77,20 @@ func New() (srv_ Service, err error) {
 		ref.transport.servers = new(transportServers)
 		ref.transport.gateways = new(transportGateways)
 
+		ref.transport.servers.http = new(transportServersHttp)
+		ref.transport.servers.grpc = new(transportServersGrpc)
+
 		// Сервера
 		{
-			if ref.transport.servers.httpRestApi, err = http_rest_api.New(ref.Ctx()); err != nil {
+			if ref.transport.servers.http.restApi, err = http_rest_api.New(ref.Ctx()); err != nil {
+				return
+			}
+
+			if ref.transport.servers.grpc.authenticationService, err = grpc_authentication_srv.New(ref.Ctx()); err != nil {
+				return
+			}
+
+			if ref.transport.servers.grpc.usersService, err = grpc_users_srv.New(ref.Ctx()); err != nil {
 				return
 			}
 		}

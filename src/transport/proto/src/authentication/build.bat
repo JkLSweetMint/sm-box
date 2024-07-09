@@ -1,1 +1,0 @@
-protoc ./src/transports/proto/src/authentication/*.proto  --go_out='F:\projects\SweetMint\sm-box\dev\box\src\transports\proto\pb\golang\authentication' --go-grpc_out='F:\projects\SweetMint\sm-box\dev\box\src\transports\proto\pb\golang\authentication'

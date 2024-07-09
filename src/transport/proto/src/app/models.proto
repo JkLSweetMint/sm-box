@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package grpc_service;
+
+option go_package = "./";
+
+message Project {
+  uint64 ID      = 1;
+  uint64 OwnerID = 2;
+
+  uint64 Name        = 3;
+  uint64 Description = 4;
+  uint64 Version     = 5;
+}

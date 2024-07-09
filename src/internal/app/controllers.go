@@ -1,8 +1,8 @@
 package app
 
-// Controllers - описание контроллеров коробки.
+// Controllers - описание контроллеров приложения.
 type Controllers interface {
 }
 
-// controllers - контроллеры коробки.
+// controllers - контроллеры приложения.
 type controllers struct{}

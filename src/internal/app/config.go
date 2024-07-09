@@ -5,7 +5,7 @@ import (
 	"sm-box/pkg/core/components/tracer"
 )
 
-// Config - конфигурация коробки.
+// Config - конфигурация приложения.
 type Config struct{}
 
 // Read - чтение конфигурации.

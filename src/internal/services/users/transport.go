@@ -1,7 +1,9 @@
 package service
 
 import (
-	"sm-box/internal/services/users/transport/servers/http_rest_api"
+	grpc_authentication_srv "sm-box/internal/services/users/transport/servers/grpc/authentication_service"
+	grpc_users_srv "sm-box/internal/services/users/transport/servers/grpc/users_service"
+	http_rest_api "sm-box/internal/services/users/transport/servers/http/rest_api"
 )
 
 // Transport - описание транспортной части сервиса.
@@ -12,13 +14,27 @@ type Transport interface {
 
 // TransportServers - описание серверов транспортной части сервиса.
 type TransportServers interface {
-	HttpRestApi() http_rest_api.Server
+	Http() TransportServersHttp
+	Grpc() TransportServersGrpc
+}
+
+// TransportServersHttp - описание серверов транспортной части сервиса по http.
+type TransportServersHttp interface {
+	RestApi() http_rest_api.Server
+}
+
+// TransportServersGrpc - описание серверов транспортной части сервиса по grpc.
+type TransportServersGrpc interface {
+	AuthenticationService() grpc_authentication_srv.Server
+	UsersService() grpc_users_srv.Server
 }
 
 // TransportGateways - описание шлюзов транспортной части сервиса.
 type TransportGateways interface{}
 
-// components - транспортная часть сервиса.
+// --------- internal ---------
+
+// transport - транспортная часть сервиса.
 type transport struct {
 	servers  *transportServers
 	gateways *transportGateways
@@ -26,7 +42,19 @@ type transport struct {
 
 // transportsServers - сервера транспортной части сервиса.
 type transportServers struct {
-	httpRestApi http_rest_api.Server
+	http *transportServersHttp
+	grpc *transportServersGrpc
+}
+
+// transportServersHttp - сервера транспортной части сервиса по http.
+type transportServersHttp struct {
+	restApi http_rest_api.Server
+}
+
+// transportServersGrpc - сервера транспортной части сервиса по grpc.
+type transportServersGrpc struct {
+	authenticationService grpc_authentication_srv.Server
+	usersService          grpc_users_srv.Server
 }
 
 // transportsGateways - шлюзы транспортной части сервиса.
@@ -43,7 +71,27 @@ func (t *transport) Gateways() TransportGateways {
 	return t.gateways
 }
 
-// HttpRestApi - получение http rest api сервера.
-func (t *transportServers) HttpRestApi() http_rest_api.Server {
-	return t.httpRestApi
+// Http - получение серверов транспортной части сервиса по http.
+func (t *transportServers) Http() TransportServersHttp {
+	return t.http
+}
+
+// Grpc - получение серверов транспортной части сервиса по grpc.
+func (t *transportServers) Grpc() TransportServersGrpc {
+	return t.grpc
+}
+
+// RestApi - получение http rest api сервера.
+func (t *transportServersHttp) RestApi() http_rest_api.Server {
+	return t.restApi
+}
+
+// AuthenticationService - получение сервера для сервиса аутентификации пользователей.
+func (t *transportServersGrpc) AuthenticationService() grpc_authentication_srv.Server {
+	return t.authenticationService
+}
+
+// UsersService - получение сервера для сервиса пользователей.
+func (t *transportServersGrpc) UsersService() grpc_users_srv.Server {
+	return t.usersService
 }

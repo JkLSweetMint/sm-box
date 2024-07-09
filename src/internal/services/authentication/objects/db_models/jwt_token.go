@@ -8,12 +8,13 @@ import (
 type (
 	// JwtToken - модель jwt токена системы доступа для базы данных.
 	JwtToken struct {
-		ID        types.ID `db:"id"`
+		ID       types.ID `db:"id"`
+		ParentID types.ID `db:"parent_id"`
+
 		UserID    types.ID `db:"user_id"`
 		ProjectID types.ID `db:"project_id"`
 
-		Language string `db:"language"`
-		Raw      string `db:"raw"`
+		Raw string `db:"raw"`
 
 		ExpiresAt time.Time `db:"expires_at"`
 		NotBefore time.Time `db:"not_before"`
@@ -24,6 +25,7 @@ type (
 	JwtTokenParams struct {
 		TokenID types.ID `db:"token_id"`
 
+		Language   string `db:"language"`
 		RemoteAddr string `db:"remote_addr"`
 		UserAgent  string `db:"user_agent"`
 	}

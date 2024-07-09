@@ -137,7 +137,7 @@ func (usecase *UseCase) AssembleDictionary(ctx context.Context, lang string, pat
 	}
 
 	usecase.components.Logger.Info().
-		Text("Text localization data has been started... ").
+		Text("The collection of localization texts has been launched... ").
 		Field("paths", paths).
 		Field("lang", lang).Write()
 
@@ -160,7 +160,7 @@ func (usecase *UseCase) AssembleDictionary(ctx context.Context, lang string, pat
 	}
 
 	usecase.components.Logger.Info().
-		Text("Text localization data acquisition is completed. ").
+		Text("The collection of localization texts is completed. ").
 		Field("paths", paths).
 		Field("lang", lang).
 		Field("dictionary", dictionary).Write()

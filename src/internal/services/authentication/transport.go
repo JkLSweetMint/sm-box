@@ -1,9 +1,6 @@
 package service
 
-import (
-	"sm-box/internal/services/authentication/transport/servers/grpc_authentication_srv"
-	"sm-box/internal/services/authentication/transport/servers/http_rest_api"
-)
+import http_rest_api "sm-box/internal/services/authentication/transport/servers/http/rest_api"
 
 // Transport - описание транспортной части сервиса.
 type Transport interface {
@@ -13,14 +10,20 @@ type Transport interface {
 
 // TransportServers - описание серверов транспортной части сервиса.
 type TransportServers interface {
-	HttpRestApi() http_rest_api.Server
-	GrpcAuthenticationService() grpc_authentication_srv.Server
+	Http() TransportServersHttp
+}
+
+// TransportServersHttp - описание серверов транспортной части сервиса по http.
+type TransportServersHttp interface {
+	RestApi() http_rest_api.Server
 }
 
 // TransportGateways - описание шлюзов транспортной части сервиса.
 type TransportGateways interface{}
 
-// components - транспортная часть сервиса.
+// --------- internal ---------
+
+// transport - транспортная часть сервиса.
 type transport struct {
 	servers  *transportServers
 	gateways *transportGateways
@@ -28,8 +31,12 @@ type transport struct {
 
 // transportsServers - сервера транспортной части сервиса.
 type transportServers struct {
-	httpRestApi               http_rest_api.Server
-	grpcAuthenticationService grpc_authentication_srv.Server
+	http *transportServersHttp
+}
+
+// transportsServers - сервера транспортной части сервиса по http.
+type transportServersHttp struct {
+	restApi http_rest_api.Server
 }
 
 // transportsGateways - шлюзы транспортной части сервиса.
@@ -46,12 +53,12 @@ func (t *transport) Gateways() TransportGateways {
 	return t.gateways
 }
 
-// HttpRestApi - получение http rest api сервера.
-func (t *transportServers) HttpRestApi() http_rest_api.Server {
-	return t.httpRestApi
+// Http - получение серверов транспортной части сервиса по http.
+func (t *transportServers) Http() TransportServersHttp {
+	return t.http
 }
 
-// GrpcAuthenticationService - получение сервера grpc сервиса аутентификации.
-func (t *transportServers) GrpcAuthenticationService() grpc_authentication_srv.Server {
-	return t.grpcAuthenticationService
+// RestApi - получение http rest api сервера.
+func (t *transportServersHttp) RestApi() http_rest_api.Server {
+	return t.restApi
 }

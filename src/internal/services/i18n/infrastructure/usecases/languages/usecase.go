@@ -99,6 +99,9 @@ func (usecase *UseCase) GetList(ctx context.Context) (list []*entities.Language,
 		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
 	}
 
+	usecase.components.Logger.Info().
+		Text("Collection of available localization languages has been launched... ").Write()
+
 	// Получение
 	{
 		var err error
@@ -114,6 +117,10 @@ func (usecase *UseCase) GetList(ctx context.Context) (list []*entities.Language,
 			return
 		}
 	}
+
+	usecase.components.Logger.Info().
+		Text("The collection of available localization languages has been completed. ").
+		Field("languages", list).Write()
 
 	return
 }

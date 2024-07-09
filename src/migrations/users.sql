@@ -131,3 +131,58 @@ create trigger assign_default_role_to_user
     after insert on users.users
     for each row
 execute procedure users.assign_default_role_to_user_fn();
+
+create or replace function access_system.get_user_access(userID bigint)
+    returns setof record
+    language plpgsql as
+$$
+declare
+    result record;
+
+begin
+    for result in
+        WITH RECURSIVE cte_roles (id, project_id, name, parent) AS (
+            select
+                roles.id,
+                roles.project_id,
+                roles.name,
+                0::bigint as parent
+            from
+                access_system.roles as roles
+            where
+                roles.id in (
+                    select
+                        accesses.role_id as id
+                    from
+                        users.users as users
+                            left join users.accesses accesses on users.id = accesses.user_id
+
+                    where
+                        users.id = userID
+                )
+
+            UNION ALL
+
+            select
+                roles.id,
+                roles.project_id,
+                roles.name,
+                role_inheritance.parent as parent
+            from
+                access_system.roles as roles
+                    left join access_system.role_inheritance role_inheritance on (role_inheritance.heir = roles.id)
+                    JOIN cte_roles cte ON cte.id = role_inheritance.parent
+        )
+
+        select
+            distinct id,
+                     coalesce(project_id, 0) as project_id,
+                     name,
+                     coalesce(parent, 0) as parent
+        from
+            cte_roles
+        loop
+            return next result;
+        end loop;
+end;
+$$;

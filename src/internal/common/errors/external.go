@@ -11,15 +11,15 @@ import (
 
 // E-000001
 var (
-	TokenNotFound = c_errors.Constructor[c_errors.Error]{
+	AnUnregisteredTokenWasTransferred = c_errors.Constructor[c_errors.Error]{
 		ID:     "E-000001",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
 		Message: new(messages.TextMessage).
-			Text("The token was not found. "),
+			Text("An unregistered token was transferred. "),
 	}.RestAPI(c_errors.RestAPIConstructor{
-		StatusCode: fiber.StatusNotFound,
+		StatusCode: fiber.StatusForbidden,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
 	}).Build()
@@ -27,8 +27,24 @@ var (
 
 // E-000002
 var (
-	AlreadyAuthorized = c_errors.Constructor[c_errors.Error]{
+	TokenWasNotTransferred = c_errors.Constructor[c_errors.Error]{
 		ID:     "E-000002",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("The token was not transferred. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusForbidden,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseNormalClosure,
+	}).Build()
+)
+
+// E-000003
+var (
+	AlreadyAuthorized = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000003",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -41,10 +57,10 @@ var (
 	}).Build()
 )
 
-// E-000003
+// E-000004
 var (
 	Unauthorized = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000003",
+		ID:     "E-000004",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -55,10 +71,10 @@ var (
 	}).Build()
 )
 
-// E-000004
+// E-000005
 var (
 	ValidityPeriodOfUserTokenHasNotStarted = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000004",
+		ID:     "E-000005",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -71,10 +87,10 @@ var (
 	}).Build()
 )
 
-// E-000005
+// E-000006
 var (
 	UserNotFound = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000005",
+		ID:     "E-000006",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -87,10 +103,26 @@ var (
 	}).Build()
 )
 
-// E-000006
+// E-000007
+var (
+	InvalidAuthorizationDataWasTransferred = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000007",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("Invalid authorization data was transferred. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusBadRequest,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseNormalClosure,
+	}).Build()
+)
+
+// E-010001
 var (
 	ListUserProjectsCouldNotBeRetrieved = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000006",
+		ID:     "E-010001",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -103,10 +135,10 @@ var (
 	}).Build()
 )
 
-// E-000007
+// E-010002
 var (
 	ProjectHasAlreadyBeenSelected = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000007",
+		ID:     "E-010002",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -119,10 +151,10 @@ var (
 	}).Build()
 )
 
-// E-000008
+// E-010003
 var (
 	ProjectNotFound = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000008",
+		ID:     "E-010003",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -135,10 +167,10 @@ var (
 	}).Build()
 )
 
-// E-000009
+// E-010004
 var (
 	NotAccessToProject = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000009",
+		ID:     "E-010004",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -151,10 +183,10 @@ var (
 	}).Build()
 )
 
-// E-000010
+// E-020001
 var (
 	InvalidTextLocalizationPaths = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000010",
+		ID:     "E-020001",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 

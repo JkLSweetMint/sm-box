@@ -2,8 +2,7 @@ package service
 
 import (
 	"context"
-	"sm-box/internal/services/authentication/transport/servers/grpc_authentication_srv"
-	"sm-box/internal/services/authentication/transport/servers/http_rest_api"
+	http_rest_api "sm-box/internal/services/authentication/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
 	"sm-box/pkg/core/components/logger"
@@ -77,13 +76,11 @@ func New() (srv_ Service, err error) {
 		ref.transport.servers = new(transportServers)
 		ref.transport.gateways = new(transportGateways)
 
+		ref.transport.servers.http = new(transportServersHttp)
+
 		// Сервера
 		{
-			if ref.transport.servers.httpRestApi, err = http_rest_api.New(ref.Ctx()); err != nil {
-				return
-			}
-
-			if ref.transport.servers.grpcAuthenticationService, err = grpc_authentication_srv.New(ref.Ctx()); err != nil {
+			if ref.transport.servers.http.restApi, err = http_rest_api.New(ref.Ctx()); err != nil {
 				return
 			}
 		}

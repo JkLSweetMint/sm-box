@@ -2,6 +2,7 @@ package entities
 
 import (
 	"github.com/golang-jwt/jwt/v5"
+	common_models "sm-box/internal/common/objects/models"
 	"sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/db_models"
 	"sm-box/internal/services/authentication/objects/models"
@@ -13,12 +14,13 @@ import (
 type (
 	// JwtToken - jwt токен системы доступа.
 	JwtToken struct {
-		ID        types.ID
+		ID       types.ID
+		ParentID types.ID
+
 		UserID    types.ID
 		ProjectID types.ID
 
-		Language string
-		Raw      string
+		Raw string
 
 		ExpiresAt time.Time
 		NotBefore time.Time
@@ -29,8 +31,17 @@ type (
 
 	// JwtTokenParams - параметры jwt токена системы доступа.
 	JwtTokenParams struct {
+		Language   string
 		RemoteAddr string
 		UserAgent  string
+	}
+
+	// JwtTokenClaims - claims для формирование jwt токена.
+	JwtTokenClaims struct {
+		jwt.RegisteredClaims
+
+		Token *JwtToken
+		User  *common_models.UserInfo
 	}
 )
 
@@ -44,9 +55,25 @@ func (entity *JwtToken) FillEmptyFields() *JwtToken {
 		defer func() { trc.FunctionCallFinished(entity) }()
 	}
 
+	var emptyTime time.Time
+
+	if entity.ExpiresAt == emptyTime {
+		entity.ExpiresAt = time.Now().Add(time.Hour)
+	}
+
+	if entity.NotBefore == emptyTime {
+		entity.NotBefore = time.Now()
+	}
+
+	if entity.IssuedAt == emptyTime {
+		entity.IssuedAt = time.Now()
+	}
+
 	if entity.Params == nil {
 		entity.Params = new(JwtTokenParams)
 	}
+
+	entity.Params.FillEmptyFields()
 
 	return entity
 }
@@ -62,12 +89,13 @@ func (entity *JwtToken) ToDbModel() (model *db_models.JwtToken) {
 	}
 
 	model = &db_models.JwtToken{
-		ID:        entity.ID,
+		ID:       entity.ID,
+		ParentID: entity.ParentID,
+
 		UserID:    entity.UserID,
 		ProjectID: entity.ProjectID,
 
-		Language: entity.Language,
-		Raw:      entity.Raw,
+		Raw: entity.Raw,
 
 		ExpiresAt: entity.ExpiresAt,
 		NotBefore: entity.NotBefore,
@@ -92,8 +120,7 @@ func (entity *JwtToken) ToModel() (model *models.JwtTokenInfo) {
 		UserID:    entity.UserID,
 		ProjectID: entity.ProjectID,
 
-		Language: entity.Language,
-		Raw:      entity.Raw,
+		Raw: entity.Raw,
 
 		ExpiresAt: entity.ExpiresAt,
 		NotBefore: entity.NotBefore,
@@ -104,48 +131,108 @@ func (entity *JwtToken) ToModel() (model *models.JwtTokenInfo) {
 }
 
 // Parse - парсинг данных токена.
-func (entity *JwtToken) Parse(data string) (err error) {
+func (entity *JwtToken) Parse(raw string) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)
 
-		trc.FunctionCall(data)
+		trc.FunctionCall(raw)
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	var t *jwt.Token
+	var (
+		t      *jwt.Token
+		claims = new(JwtTokenClaims)
+	)
 
-	if t, err = jwt.Parse(data, func(t *jwt.Token) (interface{}, error) {
+	if t, err = jwt.ParseWithClaims(raw, claims, func(t *jwt.Token) (interface{}, error) {
 		return env.Vars.EncryptionKeys.Public, nil
 	}); err != nil {
 		return
 	}
 
+	entity.ID = claims.Token.ID
+	entity.ParentID = claims.Token.ParentID
+
+	entity.UserID = claims.Token.UserID
+	entity.ProjectID = claims.Token.ProjectID
+
 	entity.Raw = t.Raw
 
-	var (
-		expirationTime, notBefore, issuedAt *jwt.NumericDate
-	)
+	entity.ExpiresAt = claims.Token.ExpiresAt
+	entity.NotBefore = claims.Token.NotBefore
+	entity.IssuedAt = claims.Token.IssuedAt
 
-	if expirationTime, err = t.Claims.GetExpirationTime(); err != nil {
-		return
-	}
-
-	if notBefore, err = t.Claims.GetNotBefore(); err != nil {
-		return
-	}
-
-	if issuedAt, err = t.Claims.GetIssuedAt(); err != nil {
-		return
-	}
-
-	entity.ExpiresAt = expirationTime.Time
-	entity.NotBefore = notBefore.Time
-	entity.IssuedAt = issuedAt.Time
-
-	//fmt.Printf("\n\n\n%+v\n\n\n", t.Claims.(jwt.MapClaims))
+	entity.Params = claims.Token.Params
 
 	return
+}
+
+// Generate - генерация токена.
+func (entity *JwtToken) Generate() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	entity.FillEmptyFields()
+
+	var claims = &JwtTokenClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    env.Vars.SystemName,
+			ExpiresAt: &jwt.NumericDate{Time: entity.ExpiresAt},
+			NotBefore: &jwt.NumericDate{Time: entity.NotBefore},
+			IssuedAt:  &jwt.NumericDate{Time: entity.IssuedAt},
+		},
+
+		Token: &JwtToken{
+			ID:       entity.ID,
+			ParentID: entity.ParentID,
+
+			UserID:    entity.UserID,
+			ProjectID: entity.ProjectID,
+
+			Raw: "",
+
+			ExpiresAt: entity.ExpiresAt,
+			NotBefore: entity.NotBefore,
+			IssuedAt:  entity.IssuedAt,
+
+			Params: &JwtTokenParams{
+				Language:   entity.Params.Language,
+				RemoteAddr: entity.Params.RemoteAddr,
+				UserAgent:  entity.Params.UserAgent,
+			},
+		},
+	}
+
+	var tok = jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+
+	if entity.Raw, err = tok.SignedString(env.Vars.EncryptionKeys.Private); err != nil {
+		return
+	}
+
+	return
+}
+
+// FillEmptyFields - заполнение пустых полей сущности.
+func (entity *JwtTokenParams) FillEmptyFields() *JwtTokenParams {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(entity) }()
+	}
+
+	if entity.Language == "" {
+		entity.Language = "en-US"
+	}
+
+	return entity
 }
 
 // ToDbModel - получение модели базы данных.
@@ -160,6 +247,7 @@ func (entity *JwtTokenParams) ToDbModel() (model *db_models.JwtTokenParams) {
 
 	model = &db_models.JwtTokenParams{
 		TokenID:    0,
+		Language:   entity.Language,
 		RemoteAddr: entity.RemoteAddr,
 		UserAgent:  entity.UserAgent,
 	}
@@ -178,6 +266,7 @@ func (entity *JwtTokenParams) ToModel() (model *models.JwtTokenInfoParams) {
 	}
 
 	model = &models.JwtTokenInfoParams{
+		Language:   entity.Language,
 		RemoteAddr: entity.RemoteAddr,
 		UserAgent:  entity.UserAgent,
 	}

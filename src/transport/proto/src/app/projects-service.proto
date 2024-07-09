@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package grpc_service;
+
+option go_package = "./";
+
+import "src/transport/proto/src/app/models.proto";
+
+message ProjectsGetListByUserRequest {
+  uint64 ID = 1;
+}
+
+message ProjectsGetListByUserResponse {
+  repeated Project List = 1;
+}
+
+service Projects {
+  rpc GetListByUser(ProjectsGetListByUserRequest) returns (ProjectsGetListByUserResponse);
+}

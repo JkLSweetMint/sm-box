@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"sm-box/internal/services/i18n/transport/servers/http_rest_api"
+	http_rest_api "sm-box/internal/services/i18n/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
 	"sm-box/pkg/core/components/logger"
@@ -76,9 +76,11 @@ func New() (srv_ Service, err error) {
 		ref.transport.servers = new(transportServers)
 		ref.transport.gateways = new(transportGateways)
 
+		ref.transport.servers.http = new(transportServersHttp)
+
 		// Сервера
 		{
-			if ref.transport.servers.httpRestApi, err = http_rest_api.New(ref.Ctx()); err != nil {
+			if ref.transport.servers.http.restApi, err = http_rest_api.New(ref.Ctx()); err != nil {
 				return
 			}
 		}

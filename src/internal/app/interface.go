@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	grpc_projects_srv "sm-box/internal/app/transport/servers/grpc/projects_service"
+	http_rest_api "sm-box/internal/app/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
 	"sm-box/pkg/core/components/logger"
@@ -10,7 +12,7 @@ import (
 	"sm-box/pkg/core/tools/task_scheduler"
 )
 
-// Box - описание функционала коробки.
+// Box - описание функционала приложения.
 type Box interface {
 	Serve() (err error)
 	Shutdown() (err error)
@@ -20,9 +22,10 @@ type Box interface {
 
 	Components() Components
 	Controllers() Controllers
+	Transport() Transport
 }
 
-// New - создание коробки.
+// New - создание приложения.
 func New() (box_ Box, err error) {
 	// tracer
 	{
@@ -67,7 +70,28 @@ func New() (box_ Box, err error) {
 		ref.controllers = new(controllers)
 	}
 
-	// Регистрация задач коробки
+	// Транспортная часть
+	{
+		ref.transport = new(transport)
+		ref.transport.servers = new(transportServers)
+		ref.transport.gateways = new(transportGateways)
+
+		ref.transport.servers.http = new(transportServersHttp)
+		ref.transport.servers.grpc = new(transportServersGrpc)
+
+		// Сервера
+		{
+			if ref.transport.servers.http.restApi, err = http_rest_api.New(ref.Ctx()); err != nil {
+				return
+			}
+
+			if ref.transport.servers.grpc.projectsService, err = grpc_projects_srv.New(ref.Ctx()); err != nil {
+				return
+			}
+		}
+	}
+
+	// Регистрация задач приложения
 	{
 		// Дополнения ядра
 		{

@@ -7,6 +7,15 @@
 
 ---
 
+### v24.0.33:
+- [x] Доработки системы доступа через nginx auth module;
+- [x] Доработки [приложения](src/internal/app/box.go)
+- [x] Доработки [сервиса управления пользователями](src/internal/services/users/service.go)
+- [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+- [x] Доработки архитектуры базы данных;
+
+---
+
 ### v24.0.32:
 - [x] Доработки системы доступа через nginx auth module;
 - [x] Добавление кэширования в nginx;
