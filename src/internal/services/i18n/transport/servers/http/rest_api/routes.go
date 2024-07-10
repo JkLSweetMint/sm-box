@@ -3,6 +3,7 @@ package http_rest_api
 import (
 	"github.com/gofiber/fiber/v3"
 	error_list "sm-box/internal/common/errors"
+	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/i18n/objects/models"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -449,13 +450,33 @@ func (srv *server) registerRoutes() error {
 
 				// Обработка
 				{
-					var language = "zh-CN"
+					var (
+						tokenRaw = ctx.Cookies(srv.conf.Components.AccessSystem.CookieKeyForToken)
+						token    = new(authentication_entities.JwtToken)
+					)
+
+					// Получение токена
+					{
+						if err = token.Parse(tokenRaw); err != nil {
+							srv.components.Logger.Error().
+								Format("Failed to get token data: '%s'. ", err).
+								Field("raw", tokenRaw).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+								srv.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+							return
+						}
+					}
 
 					// Получение текстов
 					{
 						var cErr c_errors.RestAPI
 
-						if response.Dictionary, cErr = srv.controllers.Texts.AssembleDictionary(ctx.Context(), language, queryArgs.Paths); cErr != nil {
+						if response.Dictionary, cErr = srv.controllers.Texts.AssembleDictionary(ctx.Context(), token.Params.Language, queryArgs.Paths); cErr != nil {
 							srv.components.Logger.Error().
 								Format("The localization dictionary could not be assembled: '%s'. ", cErr).Write()
 

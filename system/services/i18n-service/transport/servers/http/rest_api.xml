@@ -28,6 +28,9 @@
 		<EnableIPValidation>false</EnableIPValidation>
 		<EnableSplittingOnParsers>false</EnableSplittingOnParsers>
 	</Server>
+	<Components>
+		<AccessSystem cookie_key_for_token="token"></AccessSystem>
+	</Components>
 	<Middlewares>
 		<Cors enable="true">
 			<AllowOrigins></AllowOrigins>

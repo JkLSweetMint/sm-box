@@ -5,13 +5,13 @@ import (
 	"errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	app_models "sm-box/internal/app/objects/models"
 	error_list "sm-box/internal/common/errors"
-	common_models "sm-box/internal/common/objects/models"
 	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
-	pb "sm-box/transport/proto/pb/golang/users-service"
+	pb "sm-box/transport/proto/pb/golang/app"
 )
 
 const (
@@ -89,7 +89,7 @@ func New(ctx context.Context) (gw *Gateway, err error) {
 
 // BasicAuth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (gw *Gateway) BasicAuth(ctx context.Context, username, password string) (user *common_models.UserInfo, cErr c_errors.Error) {
+func (gw *Gateway) BasicAuth(ctx context.Context, username, password string) (user *app_models.UserInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelGateway)
@@ -129,31 +129,31 @@ func (gw *Gateway) BasicAuth(ctx context.Context, username, password string) (us
 
 	// Преобразование в модель
 	{
-		user = &common_models.UserInfo{
+		user = &app_models.UserInfo{
 			ID:        types.ID(response.User.ID),
 			ProjectID: types.ID(response.User.ProjectID),
 
 			Email:    response.User.Email,
 			Username: response.User.Username,
 
-			Accesses: make(common_models.UserInfoAccesses, 0),
+			Accesses: make(app_models.UserInfoAccesses, 0),
 		}
 
-		var writeInheritance func(parent *common_models.RoleInfo, inheritances []*pb.Role)
+		var writeInheritance func(parent *app_models.RoleInfo, inheritances []*pb.Role)
 
-		writeInheritance = func(parent *common_models.RoleInfo, inheritances []*pb.Role) {
+		writeInheritance = func(parent *app_models.RoleInfo, inheritances []*pb.Role) {
 			for _, rl := range inheritances {
-				var child = &common_models.RoleInfo{
+				var child = &app_models.RoleInfo{
 					ID:        types.ID(rl.ID),
 					ProjectID: types.ID(rl.ProjectID),
 
 					Name:     rl.Name,
 					IsSystem: rl.IsSystem,
 
-					Inheritances: make(common_models.RoleInfoInheritances, 0),
+					Inheritances: make(app_models.RoleInfoInheritances, 0),
 				}
 
-				parent.Inheritances = append(parent.Inheritances, &common_models.RoleInfoInheritance{
+				parent.Inheritances = append(parent.Inheritances, &app_models.RoleInfoInheritance{
 					RoleInfo: child,
 				})
 
@@ -162,17 +162,17 @@ func (gw *Gateway) BasicAuth(ctx context.Context, username, password string) (us
 		}
 
 		for _, rl := range response.User.Accesses {
-			var parent = &common_models.RoleInfo{
+			var parent = &app_models.RoleInfo{
 				ID:        types.ID(rl.ID),
 				ProjectID: types.ID(rl.ProjectID),
 
 				Name:     rl.Name,
 				IsSystem: rl.IsSystem,
 
-				Inheritances: make(common_models.RoleInfoInheritances, 0),
+				Inheritances: make(app_models.RoleInfoInheritances, 0),
 			}
 
-			user.Accesses = append(user.Accesses, &common_models.UserInfoAccess{
+			user.Accesses = append(user.Accesses, &app_models.UserInfoAccess{
 				RoleInfo: parent,
 			})
 

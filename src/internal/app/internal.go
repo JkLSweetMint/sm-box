@@ -21,7 +21,7 @@ func (app *box) serve(ctx context.Context) (err error) {
 
 	// Транспортная часть
 	{
-		env.Synchronization.WaitGroup.Add(2)
+		env.Synchronization.WaitGroup.Add(3)
 
 		go func() {
 			defer env.Synchronization.WaitGroup.Done()
@@ -36,6 +36,15 @@ func (app *box) serve(ctx context.Context) (err error) {
 			defer env.Synchronization.WaitGroup.Done()
 
 			if err = app.Transport().Servers().Grpc().ProjectsService().Listen(); err != nil {
+				app.Components().Logger().Error().
+					Format("Failed to launch 'grpc server for projects service': '%s'. ", err).Write()
+			}
+		}()
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			if err = app.Transport().Servers().Grpc().AuthenticationService().Listen(); err != nil {
 				app.Components().Logger().Error().
 					Format("Failed to launch 'grpc server for projects service': '%s'. ", err).Write()
 			}
@@ -69,6 +78,11 @@ func (app *box) shutdown(ctx context.Context) (err error) {
 		}
 
 		if err = app.Transport().Servers().Grpc().ProjectsService().Shutdown(); err != nil {
+			app.Components().Logger().Error().
+				Format("grpc server for projects service': '%s'. ", err).Write()
+		}
+
+		if err = app.Transport().Servers().Grpc().AuthenticationService().Shutdown(); err != nil {
 			app.Components().Logger().Error().
 				Format("grpc server for projects service': '%s'. ", err).Write()
 		}

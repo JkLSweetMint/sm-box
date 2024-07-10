@@ -8,7 +8,26 @@ message Project {
   uint64 ID      = 1;
   uint64 OwnerID = 2;
 
-  uint64 Name        = 3;
-  uint64 Description = 4;
-  uint64 Version     = 5;
+  string Name        = 3;
+  string Description = 4;
+  string Version     = 5;
+}
+message User {
+  uint64 ID        = 1;
+  uint64 ProjectID = 2;
+
+  string Email    = 3;
+  string Username = 4;
+
+  repeated Role Accesses = 6;
+}
+
+message Role {
+  uint64 ID        = 1;
+  uint64 ProjectID = 2;
+
+  string Name     = 3;
+  bool   IsSystem = 4;
+
+  repeated Role Inheritances = 5;
 }

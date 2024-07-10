@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package grpc_service;
-
-option go_package = "./";
-
-message EmptyRequest {}
-
-message EmptyResponse {}

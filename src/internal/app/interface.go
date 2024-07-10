@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	grpc_authentication_srv "sm-box/internal/app/transport/servers/grpc/authentication_service"
 	grpc_projects_srv "sm-box/internal/app/transport/servers/grpc/projects_service"
 	http_rest_api "sm-box/internal/app/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
@@ -86,6 +87,10 @@ func New() (box_ Box, err error) {
 			}
 
 			if ref.transport.servers.grpc.projectsService, err = grpc_projects_srv.New(ref.Ctx()); err != nil {
+				return
+			}
+
+			if ref.transport.servers.grpc.authenticationService, err = grpc_authentication_srv.New(ref.Ctx()); err != nil {
 				return
 			}
 		}

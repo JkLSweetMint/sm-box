@@ -1,6 +1,6 @@
 <Config>
 	<Server addr="0.0.0.0:8080" location="/users" name="api" version="v1.0" domain="box.samgk.ru">
-		<ServerHeader>Users service</ServerHeader>
+		<ServerHeader>Box</ServerHeader>
 		<StrictRouting>true</StrictRouting>
 		<CaseSensitive>false</CaseSensitive>
 		<Immutable>false</Immutable>
@@ -19,7 +19,7 @@
 		<DisableDefaultDate>false</DisableDefaultDate>
 		<DisableDefaultContentType>false</DisableDefaultContentType>
 		<DisableHeaderNormalizing>false</DisableHeaderNormalizing>
-		<AppName>Users service</AppName>
+		<AppName>Box</AppName>
 		<StreamRequestBody>false</StreamRequestBody>
 		<DisablePreParseMultipartForm>false</DisablePreParseMultipartForm>
 		<ReduceMemoryUsage>false</ReduceMemoryUsage>

@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	app_models "sm-box/internal/app/objects/models"
 	error_list "sm-box/internal/common/errors"
-	common_models "sm-box/internal/common/objects/models"
+	"sm-box/internal/common/types"
 	authentication_repository "sm-box/internal/services/authentication/infrastructure/repositories/authentication"
 	"sm-box/internal/services/authentication/objects/entities"
 	authentication_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/authentication_service"
@@ -31,7 +32,7 @@ type UseCase struct {
 // gateways - шлюзы логики.
 type gateways struct {
 	Authentication interface {
-		BasicAuth(ctx context.Context, username, password string) (user *common_models.UserInfo, cErr c_errors.Error)
+		BasicAuth(ctx context.Context, username, password string) (user *app_models.UserInfo, cErr c_errors.Error)
 	}
 }
 
@@ -132,7 +133,7 @@ func (usecase *UseCase) BasicAuth(ctx context.Context, rawToken, username, passw
 		Field("password", password).Write()
 
 	var (
-		us  *common_models.UserInfo
+		us  *app_models.UserInfo
 		tok *entities.JwtToken
 	)
 
@@ -329,6 +330,80 @@ func (usecase *UseCase) BasicAuth(ctx context.Context, rawToken, username, passw
 	usecase.components.Logger.Info().
 		Text("The user's authorization has been successfully completed. ").
 		Field("username", username).Write()
+
+	return
+}
+
+// SetTokenProject - установить проект для токена.
+func (usecase *UseCase) SetTokenProject(ctx context.Context, rawToken string, projectID types.ID) (token *entities.JwtToken, cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelUseCase)
+
+		trc.FunctionCall(ctx, rawToken, projectID)
+		defer func() { trc.Error(cErr).FunctionCallFinished(token) }()
+	}
+
+	usecase.components.Logger.Info().
+		Text("The process of establishing a project for the token has been started... ").
+		Field("project_id", projectID).
+		Field("raw_token", rawToken).Write()
+
+	var tok = new(entities.JwtToken)
+
+	// Получение токена
+	{
+		if err := tok.Parse(rawToken); err != nil {
+			usecase.components.Logger.Error().
+				Format("Failed to get token data: '%s'. ", err).
+				Field("raw", rawToken).Write()
+
+			cErr = error_list.InternalServerError()
+			cErr.SetError(err)
+			return
+		}
+	}
+
+	// Создание нового токена
+	{
+		var err error
+
+		token = &entities.JwtToken{
+			ParentID:  tok.ID,
+			UserID:    tok.UserID,
+			ProjectID: projectID,
+
+			Params: tok.Params,
+		}
+
+		if err = token.Generate(); err != nil {
+			usecase.components.Logger.Error().
+				Format("User token generation failed: '%s'. ", err).Write()
+
+			cErr = error_list.InternalServerError()
+			cErr.SetError(err)
+
+			return
+		}
+
+		// Сохранение в базе
+		{
+			if err = usecase.repositories.Authentication.Register(ctx, token); err != nil {
+				usecase.components.Logger.Error().
+					Format("The client's token could not be registered in the database: '%s'. ", err).Write()
+
+				cErr = error_list.InternalServerError()
+				cErr.SetError(err)
+
+				return
+			}
+		}
+
+		usecase.components.Logger.Info().
+			Text("The process of establishing a project for the token has been completed. ").
+			Field("project_id", projectID).
+			Field("raw_token", rawToken).Write()
+	}
 
 	return
 }

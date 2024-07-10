@@ -1,8 +1,9 @@
 package app
 
 import (
+	grpc_authentication_srv "sm-box/internal/app/transport/servers/grpc/authentication_service"
 	grpc_projects_srv "sm-box/internal/app/transport/servers/grpc/projects_service"
-	http_rest_api "sm-box/internal/services/users/transport/servers/http/rest_api"
+	http_rest_api "sm-box/internal/app/transport/servers/http/rest_api"
 )
 
 // Transport - описание транспортной части приложения.
@@ -25,6 +26,7 @@ type TransportServersHttp interface {
 // TransportServersGrpc - описание серверов транспортной части приложения по grpc.
 type TransportServersGrpc interface {
 	ProjectsService() grpc_projects_srv.Server
+	AuthenticationService() grpc_authentication_srv.Server
 }
 
 // TransportGateways - описание шлюзов транспортной части приложения.
@@ -51,7 +53,8 @@ type transportServersHttp struct {
 
 // transportServersGrpc - сервера транспортной части приложения по grpc.
 type transportServersGrpc struct {
-	projectsService grpc_projects_srv.Server
+	projectsService       grpc_projects_srv.Server
+	authenticationService grpc_authentication_srv.Server
 }
 
 // transportsGateways - шлюзы транспортной части приложения.
@@ -86,4 +89,9 @@ func (t *transportServersHttp) RestApi() http_rest_api.Server {
 // ProjectsService - получение сервера для приложения проектов системы.
 func (t *transportServersGrpc) ProjectsService() grpc_projects_srv.Server {
 	return t.projectsService
+}
+
+// AuthenticationService - получение сервера для приложения проектов системы.
+func (t *transportServersGrpc) AuthenticationService() grpc_authentication_srv.Server {
+	return t.authenticationService
 }

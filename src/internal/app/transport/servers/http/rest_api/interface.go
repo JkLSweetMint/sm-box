@@ -2,7 +2,7 @@ package http_rest_api
 
 import (
 	"context"
-	"sm-box/internal/services/users/transport/servers/http/rest_api/config"
+	"sm-box/internal/app/transport/servers/http/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/http/postman"

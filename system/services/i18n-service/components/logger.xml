@@ -26,7 +26,7 @@
 		<Options time_format="2006-01-02T15:04:05Z07:00"></Options>
 	</Terminal>
 	<Files>
-		<File file_name="%s.log" path="/var/logs/services">
+		<File file_name="%s.log" path="/var/logs">
 			<Levels>
 				<Debug enable="true">
 					<Options encoder="raw" format="capital" enable_trace="true"></Options>
@@ -54,7 +54,7 @@
 				<Rotation enable="true" file_size="4GB"></Rotation>
 			</Options>
 		</File>
-		<File file_name="%s.debug.log" path="/var/logs/services">
+		<File file_name="%s.debug.log" path="/var/logs">
 			<Levels>
 				<Debug enable="true">
 					<Options encoder="raw" format="capital" enable_trace="true"></Options>
@@ -67,7 +67,7 @@
 				<Rotation enable="true" file_size="4GB"></Rotation>
 			</Options>
 		</File>
-		<File file_name="%s.error.log" path="/var/logs/services">
+		<File file_name="%s.error.log" path="/var/logs">
 			<Levels>
 				<Error enable="true">
 					<Options encoder="raw" format="capital" enable_trace="true"></Options>

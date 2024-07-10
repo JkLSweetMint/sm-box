@@ -139,7 +139,11 @@ func (repo *Repository) Register(ctx context.Context, tok *entities.JwtToken) (e
 						user_agent
 					) values (
 						$1,
-						$2,
+						case
+							when $2 != ''
+								then $2
+							else get_default_language()
+						end,
 						$3,
 						$4
 					)

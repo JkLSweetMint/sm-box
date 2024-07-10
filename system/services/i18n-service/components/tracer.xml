@@ -48,6 +48,10 @@
 		<Level>46</Level>
 		<Level>47</Level>
 		<Level>48</Level>
+		<Level>49</Level>
+		<Level>50</Level>
+		<Level>51</Level>
+		<Level>52</Level>
 	</Levels>
 	<Logger>
 		<Terminal>
@@ -62,7 +66,7 @@
 			<Options time_format="2006-01-02T15:04:05Z07:00"></Options>
 		</Terminal>
 		<Files>
-			<File file_name="%s.trace.log" path="/var/logs/services">
+			<File file_name="%s.trace.log" path="/var/logs">
 				<Levels>
 					<Info enable="true">
 						<Options encoder="raw" format="capital"></Options>

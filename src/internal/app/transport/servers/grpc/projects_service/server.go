@@ -4,8 +4,11 @@ import (
 	"context"
 	"google.golang.org/grpc"
 	"net"
+	"sm-box/internal/app/objects/models"
+	"sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
+	c_errors "sm-box/pkg/errors"
 	pb "sm-box/transport/proto/pb/golang/app"
 	"sync"
 	"time"
@@ -26,6 +29,9 @@ type server struct {
 
 // controllers - контроллеры сервера.
 type controllers struct {
+	Projects interface {
+		GetListByUser(ctx context.Context, userID types.ID) (list models.ProjectList, cErr c_errors.Error)
+	}
 }
 
 // components - компоненты сервера.

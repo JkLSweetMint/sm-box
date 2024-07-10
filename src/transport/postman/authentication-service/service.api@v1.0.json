@@ -188,6 +188,130 @@
                     "name": "Пример ответа при не корректном запросе. "
                 }
             ]
+        },
+        {
+            "name": "Получение списка проектов пользователя для выбора после авторизации. ",
+            "request": {
+                "url": {
+                    "raw": "",
+                    "protocol": "https",
+                    "host": [
+                        "box",
+                        "samgk",
+                        "ru"
+                    ],
+                    "path": [
+                        "",
+                        "authentication",
+                        "api",
+                        "v1.0",
+                        "projects",
+                        "select"
+                    ]
+                },
+                "method": "GET",
+                "description": "\nИспользуется для получение списка проектов пользователя для выбора после авторизации. \nПосле выбора проекта пользователю будут доступны методы управления проектом.\n",
+                "body": {
+                    "mode": "raw",
+                    "raw": "\n{\n   \"username\": \"\",\n   \"password\": \"\"\n}\n",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                }
+            },
+            "response": [
+                {
+                    "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                    "status": "Ǵ",
+                    "code": 500,
+                    "name": "Произошла внутренняя ошибка сервера. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"projects\": [\n            {\n                \"id\": 1,\n                \"name\": \"System\",\n                \"version\": \"\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"Test\",\n                \"version\": \"\"\n            },\n            {\n                \"id\": 3,\n                \"name\": \"Test 2\",\n                \"version\": \"v2.0\"\n            }\n        ]\n    }\n}\n",
+                    "status": "È",
+                    "code": 200,
+                    "name": "Пример успешного ответа. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"projects\": []\n    }\n}\n",
+                    "status": "È",
+                    "code": 200,
+                    "name": "Пример успешного ответа, но с отсутствием проектов. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 400,\n    \"code_message\": \"Bad Request\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"E-000007\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The project has already been selected, it is not possible to re-select it. \",\n        \"details\": {}\n    }\n}\n",
+                    "status": "Ɛ",
+                    "code": 400,
+                    "name": "Ошибка если проект уже выбран. "
+                }
+            ]
+        },
+        {
+            "name": "Выбрать проект пользователя для дальнейше работы после авторизации. ",
+            "request": {
+                "url": {
+                    "raw": "",
+                    "protocol": "https",
+                    "host": [
+                        "box",
+                        "samgk",
+                        "ru"
+                    ],
+                    "path": [
+                        "",
+                        "authentication",
+                        "api",
+                        "v1.0",
+                        "projects",
+                        "set"
+                    ]
+                },
+                "method": "POST",
+                "description": "",
+                "body": {
+                    "mode": "raw",
+                    "raw": "\n{\n   \"project_id\": 0\n}\n",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                }
+            },
+            "response": [
+                {
+                    "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                    "status": "Ǵ",
+                    "code": 500,
+                    "name": "Произошла внутренняя ошибка сервера. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {}\n}\n",
+                    "status": "È",
+                    "code": 200,
+                    "name": "Пример успешного ответа. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 400,\n    \"code_message\": \"Bad Request\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"E-000007\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The project has already been selected, it is not possible to re-select it. \",\n        \"details\": {}\n    }\n}\n",
+                    "status": "Ɛ",
+                    "code": 400,
+                    "name": "Ошибка если проект уже выбран. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 404,\n    \"code_message\": \"Not Found\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"E-000008\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The project was not found. \",\n        \"details\": {}\n    }\n}\n",
+                    "status": "Ɣ",
+                    "code": 404,
+                    "name": "Ошибка если проект не найден. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 400,\n    \"code_message\": \"Bad Request\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"E-000009\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"There is no access to the project. \",\n        \"details\": {}\n    }\n}\n",
+                    "status": "Ɛ",
+                    "code": 400,
+                    "name": "Ошибка если нет доступа к проекту. "
+                }
+            ]
         }
     ]
 }

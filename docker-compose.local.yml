@@ -24,7 +24,7 @@ services:
     image: box/app:latest
     container_name: app
     restart: unless-stopped
-    attach: false
+#    attach: false
     depends_on:
       - postgres
     networks:
@@ -39,9 +39,9 @@ services:
       - ./var/test:/home/app/var/test
 
   authentication-service:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.authentication-service
+    build:
+      context: .
+      dockerfile: Dockerfile.authentication-service
     image: box/authentication-service:latest
     container_name: authentication-service
     restart: unless-stopped
@@ -81,37 +81,15 @@ services:
       - ./var/logs:/home/app/var/logs
       - ./var/test:/home/app/var/test
 
-  users-service:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.users-service
-    image: box/users-service:latest
-    container_name: users-service
-    restart: unless-stopped
-#    attach: false
-    depends_on:
-      - postgres
-      - authentication-service
-    networks:
-      - system
-    volumes:
-      - ./etc:/home/app/etc
-      - ./src:/home/app/src
-      - ./system:/home/app/system
-      - ./var/data:/home/app/var/data
-      - ./var/lib:/home/app/var/lib
-      - ./var/logs:/home/app/var/logs
-      - ./var/test:/home/app/var/test
-
   nginx:
     image: nginx:1.27.0
     container_name: proxy
     restart: unless-stopped
-    attach: false
+#    attach: false
     depends_on:
       - app
       - i18n-service
-      - users-service
+      - authentication-service
     networks:
       - system
     volumes:

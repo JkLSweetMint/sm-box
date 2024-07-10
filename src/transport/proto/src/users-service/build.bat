@@ -1,1 +1,0 @@
-protoc ./src/transport/proto/src/users-service/*.proto  --go_out='F:/projects/SweetMint/sm-box/dev/box/src/transport/proto/pb/golang/users-service' --go-grpc_out='F:/projects/SweetMint/sm-box/dev/box/src/transport/proto/pb/golang/users-service'

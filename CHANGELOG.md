@@ -1,5 +1,13 @@
 # ChangeLog:
 
+### v24.0.34:
+- Доработки системы доступа через nginx auth module;
+- Доработки [приложения](src/internal/app/box.go)
+- Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+- Доработки архитектуры базы данных;
+
+---
+
 ### v24.0.33:
 - Доработки системы доступа через nginx auth module;
 - Доработки [приложения](src/internal/app/box.go)

@@ -550,55 +550,85 @@ values
     ('zh-CN', '中文', true);
 
 select
-    public.write_text('en-US', 'toasts.error.title', 'An error occured');
+    public.write_text('en-US', 'dashboard.toasts.error.title', 'An error occured');
 
 select
-    public.write_text('ru-RU', 'toasts.error.title', 'Произошла ошибка');
+    public.write_text('ru-RU', 'dashboard.toasts.error.title', 'Произошла ошибка');
 
 select
-    public.write_text('zh-CN', 'toasts.error.title', '发生错误');
+    public.write_text('zh-CN', 'dashboard.toasts.error.title', '发生错误');
 
 select
-    public.write_text('en-US', 'auth.form.title', 'Welcome to SM-Box'),
-    public.write_text('en-US', 'auth.form.description', 'Please, provide your authorization credentials to proceed. '),
-    public.write_text('en-US', 'auth.form.inputs.username.label', 'Username'),
-    public.write_text('en-US', 'auth.form.inputs.password.label', 'Password'),
-    public.write_text('en-US', 'auth.form.buttons.log_in.text', 'Log in'),
-    public.write_text('en-US', 'auth.form.errors.field_is_required', 'Field is required. '),
-    public.write_text('en-US', 'auth.form.errors.invalid_value', 'Invalid value. ');
+    public.write_text('en-US', 'dashboard.pages.auth.title', 'Welcome to SM-Box'),
+    public.write_text('en-US', 'dashboard.pages.auth.form.title', 'Welcome to SM-Box'),
+    public.write_text('en-US', 'dashboard.pages.auth.form.description', 'Please, provide your authorization credentials to proceed. '),
+    public.write_text('en-US', 'dashboard.pages.auth.form.inputs.username.label', 'Username'),
+    public.write_text('en-US', 'dashboard.pages.auth.form.inputs.password.label', 'Password'),
+    public.write_text('en-US', 'dashboard.pages.auth.form.buttons.log_in.text', 'Log in'),
+    public.write_text('en-US', 'dashboard.pages.auth.form.errors.field_is_required', 'Field is required. '),
+    public.write_text('en-US', 'dashboard.pages.auth.form.errors.invalid_value', 'Invalid value. ');
 
 select
-    public.write_text('ru-RU', 'auth.form.title', 'Добро пожаловать в SM-Box'),
-    public.write_text('ru-RU', 'auth.form.description', 'Пожалуйста, укажите свои учетные данные для авторизации, чтобы продолжить. '),
-    public.write_text('ru-RU', 'auth.form.inputs.username.label', 'Имя пользователя'),
-    public.write_text('ru-RU', 'auth.form.inputs.password.label', 'Пароль'),
-    public.write_text('ru-RU', 'auth.form.buttons.log_in.text', 'Войти'),
-    public.write_text('ru-RU', 'auth.form.errors.field_is_required', 'Это поле обязательное. '),
-    public.write_text('ru-RU', 'auth.form.errors.invalid_value', 'Недопустимое значение. ');
+    public.write_text('ru-RU', 'dashboard.pages.auth.title', 'Добро пожаловать в SM-Box'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.title', 'Добро пожаловать в SM-Box'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.description', 'Пожалуйста, укажите свои учетные данные для авторизации, чтобы продолжить. '),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.inputs.username.label', 'Имя пользователя'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.inputs.password.label', 'Пароль'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.buttons.log_in.text', 'Войти'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.errors.field_is_required', 'Это поле обязательное. '),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.errors.invalid_value', 'Недопустимое значение. ');
 
 select
-    public.write_text('zh-CN', 'auth.form.title', '欢迎来到SM-Box'),
-    public.write_text('zh-CN', 'auth.form.description', '请提供您的登录凭据继续。'),
-    public.write_text('zh-CN', 'auth.form.inputs.username.label', '用户名称'),
-    public.write_text('zh-CN', 'auth.form.inputs.password.label', '密码'),
-    public.write_text('zh-CN', 'auth.form.buttons.log_in.text', '进入'),
-    public.write_text('zh-CN', 'auth.form.errors.field_is_required', '这个字段是必需的。'),
-    public.write_text('zh-CN', 'auth.form.errors.invalid_value', '无效值。');
+    public.write_text('zh-CN', 'dashboard.pages.auth.title', '欢迎来到SM-Box'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.title', '欢迎来到SM-Box'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.description', '请提供您的登录凭据继续。'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.inputs.username.label', '用户名称'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.inputs.password.label', '密码'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.buttons.log_in.text', '进入'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.errors.field_is_required', '这个字段是必需的。'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.errors.invalid_value', '无效值。');
 
 select
-    public.write_text('en-US', 'auth.project-select.form.title', 'Select a project'),
-    public.write_text('en-US', 'auth.project-select.form.inputs.select.label', 'Search options...'),
-    public.write_text('en-US', 'auth.project-select.form.inputs.select.not_found', 'No result found.'),
-    public.write_text('en-US', 'auth.project-select.form.buttons.confirm.text', 'Confirm');
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.title', 'Select a project'),
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.title', 'Select a project'),
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.errors.field_is_required', 'Field is required. '),
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.inputs.select.label', 'Search options...'),
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.inputs.select.not_found', 'No result found.'),
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.buttons.confirm.text', 'Confirm'),
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.buttons.logout.text', 'Logout');
 
 select
-    public.write_text('ru-RU', 'auth.project-select.form.title', 'Выберите проект'),
-    public.write_text('ru-RU', 'auth.project-select.form.inputs.select.label', 'Параметры поиска...'),
-    public.write_text('ru-RU', 'auth.project-select.form.inputs.select.not_found', 'Ничего не найдено.'),
-    public.write_text('ru-RU', 'auth.project-select.form.buttons.confirm.text', 'Подтвердить');
+    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.title', 'Выберите проект'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.title', 'Выберите проект'),
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.errors.field_is_required', 'Это поле обязательное. '),
+    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.inputs.select.label', 'Параметры поиска...'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.inputs.select.not_found', 'Ничего не найдено.'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.buttons.confirm.text', 'Подтвердить'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.buttons.logout.text', 'Выйти');
 
 select
-    public.write_text('zh-CN', 'auth.project-select.form.title', '选择项目'),
-    public.write_text('zh-CN', 'auth.project-select.form.inputs.select.label', '搜索选项。'),
-    public.write_text('zh-CN', 'auth.project-select.form.inputs.select.not_found', '什么也没找到。'),
-    public.write_text('zh-CN', 'auth.project-select.form.buttons.confirm.text', '确认');
+    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.title', '选择项目'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.title', '选择项目'),
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.errors.field_is_required', '这个字段是必需的 '),
+    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.inputs.select.label', '搜索选项。'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.inputs.select.not_found', '什么也没找到。'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.buttons.confirm.text', '确认'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.buttons.logout.text', '登出');
+
+select
+    public.write_text('en-US', 'dashboard.pages.errors.403.title', 'Forbidden!'),
+    public.write_text('en-US', 'dashboard.pages.errors.403.description', 'Access to the requested resource is prohibited!'),
+    public.write_text('en-US', 'dashboard.pages.errors.50x.title', 'Something went wrong!'),
+    public.write_text('en-US', 'dashboard.pages.errors.50x.description', 'Please referesh the page or try again later!');
+
+select
+    public.write_text('ru-RU', 'dashboard.pages.errors.403.title', 'Нет доступа!'),
+    public.write_text('ru-RU', 'dashboard.pages.errors.403.description', 'Доступ к запрашиваемому ресурсу запрещен!'),
+    public.write_text('ru-RU', 'dashboard.pages.errors.50x.title', 'Что-то пошло не так!'),
+    public.write_text('ru-RU', 'dashboard.pages.errors.50x.description', 'Пожалуйста, обновите страницу или повторите попытку позже!');
+
+select
+    public.write_text('zh-CN', 'dashboard.pages.errors.403.title', '禁止！'),
+    public.write_text('zh-CN', 'dashboard.pages.errors.403.description', '禁止访问请求的资源！'),
+    public.write_text('zh-CN', 'dashboard.pages.errors.50x.title', '出了点问题！'),
+    public.write_text('zh-CN', 'dashboard.pages.errors.50x.description', '请刷新页面或稍后重试!');

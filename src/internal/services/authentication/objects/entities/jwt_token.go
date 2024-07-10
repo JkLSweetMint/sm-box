@@ -2,7 +2,7 @@ package entities
 
 import (
 	"github.com/golang-jwt/jwt/v5"
-	common_models "sm-box/internal/common/objects/models"
+	app_models "sm-box/internal/app/objects/models"
 	"sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/db_models"
 	"sm-box/internal/services/authentication/objects/models"
@@ -41,7 +41,7 @@ type (
 		jwt.RegisteredClaims
 
 		Token *JwtToken
-		User  *common_models.UserInfo
+		User  *app_models.UserInfo
 	}
 )
 
@@ -226,10 +226,6 @@ func (entity *JwtTokenParams) FillEmptyFields() *JwtTokenParams {
 
 		trc.FunctionCall()
 		defer func() { trc.FunctionCallFinished(entity) }()
-	}
-
-	if entity.Language == "" {
-		entity.Language = "en-US"
 	}
 
 	return entity
