@@ -1,7 +1,12 @@
 package errors
 
 import (
+	"errors"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	grpc_codes "google.golang.org/grpc/codes"
+	grpc_status "google.golang.org/grpc/status"
+	"sm-box/pkg/errors/entities/details"
+	"sm-box/pkg/errors/entities/messages"
 	"sm-box/pkg/errors/helpers"
 	"sm-box/pkg/errors/types"
 )
@@ -44,3 +49,62 @@ type (
 		StatusCode() (c grpc_codes.Code)
 	}
 )
+
+// ParseGrpc - парсинг grpc ошибки.
+func ParseGrpc(st *grpc_status.Status) (cErr Grpc) {
+	var constructor = &Constructor[Grpc]{
+		ID: "",
+
+		Type:   0,
+		Status: 0,
+
+		Err:     nil,
+		Message: new(messages.TextMessage).Text(st.Message()),
+		Details: new(details.Details),
+
+		addons: &constructorAddons{
+			Grpc: &GrpcConstructor{
+				StatusCode: st.Code(),
+			},
+		},
+	}
+
+	// Парсинг.
+	{
+		for _, v := range st.Details() {
+			switch info := v.(type) {
+			case *errdetails.ErrorInfo:
+				{
+					if info.Reason != st.Message() {
+						constructor.Err = errors.New(info.Reason)
+					}
+
+					for k, v := range info.Metadata {
+						switch k {
+						case "id":
+							constructor.ID = types.ID(v)
+						case "type":
+							constructor.Type = types.ParseErrorType(v)
+						case "status":
+							constructor.Status = types.ParseStatus(v)
+						default:
+							constructor.Details.Set(k, v)
+						}
+					}
+				}
+			case *errdetails.BadRequest:
+				{
+					for _, field := range info.FieldViolations {
+						constructor.Details.SetField(
+							new(details.FieldKey).Add(field.Field),
+							new(messages.TextMessage).Text(field.Description),
+						)
+					}
+				}
+			}
+		}
+	}
+
+	cErr = constructor.Build()()
+	return
+}

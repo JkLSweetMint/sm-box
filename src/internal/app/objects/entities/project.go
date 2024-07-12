@@ -9,8 +9,7 @@ import (
 type (
 	// Project - проект.
 	Project struct {
-		ID      types.ID
-		OwnerID types.ID
+		ID types.ID
 
 		Name        string
 		Description string
@@ -64,8 +63,7 @@ func (entity *Project) ToModel() (model *models.ProjectInfo) {
 	}
 
 	model = &models.ProjectInfo{
-		ID:      entity.ID,
-		OwnerID: entity.OwnerID,
+		ID: entity.ID,
 
 		Name:        entity.Name,
 		Description: entity.Description,

@@ -5,13 +5,14 @@ import (
 	"errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	app_models "sm-box/internal/app/objects/models"
+	"google.golang.org/grpc/status"
 	error_list "sm-box/internal/common/errors"
 	"sm-box/internal/common/types"
+	users_models "sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
-	pb "sm-box/transport/proto/pb/golang/app"
+	pb "sm-box/transport/proto/pb/golang/users-service"
 )
 
 const (
@@ -89,7 +90,7 @@ func New(ctx context.Context) (gw *Gateway, err error) {
 
 // BasicAuth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (gw *Gateway) BasicAuth(ctx context.Context, username, password string) (user *app_models.UserInfo, cErr c_errors.Error) {
+func (gw *Gateway) BasicAuth(ctx context.Context, username, password string) (user *users_models.UserInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelGateway)
@@ -111,49 +112,50 @@ func (gw *Gateway) BasicAuth(ctx context.Context, username, password string) (us
 		gw.components.Logger.Error().
 			Format("Authorization failed on the remote service: '%s'. ", err).Write()
 
-		cErr = error_list.UserCouldNotBeAuthorizedOnRemoteService()
-		cErr.SetError(err)
+		cErr = c_errors.ToError(c_errors.ParseGrpc(status.Convert(err)))
 
 		return
 	}
 
-	if response == nil || response.User == nil {
-		gw.components.Logger.Error().
-			Format("Authorization failed on the remote service: '%s'. ", err).Write()
+	// Проверки ответа
+	{
+		if response == nil || response.User == nil {
+			gw.components.Logger.Error().
+				Text("Authorization failed on the remote service. ").Write()
 
-		cErr = error_list.UserCouldNotBeAuthorizedOnRemoteService()
-		cErr.SetError(errors.New("User instance is nil. "))
+			cErr = error_list.InternalServerError()
+			cErr.SetError(errors.New("User instance is nil. "))
 
-		return
+			return
+		}
 	}
 
 	// Преобразование в модель
 	{
-		user = &app_models.UserInfo{
-			ID:        types.ID(response.User.ID),
-			ProjectID: types.ID(response.User.ProjectID),
+		user = &users_models.UserInfo{
+			ID: types.ID(response.User.ID),
 
 			Email:    response.User.Email,
 			Username: response.User.Username,
 
-			Accesses: make(app_models.UserInfoAccesses, 0),
+			Accesses: make(users_models.UserInfoAccesses, 0),
 		}
 
-		var writeInheritance func(parent *app_models.RoleInfo, inheritances []*pb.Role)
+		var writeInheritance func(parent *users_models.RoleInfo, inheritances []*pb.Role)
 
-		writeInheritance = func(parent *app_models.RoleInfo, inheritances []*pb.Role) {
+		writeInheritance = func(parent *users_models.RoleInfo, inheritances []*pb.Role) {
 			for _, rl := range inheritances {
-				var child = &app_models.RoleInfo{
+				var child = &users_models.RoleInfo{
 					ID:        types.ID(rl.ID),
 					ProjectID: types.ID(rl.ProjectID),
 
 					Name:     rl.Name,
 					IsSystem: rl.IsSystem,
 
-					Inheritances: make(app_models.RoleInfoInheritances, 0),
+					Inheritances: make(users_models.RoleInfoInheritances, 0),
 				}
 
-				parent.Inheritances = append(parent.Inheritances, &app_models.RoleInfoInheritance{
+				parent.Inheritances = append(parent.Inheritances, &users_models.RoleInfoInheritance{
 					RoleInfo: child,
 				})
 
@@ -162,17 +164,17 @@ func (gw *Gateway) BasicAuth(ctx context.Context, username, password string) (us
 		}
 
 		for _, rl := range response.User.Accesses {
-			var parent = &app_models.RoleInfo{
+			var parent = &users_models.RoleInfo{
 				ID:        types.ID(rl.ID),
 				ProjectID: types.ID(rl.ProjectID),
 
 				Name:     rl.Name,
 				IsSystem: rl.IsSystem,
 
-				Inheritances: make(app_models.RoleInfoInheritances, 0),
+				Inheritances: make(users_models.RoleInfoInheritances, 0),
 			}
 
-			user.Accesses = append(user.Accesses, &app_models.UserInfoAccess{
+			user.Accesses = append(user.Accesses, &users_models.UserInfoAccess{
 				RoleInfo: parent,
 			})
 

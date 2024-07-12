@@ -8,6 +8,15 @@
  
 ---
 
+### v24.0.36:
+- [x] Доработки [приложения](src/internal/app/box.go)
+- [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+- [x] Разработка [сервиса пользователей](src/internal/services/users/service.go);
+- [x] Доработки взаимодействия сервисов через grpc;
+- [x] Доработки системы ошибок;
+
+---
+
 ### v24.0.35:
 - [x] Доработки [приложения](src/internal/app/box.go)
 - [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);

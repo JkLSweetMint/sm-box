@@ -11,8 +11,6 @@ import (
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
-	err_details "sm-box/pkg/errors/entities/details"
-	err_messages "sm-box/pkg/errors/entities/messages"
 )
 
 const (
@@ -31,8 +29,8 @@ type UseCase struct {
 // repositories - репозитории логики.
 type repositories struct {
 	Projects interface {
-		GetListByUser(ctx context.Context, userID types.ID) (list entities.ProjectList, err error)
-		Get(ctx context.Context, id types.ID) (project *entities.Project, err error)
+		Get(ctx context.Context, ids []types.ID) (list entities.ProjectList, err error)
+		GetOne(ctx context.Context, id types.ID) (project *entities.Project, err error)
 	}
 }
 
@@ -95,70 +93,50 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 	return
 }
 
-// GetListByUser - получение списка проектов пользователя.
-func (usecase *UseCase) GetListByUser(ctx context.Context, userID types.ID) (list entities.ProjectList, cErr c_errors.Error) {
+// Get - получение проектов по ID.
+func (usecase *UseCase) Get(ctx context.Context, ids ...types.ID) (list entities.ProjectList, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
 
-		trc.FunctionCall(ctx, userID)
+		trc.FunctionCall(ctx, ids)
 		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
 	}
 
 	usecase.components.Logger.Info().
-		Text("The list of user's projects has been started... ").
-		Field("user_id", userID).Write()
+		Text("The process of obtaining information about projects has been launched.... ").
+		Field("ids", ids).Write()
 
-	// Валидация
+	// Получение данных пользователя
 	{
-		// ID пользователя
-		{
-			if userID == 0 {
-				if cErr == nil {
-					cErr = error_list.InvalidDataWasTransmitted()
-				}
+		if len(ids) > 0 {
+			var err error
 
-				cErr.Details().SetField(
-					new(err_details.FieldKey).Add("user_id"),
-					new(err_messages.TextMessage).Text("Zero value. "),
-				)
-			}
-
-			if cErr != nil {
+			if list, err = usecase.repositories.Projects.Get(ctx, ids); err != nil {
 				usecase.components.Logger.Error().
-					Text("Invalid data was transmitted to receive projects. ").
-					Field("user_id", userID).Write()
+					Format("Projects data could not be retrieved: '%s'. ", err).
+					Field("ids", ids).Write()
 
+				cErr = error_list.InternalServerError()
+				cErr.SetError(err)
 				return
 			}
-		}
-	}
 
-	// Получение проектов
-	{
-		var err error
-
-		if list, err = usecase.repositories.Projects.GetListByUser(ctx, userID); err != nil {
-			usecase.components.Logger.Error().
-				Format("The list of user's projects could not be retrieved: '%s'. ", err).
-				Field("user_id", userID).Write()
-
-			cErr = error_list.ListUserProjectsCouldNotBeRetrieved()
-			cErr.SetError(err)
-			return
+			usecase.components.Logger.Info().
+				Text("The projects data has been successfully received. ").
+				Field("list", list).Write()
 		}
 	}
 
 	usecase.components.Logger.Info().
-		Format("Getting the list of the user's projects has been completed successfully. The user has access to '%d' projects. ", len(list)).
-		Field("user_id", userID).
-		Field("projects", list).Write()
+		Text("Obtaining projectы information is completed. ").
+		Field("ids", ids).Write()
 
 	return
 }
 
-// Get - получение проекта.
-func (usecase *UseCase) Get(ctx context.Context, id types.ID) (project *entities.Project, cErr c_errors.Error) {
+// GetOne - получение проекта по ID.
+func (usecase *UseCase) GetOne(ctx context.Context, id types.ID) (project *entities.Project, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
@@ -168,41 +146,18 @@ func (usecase *UseCase) Get(ctx context.Context, id types.ID) (project *entities
 	}
 
 	usecase.components.Logger.Info().
-		Text("Project receipt started... ").
+		Text("The process of obtaining information about project has been launched.... ").
 		Field("id", id).Write()
 
-	// Валидация
-	{
-		// ID
-		{
-			if id == 0 {
-				if cErr == nil {
-					cErr = error_list.InvalidDataWasTransmitted()
-				}
-
-				cErr.Details().SetField(
-					new(err_details.FieldKey).Add("id"),
-					new(err_messages.TextMessage).Text("Zero value. "),
-				)
-			}
-
-			if cErr != nil {
-				usecase.components.Logger.Error().
-					Text("Invalid data was transmitted to receive projects. ").
-					Field("id", id).Write()
-
-				return
-			}
-		}
-	}
-
-	// Получение
+	// Получение данных пользователя
 	{
 		var err error
 
-		if project, err = usecase.repositories.Projects.Get(ctx, id); err != nil {
+		if project, err = usecase.repositories.Projects.GetOne(ctx, id); err != nil {
+			project = nil
+
 			usecase.components.Logger.Error().
-				Format("Failed to get the project: '%s'. ", err).
+				Format("Project data could not be retrieved: '%s'. ", err).
 				Field("id", id).Write()
 
 			if errors.Is(err, sql.ErrNoRows) {
@@ -215,11 +170,15 @@ func (usecase *UseCase) Get(ctx context.Context, id types.ID) (project *entities
 			cErr.SetError(err)
 			return
 		}
+
+		usecase.components.Logger.Info().
+			Text("The project data has been successfully received. ").
+			Field("project", project).Write()
 	}
 
 	usecase.components.Logger.Info().
-		Text("The project was successfully received. ").
-		Field("project", project).Write()
+		Text("Obtaining project information is completed. ").
+		Field("id", id).Write()
 
 	return
 }

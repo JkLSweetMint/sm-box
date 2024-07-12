@@ -40,15 +40,6 @@ func (app *box) serve(ctx context.Context) (err error) {
 					Format("Failed to launch 'grpc server for projects service': '%s'. ", err).Write()
 			}
 		}()
-
-		go func() {
-			defer env.Synchronization.WaitGroup.Done()
-
-			if err = app.Transport().Servers().Grpc().AuthenticationService().Listen(); err != nil {
-				app.Components().Logger().Error().
-					Format("Failed to launch 'grpc server for projects service': '%s'. ", err).Write()
-			}
-		}()
 	}
 
 	app.Components().Logger().Info().
@@ -78,11 +69,6 @@ func (app *box) shutdown(ctx context.Context) (err error) {
 		}
 
 		if err = app.Transport().Servers().Grpc().ProjectsService().Shutdown(); err != nil {
-			app.Components().Logger().Error().
-				Format("grpc server for projects service': '%s'. ", err).Write()
-		}
-
-		if err = app.Transport().Servers().Grpc().AuthenticationService().Shutdown(); err != nil {
 			app.Components().Logger().Error().
 				Format("grpc server for projects service': '%s'. ", err).Write()
 		}

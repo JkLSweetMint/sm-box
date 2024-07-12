@@ -2,10 +2,10 @@ package entities
 
 import (
 	"github.com/golang-jwt/jwt/v5"
-	app_models "sm-box/internal/app/objects/models"
 	"sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/db_models"
 	"sm-box/internal/services/authentication/objects/models"
+	users_models "sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	"time"
@@ -41,7 +41,7 @@ type (
 		jwt.RegisteredClaims
 
 		Token *JwtToken
-		User  *app_models.UserInfo
+		User  *users_models.UserInfo
 	}
 )
 

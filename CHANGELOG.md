@@ -1,5 +1,14 @@
 # ChangeLog:
 
+### v24.0.36:
+- Доработки [приложения](src/internal/app/box.go)
+- Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+- Разработка [сервиса пользователей](src/internal/services/users/service.go);
+- Доработки взаимодействия сервисов через grpc;
+- Доработки системы ошибок;
+
+---
+
 ### v24.0.35:
 - Доработки [приложения](src/internal/app/box.go)
 - Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package grpc_service;
+
+option go_package = "./";
+
+import "src/transport/proto/src/users-service/models.proto";
+
+message UsersGetRequest {
+  repeated uint64 IDs = 1;
+}
+
+message UsersGetResponse {
+  repeated User List = 1;
+}
+
+message UsersGetOneRequest {
+  uint64 ID = 1;
+}
+
+message UsersGetOneResponse {
+  User User = 1;
+}
+
+service Users {
+  rpc Get(UsersGetRequest) returns (UsersGetResponse);
+  rpc GetOne(UsersGetOneRequest) returns (UsersGetOneResponse);
+}

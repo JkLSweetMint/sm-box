@@ -2,8 +2,10 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	grpc_codes "google.golang.org/grpc/codes"
+	"reflect"
 	"sm-box/pkg/errors/types"
 )
 
@@ -126,6 +128,18 @@ func (i *Internal) String() (s string) {
 	}
 
 	s = fmt.Sprintf("%s: '%s'. ", i.Store.Message.String(), i.Store.Err.Error())
+	return
+}
+
+// Is - сообщает, соответствует ли какая-либо ошибка в дереве ошибок цели.
+func (i *Internal) Is(target error) (ok bool) {
+	var err = i.Store.Err
+
+	if err == nil {
+		err = errors.New(i.Store.Message.String())
+	}
+
+	ok = reflect.DeepEqual(err, target)
 	return
 }
 

@@ -3,6 +3,7 @@ package service
 import (
 	authentication_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/authentication_service"
 	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
+	users_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/users_service"
 	http_rest_api "sm-box/internal/services/authentication/transport/servers/http/rest_api"
 )
 
@@ -26,6 +27,7 @@ type TransportServersHttp interface {
 type TransportGateways interface {
 	AuthenticationService() *authentication_service_gateway.Gateway
 	ProjectService() *projects_service_gateway.Gateway
+	UsersService() *users_service_gateway.Gateway
 }
 
 // --------- internal ---------
@@ -50,6 +52,7 @@ type transportServersHttp struct {
 type transportGateways struct {
 	authenticationService *authentication_service_gateway.Gateway
 	projectService        *projects_service_gateway.Gateway
+	usersService          *users_service_gateway.Gateway
 }
 
 // Servers - получение серверов транспортной части сервиса.
@@ -80,4 +83,9 @@ func (t *transportGateways) AuthenticationService() *authentication_service_gate
 // ProjectService - получение шлюза транспортной части сервиса.
 func (t *transportGateways) ProjectService() *projects_service_gateway.Gateway {
 	return t.projectService
+}
+
+// UsersService - получение шлюза транспортной части сервиса.
+func (t *transportGateways) UsersService() *users_service_gateway.Gateway {
+	return t.usersService
 }

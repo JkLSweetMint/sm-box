@@ -19,8 +19,8 @@ type Adapter_Grpc struct {
 	components *components
 
 	controller interface {
-		GetListByUser(ctx context.Context, userID types.ID) (list models.ProjectList, cErr c_errors.Error)
-		Get(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Error)
+		Get(ctx context.Context, ids ...types.ID) (list models.ProjectList, cErr c_errors.Error)
+		GetOne(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -70,19 +70,19 @@ func New_Grpc(ctx context.Context) (adapter *Adapter_Grpc, err error) {
 	return
 }
 
-// GetListByUser - получение списка проектов пользователя.
-func (adapter *Adapter_Grpc) GetListByUser(ctx context.Context, userID types.ID) (list models.ProjectList, cErr c_errors.Grpc) {
+// Get - получение проектов по ID.
+func (adapter *Adapter_Grpc) Get(ctx context.Context, ids ...types.ID) (list models.ProjectList, cErr c_errors.Grpc) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, userID)
+		trc.FunctionCall(ctx, ids)
 		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if list, proxyErr = adapter.controller.GetListByUser(ctx, userID); proxyErr != nil {
+	if list, proxyErr = adapter.controller.Get(ctx, ids...); proxyErr != nil {
 		cErr = c_errors.ToGrpc(proxyErr)
 
 		adapter.components.Logger.Error().
@@ -93,8 +93,8 @@ func (adapter *Adapter_Grpc) GetListByUser(ctx context.Context, userID types.ID)
 	return
 }
 
-// Get - получение проекта.
-func (adapter *Adapter_Grpc) Get(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Grpc) {
+// GetOne - получение проекта по ID.
+func (adapter *Adapter_Grpc) GetOne(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Grpc) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
@@ -105,7 +105,7 @@ func (adapter *Adapter_Grpc) Get(ctx context.Context, id types.ID) (project *mod
 
 	var proxyErr c_errors.Error
 
-	if project, proxyErr = adapter.controller.Get(ctx, id); proxyErr != nil {
+	if project, proxyErr = adapter.controller.GetOne(ctx, id); proxyErr != nil {
 		cErr = c_errors.ToGrpc(proxyErr)
 
 		adapter.components.Logger.Error().

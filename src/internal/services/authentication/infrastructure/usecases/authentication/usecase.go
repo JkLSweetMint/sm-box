@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	app_entities "sm-box/internal/app/objects/entities"
 	app_models "sm-box/internal/app/objects/models"
 	error_list "sm-box/internal/common/errors"
@@ -13,6 +12,8 @@ import (
 	"sm-box/internal/services/authentication/objects/entities"
 	authentication_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/authentication_service"
 	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
+	users_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/users_service"
+	users_models "sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -37,11 +38,15 @@ type UseCase struct {
 // gateways - шлюзы логики.
 type gateways struct {
 	Authentication interface {
-		BasicAuth(ctx context.Context, username, password string) (user *app_models.UserInfo, cErr c_errors.Error)
+		BasicAuth(ctx context.Context, username, password string) (user *users_models.UserInfo, cErr c_errors.Error)
 	}
 	Projects interface {
-		GetListByUser(ctx context.Context, userID types.ID) (list app_models.ProjectList, cErr c_errors.Error)
-		Get(ctx context.Context, id types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error)
+		Get(ctx context.Context, ids ...types.ID) (list app_models.ProjectList, cErr c_errors.Error)
+		GetOne(ctx context.Context, id types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error)
+	}
+	Users interface {
+		Get(ctx context.Context, ids ...types.ID) (list []*users_models.UserInfo, cErr c_errors.Error)
+		GetOne(ctx context.Context, id types.ID) (project *users_models.UserInfo, cErr c_errors.Error)
 	}
 }
 
@@ -110,6 +115,13 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 				return
 			}
 		}
+
+		// Users
+		{
+			if usecase.gateways.Users, err = users_service_gateway.New(ctx); err != nil {
+				return
+			}
+		}
 	}
 
 	// Репозитории
@@ -149,7 +161,7 @@ func (usecase *UseCase) BasicAuth(ctx context.Context, rawToken, username, passw
 		Field("password", password).Write()
 
 	var (
-		us  *app_models.UserInfo
+		us  *users_models.UserInfo
 		tok *entities.JwtToken
 	)
 
@@ -290,24 +302,20 @@ func (usecase *UseCase) BasicAuth(ctx context.Context, rawToken, username, passw
 
 	// Получение данных пользователя
 	{
-		var err error
-
-		if us, err = usecase.gateways.Authentication.BasicAuth(ctx, username, password); err != nil {
+		if us, cErr = usecase.gateways.Authentication.BasicAuth(ctx, username, password); cErr != nil {
 			us = nil
 
 			usecase.components.Logger.Error().
-				Format("User authorization error: '%s'. ", err).
+				Format("User authorization error: '%s'. ", cErr).
 				Field("username", username).
 				Field("password", password).Write()
 
-			if errors.Is(err, sql.ErrNoRows) {
+			if errors.Is(cErr, sql.ErrNoRows) {
 				cErr = error_list.UserNotFound()
-				cErr.SetError(err)
 				return
 			}
 
 			cErr = error_list.InternalServerError()
-			cErr.SetError(err)
 			return
 		}
 
@@ -432,17 +440,55 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawToken string)
 	// Получение
 	{
 		var (
-			err      error
-			projects app_models.ProjectList
+			user *users_models.UserInfo
+			ids  = make([]types.ID, 0)
 		)
 
-		if projects, err = usecase.gateways.Projects.GetListByUser(ctx, tok.UserID); err != nil {
+		// Данные пользователя
+		{
+			if user, cErr = usecase.gateways.Users.GetOne(ctx, tok.UserID); cErr != nil {
+				usecase.components.Logger.Error().
+					Format("User data could not be retrieved: '%s'. ", cErr).
+					Field("user_id", tok.UserID).Write()
+
+				cErr = error_list.InternalServerError()
+				return
+			}
+		}
+
+		// Список id проектов
+		{
+			var ids_ = make(map[types.ID]struct{})
+
+			var writeInheritance func(rl *users_models.RoleInfo)
+
+			writeInheritance = func(rl *users_models.RoleInfo) {
+				if id := rl.ProjectID; id != 0 {
+					ids_[id] = struct{}{}
+				}
+
+				for _, child := range rl.Inheritances {
+					writeInheritance(child.RoleInfo)
+				}
+			}
+
+			for _, rl := range user.Accesses {
+				writeInheritance(rl.RoleInfo)
+			}
+
+			for k, _ := range ids_ {
+				ids = append(ids, k)
+			}
+		}
+
+		var projects app_models.ProjectList
+
+		if projects, cErr = usecase.gateways.Projects.Get(ctx, ids...); cErr != nil {
 			usecase.components.Logger.Error().
-				Format("The list of user's projects could not be retrieved: '%s'. ", err).
+				Format("The list of user's projects could not be retrieved: '%s'. ", cErr).
 				Field("user_id", tok.UserID).Write()
 
 			cErr = error_list.InternalServerError()
-			cErr.SetError(err)
 			return
 		}
 
@@ -450,8 +496,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawToken string)
 
 		for _, project := range projects {
 			list = append(list, &app_entities.Project{
-				ID:      project.ID,
-				OwnerID: project.OwnerID,
+				ID: project.ID,
 
 				Name:        project.Name,
 				Description: project.Description,
@@ -551,6 +596,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawToken string, pr
 				usecase.components.Logger.Error().
 					Text("The project has already been selected, it is not possible to re-select it. ").
 					Field("token_id", tok.ID).
+					Field("current_project_id", tok.ProjectID).
 					Field("project_id", projectID).Write()
 
 				cErr = error_list.ProjectHasAlreadyBeenSelected()
@@ -561,27 +607,77 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawToken string, pr
 		// Существования проекта и доступа пользователя к нему
 		{
 			var (
+				user    *users_models.UserInfo
 				project *app_models.ProjectInfo
-				err     error
 			)
 
-			if project, err = usecase.gateways.Projects.Get(ctx, projectID); err != nil {
-				usecase.components.Logger.Error().
-					Format("Failed to get the project: '%s'. ", err).
-					Field("id", projectID).Write()
+			// Получение данных пользователя
+			{
+				if user, cErr = usecase.gateways.Users.GetOne(ctx, tok.UserID); cErr != nil {
+					usecase.components.Logger.Error().
+						Format("Failed to get the user data: '%s'. ", cErr).
+						Field("id", projectID).Write()
 
-				if errors.Is(err, sql.ErrNoRows) {
-					cErr = error_list.ProjectNotFound()
-					cErr.SetError(err)
+					if errors.Is(cErr, sql.ErrNoRows) {
+						cErr = error_list.UserNotFound()
+						return
+					}
+
+					cErr = error_list.InternalServerError()
 					return
 				}
-
-				cErr = error_list.InternalServerError()
-				cErr.SetError(err)
-				return
 			}
 
-			fmt.Printf("%+v\n", project)
+			// Получение данных проекта
+			{
+				if project, cErr = usecase.gateways.Projects.GetOne(ctx, projectID); cErr != nil {
+					usecase.components.Logger.Error().
+						Format("Failed to get the project: '%s'. ", cErr).
+						Field("id", projectID).Write()
+
+					if errors.Is(cErr, sql.ErrNoRows) {
+						cErr = error_list.ProjectNotFound()
+						return
+					}
+
+					cErr = error_list.InternalServerError()
+					return
+				}
+			}
+
+			// Проверка доступа
+			{
+				var ids = make(map[types.ID]struct{})
+
+				// Список id проектов
+				{
+					var writeInheritance func(rl *users_models.RoleInfo)
+
+					writeInheritance = func(rl *users_models.RoleInfo) {
+						if id := rl.ProjectID; id != 0 {
+							ids[id] = struct{}{}
+						}
+
+						for _, child := range rl.Inheritances {
+							writeInheritance(child.RoleInfo)
+						}
+					}
+
+					for _, rl := range user.Accesses {
+						writeInheritance(rl.RoleInfo)
+					}
+				}
+
+				if _, ok := ids[project.ID]; !ok {
+					usecase.components.Logger.Error().
+						Format("The user does not have access to the project: '%s'. ", cErr).
+						Field("project_id", project.ID).
+						Field("user_id", user.ID).Write()
+
+					cErr = error_list.NotAccessToProject()
+					return
+				}
+			}
 		}
 	}
 

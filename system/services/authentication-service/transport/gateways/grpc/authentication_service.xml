@@ -1,1 +1,1 @@
-<Config addr="app:8082"></Config>
+<Config addr="users-service:8081"></Config>

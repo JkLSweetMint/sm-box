@@ -46,3 +46,57 @@ var (
 		StatusCode: grpc_codes.Internal,
 	}).Build()
 )
+
+// I-000002
+var (
+	BadGateway = c_errors.Constructor[c_errors.Error]{
+		ID:     "I-000002",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("Bad Gateway. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusBadGateway,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseInternalServerErr,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Internal,
+	}).Build()
+)
+
+// I-000003
+var (
+	ServiceUnavailable = c_errors.Constructor[c_errors.Error]{
+		ID:     "I-000003",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("Service unavailable. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusServiceUnavailable,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseInternalServerErr,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Internal,
+	}).Build()
+)
+
+// I-000004
+var (
+	GatewayTimeout = c_errors.Constructor[c_errors.Error]{
+		ID:     "I-000004",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("Gateway timeout. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusGatewayTimeout,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseInternalServerErr,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Internal,
+	}).Build()
+)

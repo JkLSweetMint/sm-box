@@ -6,28 +6,8 @@ option go_package = "./";
 
 message Project {
   uint64 ID      = 1;
-  uint64 OwnerID = 2;
 
-  string Name        = 3;
-  string Description = 4;
-  string Version     = 5;
-}
-message User {
-  uint64 ID        = 1;
-  uint64 ProjectID = 2;
-
-  string Email    = 3;
-  string Username = 4;
-
-  repeated Role Accesses = 6;
-}
-
-message Role {
-  uint64 ID        = 1;
-  uint64 ProjectID = 2;
-
-  string Name     = 3;
-  bool   IsSystem = 4;
-
-  repeated Role Inheritances = 5;
+  string Name        = 2;
+  string Description = 3;
+  string Version     = 4;
 }

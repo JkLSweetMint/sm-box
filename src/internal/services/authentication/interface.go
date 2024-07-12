@@ -4,6 +4,7 @@ import (
 	"context"
 	authentication_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/authentication_service"
 	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
+	users_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/users_service"
 	http_rest_api "sm-box/internal/services/authentication/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
@@ -94,6 +95,10 @@ func New() (srv_ Service, err error) {
 			}
 
 			if ref.transport.gateways.projectService, err = projects_service_gateway.New(ref.Ctx()); err != nil {
+				return
+			}
+
+			if ref.transport.gateways.usersService, err = users_service_gateway.New(ref.Ctx()); err != nil {
 				return
 			}
 		}

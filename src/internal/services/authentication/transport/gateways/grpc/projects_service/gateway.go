@@ -2,7 +2,7 @@ package projects_service_gateway
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
@@ -88,62 +88,73 @@ func New(ctx context.Context) (gw *Gateway, err error) {
 	return
 }
 
-// GetListByUser - получение списка проектов пользователя.
-func (gw *Gateway) GetListByUser(ctx context.Context, userID types.ID) (list app_models.ProjectList, cErr c_errors.Error) {
+// Get - получение проектов по ID.
+func (gw *Gateway) Get(ctx context.Context, ids ...types.ID) (list app_models.ProjectList, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelGateway)
 
-		trc.FunctionCall(ctx, userID)
+		trc.FunctionCall(ctx, ids)
 		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
+	}
+
+	var ids_ = make([]uint64, 0, len(ids))
+
+	for _, id := range ids {
+		ids_ = append(ids_, uint64(id))
 	}
 
 	var (
 		err      error
-		response *pb.ProjectsGetListByUserResponse
-		request  = &pb.ProjectsGetListByUserRequest{
-			//UserID: uint64(userID),
+		response *pb.ProjectsGetResponse
+		request  = &pb.ProjectsGetRequest{
+			IDs: ids_,
 		}
 	)
 
-	if response, err = gw.client.GetListByUser(ctx, request); err != nil {
-		var st = status.Convert(err)
-
-		fmt.Printf("\n\n%+v\n", st)
-		fmt.Printf("%+v\n\n\n", st.Details())
-
+	if response, err = gw.client.Get(ctx, request); err != nil {
 		gw.components.Logger.Error().
-			Format("Authorization failed on the remote service: '%s'. ", err).Write()
+			Format("Failed to get the projects: '%s'. ", err).
+			Field("ids", ids).Write()
 
-		cErr = error_list.UserCouldNotBeAuthorizedOnRemoteService()
-		cErr.SetError(err)
+		cErr = c_errors.ToError(c_errors.ParseGrpc(status.Convert(err)))
 
 		return
+	}
+
+	// Проверки ответа
+	{
+		if response == nil || response.List == nil {
+			gw.components.Logger.Error().
+				Text("Failed to get projects. ").Write()
+
+			cErr = error_list.InternalServerError()
+			cErr.SetError(errors.New("Projects list instance is nil. "))
+
+			return
+		}
 	}
 
 	// Преобразование в модель
 	{
 		list = make(app_models.ProjectList, 0)
 
-		if response != nil {
-			for _, project := range response.List {
-				list = append(list, &app_models.ProjectInfo{
-					ID:      types.ID(project.ID),
-					OwnerID: types.ID(project.OwnerID),
+		for _, project := range response.List {
+			list = append(list, &app_models.ProjectInfo{
+				ID: types.ID(project.ID),
 
-					Name:        project.Name,
-					Description: project.Description,
-					Version:     project.Version,
-				})
-			}
+				Name:        project.Name,
+				Description: project.Description,
+				Version:     project.Version,
+			})
 		}
 	}
 
 	return
 }
 
-// Get - получение проекта.
-func (gw *Gateway) Get(ctx context.Context, id types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error) {
+// GetOne - получение проекта по ID.
+func (gw *Gateway) GetOne(ctx context.Context, id types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelGateway)
@@ -154,27 +165,39 @@ func (gw *Gateway) Get(ctx context.Context, id types.ID) (project *app_models.Pr
 
 	var (
 		err      error
-		response *pb.ProjectsGetResponse
-		request  = &pb.ProjectsGetRequest{
+		response *pb.ProjectsGetOneResponse
+		request  = &pb.ProjectsGetOneRequest{
 			ID: uint64(id),
 		}
 	)
 
-	if response, err = gw.client.Get(ctx, request); err != nil {
+	if response, err = gw.client.GetOne(ctx, request); err != nil {
 		gw.components.Logger.Error().
-			Format("Failed to get the project: '%s'. ", err).Write()
+			Format("Failed to get the project: '%s'. ", err).
+			Field("id", id).Write()
 
-		cErr = error_list.InternalServerError()
-		cErr.SetError(err)
+		cErr = c_errors.ToError(c_errors.ParseGrpc(status.Convert(err)))
 
 		return
+	}
+
+	// Проверки ответа
+	{
+		if response == nil || response.Project == nil {
+			gw.components.Logger.Error().
+				Text("Failed to get project. ").Write()
+
+			cErr = error_list.InternalServerError()
+			cErr.SetError(errors.New("Project instance is nil. "))
+
+			return
+		}
 	}
 
 	// Преобразование в модель
 	{
 		project = &app_models.ProjectInfo{
-			ID:      types.ID(response.Project.ID),
-			OwnerID: types.ID(response.Project.OwnerID),
+			ID: types.ID(response.Project.ID),
 
 			Name:        response.Project.Name,
 			Description: response.Project.Description,

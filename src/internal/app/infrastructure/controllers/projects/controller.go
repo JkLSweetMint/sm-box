@@ -27,8 +27,8 @@ type Controller struct {
 // usecases - логика контроллера.
 type usecases struct {
 	Projects interface {
-		GetListByUser(ctx context.Context, userID types.ID) (list entities.ProjectList, cErr c_errors.Error)
-		Get(ctx context.Context, id types.ID) (project *entities.Project, cErr c_errors.Error)
+		Get(ctx context.Context, ids ...types.ID) (list entities.ProjectList, cErr c_errors.Error)
+		GetOne(ctx context.Context, id types.ID) (project *entities.Project, cErr c_errors.Error)
 	}
 }
 
@@ -91,19 +91,19 @@ func New(ctx context.Context) (controller *Controller, err error) {
 	return
 }
 
-// GetListByUser - получение списка проектов пользователя.
-func (controller *Controller) GetListByUser(ctx context.Context, userID types.ID) (list models.ProjectList, cErr c_errors.Error) {
+// Get - получение проектов по ID.
+func (controller *Controller) Get(ctx context.Context, ids ...types.ID) (list models.ProjectList, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, userID)
+		trc.FunctionCall(ctx, ids)
 		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
 	}
 
-	var list_ entities.ProjectList
+	var projects []*entities.Project
 
-	if list_, cErr = controller.usecases.Projects.GetListByUser(ctx, userID); cErr != nil {
+	if projects, cErr = controller.usecases.Projects.Get(ctx, ids...); cErr != nil {
 		controller.components.Logger.Error().
 			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
@@ -112,16 +112,20 @@ func (controller *Controller) GetListByUser(ctx context.Context, userID types.ID
 
 	// Преобразование в модели
 	{
-		if list_ != nil {
-			list = list_.ToModel()
+		list = make(models.ProjectList, 0, len(projects))
+
+		if projects != nil {
+			for _, project := range projects {
+				list = append(list, project.ToModel())
+			}
 		}
 	}
 
 	return
 }
 
-// Get - получение проекта.
-func (controller *Controller) Get(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Error) {
+// GetOne - получение проекта по ID.
+func (controller *Controller) GetOne(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
@@ -132,14 +136,14 @@ func (controller *Controller) Get(ctx context.Context, id types.ID) (project *mo
 
 	var proj *entities.Project
 
-	if proj, cErr = controller.usecases.Projects.Get(ctx, id); cErr != nil {
+	if proj, cErr = controller.usecases.Projects.GetOne(ctx, id); cErr != nil {
 		controller.components.Logger.Error().
 			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
 		return
 	}
 
-	// Преобразование в модели
+	// Преобразование в модель
 	{
 		if proj != nil {
 			project = proj.ToModel()

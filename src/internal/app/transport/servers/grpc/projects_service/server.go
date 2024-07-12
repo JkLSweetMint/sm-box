@@ -30,8 +30,8 @@ type server struct {
 // controllers - контроллеры сервера.
 type controllers struct {
 	Projects interface {
-		GetListByUser(ctx context.Context, userID types.ID) (list models.ProjectList, cErr c_errors.Grpc)
-		Get(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Grpc)
+		Get(ctx context.Context, ids ...types.ID) (list models.ProjectList, cErr c_errors.Grpc)
+		GetOne(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Grpc)
 	}
 }
 

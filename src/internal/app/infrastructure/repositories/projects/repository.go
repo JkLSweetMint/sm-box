@@ -3,6 +3,7 @@ package projects_repository
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"sm-box/internal/app/objects/db_models"
 	"sm-box/internal/app/objects/entities"
 	"sm-box/internal/common/types"
@@ -78,42 +79,39 @@ func New(ctx context.Context) (repo *Repository, err error) {
 	return
 }
 
-// GetListByUser - получение списка проектов пользователя.
-func (repo *Repository) GetListByUser(ctx context.Context, userID types.ID) (list entities.ProjectList, err error) {
+// Get - получение проектов по ID.
+func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list entities.ProjectList, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
 
-		trc.FunctionCall(ctx, userID)
+		trc.FunctionCall(ctx, ids)
 		defer func() { trc.Error(err).FunctionCallFinished(list) }()
 	}
 
 	var (
 		rows  *sqlx.Rows
 		query = `
-				select
-					projects.id,
-					projects.owner_id,
-					projects.name,
-					projects.version,
-					projects.description
-				from
-					projects
-				where
-					projects.owner_id = $1 or
-					projects.id = any(
-						select
-							distinct coalesce(project_id, 0) as project_id
-						from
-							access_system.get_user_access($1) as (id bigint, project_id bigint, name varchar, parent bigint)
-						where
-							project_id != 0
-					)
-				order by projects.name;
+			select
+				projects.id,
+				projects.name,
+				projects.version,
+				projects.description
+			from
+				public.projects as projects
+			where
+				projects.id = any($1)
+		order by projects.id
 			`
 	)
 
-	if rows, err = repo.connector.QueryxContext(ctx, query, userID); err != nil {
+	var ids_ = make(pq.Int64Array, 0, len(ids))
+
+	for _, id := range ids {
+		ids_ = append(ids_, int64(id))
+	}
+
+	if rows, err = repo.connector.QueryxContext(ctx, query, ids_); err != nil {
 		repo.components.Logger.Error().
 			Format("Error when retrieving an items from the database: '%s'. ", err).Write()
 		return
@@ -131,8 +129,7 @@ func (repo *Repository) GetListByUser(ctx context.Context, userID types.ID) (lis
 		}
 
 		list = append(list, &entities.Project{
-			ID:      model.ID,
-			OwnerID: model.OwnerID,
+			ID: model.ID,
 
 			Name:        model.Name,
 			Description: model.Description,
@@ -143,8 +140,8 @@ func (repo *Repository) GetListByUser(ctx context.Context, userID types.ID) (lis
 	return
 }
 
-// Get - получение проекта.
-func (repo *Repository) Get(ctx context.Context, id types.ID) (project *entities.Project, err error) {
+// GetOne - получение проекта по ID.
+func (repo *Repository) GetOne(ctx context.Context, id types.ID) (project *entities.Project, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -160,12 +157,11 @@ func (repo *Repository) Get(ctx context.Context, id types.ID) (project *entities
 		var query = `
 				select
 					projects.id,
-					projects.owner_id,
 					projects.name,
 					projects.version,
 					projects.description
 				from
-					projects
+					public.projects as projects
 				where
 					projects.id = $1
 			`
@@ -191,7 +187,6 @@ func (repo *Repository) Get(ctx context.Context, id types.ID) (project *entities
 		project.FillEmptyFields()
 
 		project.ID = model.ID
-		project.OwnerID = model.OwnerID
 
 		project.Name = model.Name
 		project.Version = model.Version

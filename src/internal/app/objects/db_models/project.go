@@ -5,8 +5,7 @@ import "sm-box/internal/common/types"
 type (
 	// Project - модель проекта для базы данных.
 	Project struct {
-		ID      types.ID `db:"id"`
-		OwnerID types.ID `db:"owner_id"`
+		ID types.ID `db:"id"`
 
 		Name        string `db:"name"`
 		Description string `db:"description"`

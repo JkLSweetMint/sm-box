@@ -82,8 +82,24 @@ var (
 
 // E-000005
 var (
-	ValidityPeriodOfUserTokenHasNotStarted = c_errors.Constructor[c_errors.Error]{
+	NotAccess = c_errors.Constructor[c_errors.Error]{
 		ID:     "E-000005",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("Not access. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusForbidden,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Unauthenticated,
+	}).Build()
+)
+
+// E-000006
+var (
+	ValidityPeriodOfUserTokenHasNotStarted = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000006",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -98,10 +114,10 @@ var (
 	}).Build()
 )
 
-// E-000006
+// E-000007
 var (
 	UserNotFound = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000006",
+		ID:     "E-000007",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -116,10 +132,10 @@ var (
 	}).Build()
 )
 
-// E-000007
+// E-000008
 var (
 	InvalidAuthorizationDataWasTransferred = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000007",
+		ID:     "E-000008",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -134,10 +150,10 @@ var (
 	}).Build()
 )
 
-// E-000008
+// E-000009
 var (
 	InvalidDataWasTransmitted = c_errors.Constructor[c_errors.Error]{
-		ID:     "E-000008",
+		ID:     "E-000009",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 
@@ -241,23 +257,5 @@ var (
 		StatusCode: websocket.CloseNormalClosure,
 	}).Grpc(c_errors.GrpcConstructor{
 		StatusCode: grpc_codes.InvalidArgument,
-	}).Build()
-)
-
-// I-190001
-var (
-	UserCouldNotBeAuthorizedOnRemoteService = c_errors.Constructor[c_errors.Error]{
-		ID:     "I-190001",
-		Type:   types.TypeSystem,
-		Status: types.StatusError,
-
-		Message: new(messages.TextMessage).
-			Text("The user could not be authorized on the remote service "),
-	}.RestAPI(c_errors.RestAPIConstructor{
-		StatusCode: fiber.StatusInternalServerError,
-	}).WebSocket(c_errors.WebSocketConstructor{
-		StatusCode: websocket.CloseInternalServerErr,
-	}).Grpc(c_errors.GrpcConstructor{
-		StatusCode: grpc_codes.Internal,
 	}).Build()
 )
