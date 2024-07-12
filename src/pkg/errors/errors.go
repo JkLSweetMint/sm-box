@@ -1,6 +1,7 @@
 package errors
 
 import (
+	grpc_codes "google.golang.org/grpc/codes"
 	"sm-box/pkg/errors/helpers"
 	"sm-box/pkg/errors/types"
 )
@@ -20,7 +21,6 @@ type (
 
 		helpers.Error
 		helpers.Stringer
-		helpers.Serialization
 	}
 
 	// RestAPI - описание rest api ошибки.
@@ -35,5 +35,12 @@ type (
 		Error
 
 		StatusCode() (c int)
+	}
+
+	// Grpc - описание grpc ошибки.
+	Grpc interface {
+		Error
+
+		StatusCode() (c grpc_codes.Code)
 	}
 )

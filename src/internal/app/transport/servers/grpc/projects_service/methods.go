@@ -4,7 +4,6 @@ import (
 	"context"
 	"sm-box/internal/app/objects/models"
 	"sm-box/internal/common/types"
-	c_errors "sm-box/pkg/errors"
 	pb "sm-box/transport/proto/pb/golang/app"
 )
 
@@ -12,16 +11,12 @@ import (
 func (srv *server) GetListByUser(ctx context.Context, request *pb.ProjectsGetListByUserRequest) (response *pb.ProjectsGetListByUserResponse, err error) {
 	response = new(pb.ProjectsGetListByUserResponse)
 
-	var (
-		cErr c_errors.Error
-		list models.ProjectList
-	)
+	var list models.ProjectList
 
-	if list, cErr = srv.controllers.Projects.GetListByUser(ctx, types.ID(request.ID)); cErr != nil {
+	if list, err = srv.controllers.Projects.GetListByUser(ctx, types.ID(request.UserID)); err != nil {
 		srv.components.Logger.Error().
-			Format("The list of user's projects could not be retrieved: '%s'. ", cErr).Write()
+			Format("The list of user's projects could not be retrieved: '%s'. ", err).Write()
 
-		err = cErr
 		return
 	}
 
@@ -32,11 +27,39 @@ func (srv *server) GetListByUser(ctx context.Context, request *pb.ProjectsGetLis
 		for _, project := range list {
 			response.List = append(response.List, &pb.Project{
 				ID:          uint64(project.ID),
-				OwnerID:     0,
+				OwnerID:     uint64(project.OwnerID),
 				Name:        project.Name,
-				Description: "",
+				Description: project.Description,
 				Version:     project.Version,
 			})
+		}
+	}
+
+	return
+}
+
+// Get - получение проекта.
+func (srv *server) Get(ctx context.Context, request *pb.ProjectsGetRequest) (response *pb.ProjectsGetResponse, err error) {
+	response = new(pb.ProjectsGetResponse)
+
+	var project *models.ProjectInfo
+
+	if project, err = srv.controllers.Projects.Get(ctx, types.ID(request.ID)); err != nil {
+		srv.components.Logger.Error().
+			Format("Failed to get the project: '%s'. ", err).Write()
+
+		return
+	}
+
+	// Преобразование данных в структуры grpc
+	{
+		response.Project = &pb.Project{
+			ID:      uint64(project.ID),
+			OwnerID: uint64(project.OwnerID),
+
+			Name:        project.Name,
+			Description: project.Description,
+			Version:     project.Version,
 		}
 	}
 

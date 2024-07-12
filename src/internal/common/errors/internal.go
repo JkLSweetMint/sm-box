@@ -3,6 +3,7 @@ package error_list
 import (
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v3"
+	grpc_codes "google.golang.org/grpc/codes"
 	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/errors/entities/details"
 	"sm-box/pkg/errors/entities/messages"
@@ -23,6 +24,8 @@ var (
 		StatusCode: fiber.StatusInternalServerError,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseInternalServerErr,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Internal,
 	}).Build()
 )
 
@@ -39,5 +42,7 @@ var (
 		StatusCode: fiber.StatusInternalServerError,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseInternalServerErr,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Internal,
 	}).Build()
 )

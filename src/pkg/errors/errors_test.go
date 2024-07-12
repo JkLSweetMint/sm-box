@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	grpc_codes "google.golang.org/grpc/codes"
 	"sm-box/pkg/errors/entities/details"
 	"sm-box/pkg/errors/entities/messages"
 	"sm-box/pkg/errors/types"
@@ -141,6 +142,55 @@ var (
 	}.WebSocket(
 		WebSocketConstructor{
 			StatusCode: 1011,
+		},
+	).Build()
+)
+
+// Примеры grpc ошибок.
+var (
+	ExampleGrpcError = Constructor[Grpc]{
+		ID:     "T-000001",
+		Type:   types.TypeSystem,
+		Status: types.StatusFatal,
+
+		Message: new(messages.TextMessage).
+			Text("Example error. "),
+	}.Grpc(
+		GrpcConstructor{
+			StatusCode: grpc_codes.Internal,
+		},
+	).Build()
+
+	ExampleGrpcErrorWithDetails = Constructor[Grpc]{
+		ID:     "T-000002",
+		Type:   types.TypeSystem,
+		Status: types.StatusFatal,
+
+		Message: new(messages.TextMessage).
+			Text("Example error with details. "),
+		Details: new(details.Details).
+			Set("key", "value"),
+	}.Grpc(
+		GrpcConstructor{
+			StatusCode: grpc_codes.Internal,
+		},
+	).Build()
+
+	ExampleGrpcErrorWithDetailsAndFields = Constructor[Grpc]{
+		ID:     "T-000003",
+		Type:   types.TypeSystem,
+		Status: types.StatusFatal,
+
+		Message: new(messages.TextMessage).Text("Example error with details and fields. "),
+		Details: new(details.Details).
+			Set("key", "value").
+			SetFields(types.DetailsField{
+				Key:     new(details.FieldKey).Add("test"),
+				Message: new(messages.TextMessage).Text("123"),
+			}),
+	}.Grpc(
+		GrpcConstructor{
+			StatusCode: grpc_codes.Internal,
 		},
 	).Build()
 )

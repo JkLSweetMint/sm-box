@@ -11,7 +11,7 @@ import (
 func TestDetails_init(t *testing.T) {
 	type fields struct {
 		fields  Fields
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
@@ -29,9 +29,9 @@ func TestDetails_init(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test1": "1",
-					"test2": false,
+					"test2": "false",
 				},
 				rwMux: new(sync.RWMutex),
 			},
@@ -42,9 +42,9 @@ func TestDetails_init(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test1": "1",
-					"test2": false,
+					"test2": "false",
 				},
 				rwMux: new(sync.RWMutex),
 			},
@@ -68,7 +68,7 @@ func TestDetails_init(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -81,7 +81,7 @@ func TestDetails_init(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 			want: &Details{
@@ -91,7 +91,7 @@ func TestDetails_init(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -112,10 +112,107 @@ func TestDetails_init(t *testing.T) {
 	}
 }
 
+func TestDetails_PeekAll(t *testing.T) {
+	type fields struct {
+		fields  Fields
+		storage map[string]string
+		rwMux   *sync.RWMutex
+	}
+
+	tests := []struct {
+		name     string
+		fields   fields
+		wantData map[string]string
+	}{
+		{
+			name: "Case 1",
+			fields: fields{
+				fields: Fields{
+					{
+						Key:     new(FieldKey).Add("test1"),
+						Message: new(messages.TextMessage).Text("1"),
+					},
+				},
+				storage: map[string]string{
+					"test1": "1",
+					"test2": "false",
+				},
+				rwMux: new(sync.RWMutex),
+			},
+			wantData: map[string]string{
+				"test1": "1",
+				"test2": "false",
+			},
+		},
+		{
+			name: "Case 2",
+			fields: fields{
+				fields: Fields{
+					{
+						Key:     new(FieldKey).Add("test1"),
+						Message: new(messages.TextMessage).Text("1"),
+					},
+				},
+				storage: map[string]string{
+					"test1": "1",
+					"test2": "false",
+				},
+				rwMux: new(sync.RWMutex),
+			},
+			wantData: map[string]string{
+				"test1": "1",
+				"test2": "false",
+			},
+		},
+		{
+			name: "Case 3",
+			fields: fields{
+				fields: Fields{
+					{
+						Key:     new(FieldKey).Add("test1"),
+						Message: new(messages.TextMessage).Text("1"),
+					},
+				},
+				storage: nil,
+				rwMux:   new(sync.RWMutex),
+			},
+			wantData: map[string]string{},
+		},
+		{
+			name: "Case 4",
+			fields: fields{
+				fields: Fields{
+					{
+						Key:     new(FieldKey).Add("test1"),
+						Message: new(messages.TextMessage).Text("1"),
+					},
+				},
+				storage: map[string]string{},
+				rwMux:   new(sync.RWMutex),
+			},
+			wantData: map[string]string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ds := &Details{
+				fields:  tt.fields.fields,
+				storage: tt.fields.storage,
+				rwMux:   tt.fields.rwMux,
+			}
+
+			if gotData := ds.PeekAll(); !reflect.DeepEqual(gotData, tt.wantData) {
+				t.Errorf("PeekAll() = %v, want %v", gotData, tt.wantData)
+			}
+		})
+	}
+}
+
 func TestDetails_Peek(t *testing.T) {
 	type fields struct {
 		fields  Fields
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
@@ -127,7 +224,7 @@ func TestDetails_Peek(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		wantV  any
+		wantV  string
 	}{
 		{
 			name: "Case 1",
@@ -138,9 +235,9 @@ func TestDetails_Peek(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test1": "1",
-					"test2": false,
+					"test2": "false",
 				},
 				rwMux: new(sync.RWMutex),
 			},
@@ -158,16 +255,16 @@ func TestDetails_Peek(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test1": "1",
-					"test2": false,
+					"test2": "false",
 				},
 				rwMux: new(sync.RWMutex),
 			},
 			args: args{
 				k: "test2",
 			},
-			wantV: false,
+			wantV: "false",
 		},
 		{
 			name: "Case 3",
@@ -184,7 +281,7 @@ func TestDetails_Peek(t *testing.T) {
 			args: args{
 				k: "test",
 			},
-			wantV: nil,
+			wantV: "",
 		},
 		{
 			name: "Case 4",
@@ -195,13 +292,13 @@ func TestDetails_Peek(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 			args: args{
 				k: "test",
 			},
-			wantV: nil,
+			wantV: "",
 		},
 	}
 
@@ -223,13 +320,13 @@ func TestDetails_Peek(t *testing.T) {
 func TestDetails_Set(t *testing.T) {
 	type fields struct {
 		fields  Fields
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
 	type args struct {
 		k string
-		v any
+		v string
 	}
 
 	tests := []struct {
@@ -247,9 +344,9 @@ func TestDetails_Set(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test1": "1",
-					"test2": false,
+					"test2": "false",
 				},
 				rwMux: new(sync.RWMutex),
 			},
@@ -264,9 +361,9 @@ func TestDetails_Set(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test1": "1",
-					"test2": false,
+					"test2": "false",
 					"test3": "3",
 				},
 				rwMux: new(sync.RWMutex),
@@ -295,7 +392,7 @@ func TestDetails_Set(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test1": "1",
 				},
 				rwMux: new(sync.RWMutex),
@@ -310,7 +407,7 @@ func TestDetails_Set(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 			args: args{
@@ -324,7 +421,7 @@ func TestDetails_Set(t *testing.T) {
 						Message: new(messages.TextMessage).Text("1"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test1": "1",
 				},
 				rwMux: new(sync.RWMutex),
@@ -350,7 +447,7 @@ func TestDetails_Set(t *testing.T) {
 func TestDetails_Reset(t *testing.T) {
 	type fields struct {
 		fields  Fields
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
@@ -386,7 +483,7 @@ func TestDetails_Reset(t *testing.T) {
 						Message: new(messages.TextMessage).Text("321"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -394,12 +491,12 @@ func TestDetails_Reset(t *testing.T) {
 			name: "Case 2",
 			fields: fields{
 				fields:  Fields{},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 			want: &Details{
 				fields:  Fields{},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -416,7 +513,7 @@ func TestDetails_Reset(t *testing.T) {
 						Message: new(messages.TextMessage).Text("321"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -432,7 +529,7 @@ func TestDetails_Reset(t *testing.T) {
 						Message: new(messages.TextMessage).Text("321"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -440,15 +537,15 @@ func TestDetails_Reset(t *testing.T) {
 			name: "Case 4",
 			fields: fields{
 				fields: nil,
-				storage: map[string]any{
-					"test": true,
+				storage: map[string]string{
+					"test": "true",
 					"key":  "value",
 				},
 				rwMux: new(sync.RWMutex),
 			},
 			want: &Details{
 				fields:  Fields{},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -469,10 +566,140 @@ func TestDetails_Reset(t *testing.T) {
 	}
 }
 
+func TestDetails_PeekFields(t *testing.T) {
+	type fields struct {
+		fields  Fields
+		storage map[string]string
+		rwMux   *sync.RWMutex
+	}
+
+	tests := []struct {
+		name     string
+		fields   fields
+		wantData []types.DetailsField
+	}{
+		{
+			name: "Case 1",
+			fields: fields{
+				fields: Fields{
+					{
+						Key:     new(FieldKey).Add("test1"),
+						Message: new(messages.TextMessage).Text("123"),
+					},
+					{
+						Key:     new(FieldKey).Add("test2"),
+						Message: new(messages.TextMessage).Text("321"),
+					},
+				},
+				storage: nil,
+				rwMux:   new(sync.RWMutex),
+			},
+			wantData: []types.DetailsField{
+				{
+					Key:     new(FieldKey).Add("test1"),
+					Message: new(messages.TextMessage).Text("123"),
+				},
+				{
+					Key:     new(FieldKey).Add("test2"),
+					Message: new(messages.TextMessage).Text("321"),
+				},
+			},
+		},
+		{
+			name: "Case 2",
+			fields: fields{
+				fields: Fields{
+					{
+						Key:     new(FieldKey).Add("test1"),
+						Message: new(messages.TextMessage).Text("123"),
+					},
+					{
+						Key:     new(FieldKey).Add("test2"),
+						Message: new(messages.TextMessage).Text("321"),
+					},
+				},
+				storage: map[string]string{
+					"test1": "312",
+				},
+				rwMux: new(sync.RWMutex),
+			},
+			wantData: []types.DetailsField{
+				{
+					Key:     new(FieldKey).Add("test1"),
+					Message: new(messages.TextMessage).Text("123"),
+				},
+				{
+					Key:     new(FieldKey).Add("test2"),
+					Message: new(messages.TextMessage).Text("321"),
+				},
+			},
+		},
+		{
+			name: "Case 3",
+			fields: fields{
+				fields:  Fields{},
+				storage: nil,
+				rwMux:   new(sync.RWMutex),
+			},
+			wantData: []types.DetailsField{},
+		},
+		{
+			name: "Case 4",
+			fields: fields{
+				fields:  nil,
+				storage: nil,
+				rwMux:   new(sync.RWMutex),
+			},
+			wantData: []types.DetailsField{},
+		},
+		{
+			name: "Case 5",
+			fields: fields{
+				fields: Fields{
+					{
+						Key:     new(FieldKey).Add("test1"),
+						Message: new(messages.TextMessage).Text("123"),
+					},
+					{
+						Key:     new(FieldKey).Add("test2"),
+						Message: new(messages.TextMessage).Text("321"),
+					},
+				},
+				storage: nil,
+				rwMux:   new(sync.RWMutex),
+			},
+			wantData: []types.DetailsField{
+				{
+					Key:     new(FieldKey).Add("test1"),
+					Message: new(messages.TextMessage).Text("123"),
+				},
+				{
+					Key:     new(FieldKey).Add("test2"),
+					Message: new(messages.TextMessage).Text("321"),
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ds := &Details{
+				fields:  tt.fields.fields,
+				storage: tt.fields.storage,
+				rwMux:   tt.fields.rwMux,
+			}
+
+			if gotData := ds.PeekFields(); !reflect.DeepEqual(gotData, tt.wantData) {
+				t.Errorf("PeekFields() = %v, want %v", gotData, tt.wantData)
+			}
+		})
+	}
+}
+
 func TestDetails_PeekFieldMessage(t *testing.T) {
 	type fields struct {
 		fields  Fields
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
@@ -520,7 +747,7 @@ func TestDetails_PeekFieldMessage(t *testing.T) {
 						Message: new(messages.TextMessage).Text("321"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test1": "312",
 				},
 				rwMux: new(sync.RWMutex),
@@ -595,7 +822,7 @@ func TestDetails_PeekFieldMessage(t *testing.T) {
 func TestDetails_SetField(t *testing.T) {
 	type fields struct {
 		fields  Fields
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
@@ -619,7 +846,7 @@ func TestDetails_SetField(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -639,7 +866,7 @@ func TestDetails_SetField(t *testing.T) {
 						Message: new(messages.TextMessage).Text("321"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -672,7 +899,7 @@ func TestDetails_SetField(t *testing.T) {
 						Message: new(messages.TextMessage).Text("321"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -694,7 +921,7 @@ func TestDetails_SetField(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -716,7 +943,7 @@ func TestDetails_SetField(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -740,7 +967,7 @@ func TestDetails_SetField(t *testing.T) {
 func TestDetails_SetFields(t *testing.T) {
 	type fields struct {
 		fields  Fields
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
@@ -763,7 +990,7 @@ func TestDetails_SetFields(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -787,7 +1014,7 @@ func TestDetails_SetFields(t *testing.T) {
 						Message: new(messages.TextMessage).Text("321"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -824,7 +1051,7 @@ func TestDetails_SetFields(t *testing.T) {
 						Message: new(messages.TextMessage).Text("321"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -850,7 +1077,7 @@ func TestDetails_SetFields(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -876,7 +1103,7 @@ func TestDetails_SetFields(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -910,7 +1137,7 @@ func TestDetails_SetFields(t *testing.T) {
 						Message: new(messages.TextMessage).Text("321"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -934,7 +1161,7 @@ func TestDetails_SetFields(t *testing.T) {
 func TestDetails_ResetFields(t *testing.T) {
 	type fields struct {
 		fields  Fields
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
@@ -961,7 +1188,7 @@ func TestDetails_ResetFields(t *testing.T) {
 			},
 			want: &Details{
 				fields:  Fields{},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -969,12 +1196,12 @@ func TestDetails_ResetFields(t *testing.T) {
 			name: "Case 2",
 			fields: fields{
 				fields:  Fields{},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 			want: &Details{
 				fields:  Fields{},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -991,14 +1218,14 @@ func TestDetails_ResetFields(t *testing.T) {
 						Message: new(messages.TextMessage).Text("321"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
 			},
 			want: &Details{
 				fields: Fields{},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -1008,14 +1235,14 @@ func TestDetails_ResetFields(t *testing.T) {
 			name: "Case 4",
 			fields: fields{
 				fields: nil,
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
 			},
 			want: &Details{
 				fields: Fields{},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -1041,7 +1268,7 @@ func TestDetails_ResetFields(t *testing.T) {
 func TestDetails_Clone(t *testing.T) {
 	type fields struct {
 		fields  Fields
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
@@ -1059,7 +1286,7 @@ func TestDetails_Clone(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -1071,7 +1298,7 @@ func TestDetails_Clone(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -1081,14 +1308,14 @@ func TestDetails_Clone(t *testing.T) {
 			name: "Case 2",
 			fields: fields{
 				fields: nil,
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
 			},
 			want: &Details{
 				fields: Fields{},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -1113,7 +1340,7 @@ func TestDetails_Clone(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},
@@ -1126,7 +1353,7 @@ func TestDetails_Clone(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: nil,
@@ -1138,7 +1365,7 @@ func TestDetails_Clone(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -1153,7 +1380,7 @@ func TestDetails_Clone(t *testing.T) {
 			},
 			want: &Details{
 				fields:  Fields{},
-				storage: map[string]any{},
+				storage: map[string]string{},
 				rwMux:   new(sync.RWMutex),
 			},
 		},

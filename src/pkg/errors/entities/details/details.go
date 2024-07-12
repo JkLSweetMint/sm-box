@@ -3,6 +3,7 @@ package details
 import (
 	"encoding/json"
 	"sm-box/pkg/errors/types"
+	"strings"
 	"sync"
 )
 
@@ -11,7 +12,7 @@ type (
 	Details struct {
 		fields Fields
 
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
@@ -21,7 +22,7 @@ type (
 // init - инициализация хранилища.
 func (ds *Details) init() {
 	if ds.storage == nil {
-		ds.storage = make(map[string]any)
+		ds.storage = make(map[string]string)
 	}
 
 	if ds.rwMux == nil {
@@ -35,8 +36,24 @@ func (ds *Details) init() {
 	return
 }
 
+// PeekAll - получение всех данных из хранилища.
+func (ds *Details) PeekAll() (data map[string]string) {
+	ds.init()
+
+	ds.rwMux.RLock()
+	defer ds.rwMux.RUnlock()
+
+	data = make(map[string]string)
+
+	for k, v := range ds.storage {
+		data[strings.Clone(k)] = strings.Clone(v)
+	}
+
+	return
+}
+
 // Peek - получение данных из хранилища.
-func (ds *Details) Peek(k string) (v any) {
+func (ds *Details) Peek(k string) (v string) {
 	ds.init()
 
 	ds.rwMux.RLock()
@@ -46,7 +63,7 @@ func (ds *Details) Peek(k string) (v any) {
 }
 
 // Set - установить значение в хранилище по ключу.
-func (ds *Details) Set(k string, v any) types.Details {
+func (ds *Details) Set(k string, v string) types.Details {
 	ds.init()
 
 	ds.rwMux.Lock()
@@ -61,9 +78,28 @@ func (ds *Details) Set(k string, v any) types.Details {
 func (ds *Details) Reset() types.Details {
 	ds.init()
 
-	ds.storage = make(map[string]any)
+	ds.storage = make(map[string]string)
 
 	return ds
+}
+
+// PeekFields - получить все сообщение полей.
+func (ds *Details) PeekFields() (data []types.DetailsField) {
+	ds.init()
+
+	ds.rwMux.RLock()
+	defer ds.rwMux.RUnlock()
+
+	data = make([]types.DetailsField, 0, len(ds.fields))
+
+	for _, field := range ds.fields {
+		data = append(data, types.DetailsField{
+			Key:     field.Key.Clone(),
+			Message: field.Message.Clone(),
+		})
+	}
+
+	return
 }
 
 // PeekFieldMessage - получить сообщение поля.
@@ -142,7 +178,7 @@ func (ds *Details) Clone() types.Details {
 
 	var ds_ = &Details{
 		fields:  make([]*types.DetailsField, 0),
-		storage: make(map[string]any),
+		storage: make(map[string]string),
 		rwMux:   new(sync.RWMutex),
 	}
 
@@ -151,7 +187,7 @@ func (ds *Details) Clone() types.Details {
 		if len(ds.storage) > 0 {
 			if data, err := json.Marshal(ds.storage); err == nil {
 				if err = json.Unmarshal(data, &ds_.storage); err != nil {
-					ds_.storage = make(map[string]any)
+					ds_.storage = make(map[string]string)
 				}
 			}
 		}

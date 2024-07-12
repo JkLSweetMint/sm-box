@@ -1,10 +1,12 @@
 package errors
 
 import (
+	grpc_codes "google.golang.org/grpc/codes"
 	"reflect"
 	"sm-box/pkg/errors/entities/details"
 	"sm-box/pkg/errors/entities/messages"
 	"sm-box/pkg/errors/internal"
+	"sm-box/pkg/errors/internal/grpc"
 	"sm-box/pkg/errors/internal/rest_api"
 	"sm-box/pkg/errors/internal/ws"
 	"sm-box/pkg/errors/types"
@@ -32,6 +34,7 @@ type (
 	constructorAddons struct {
 		RestAPI   *RestAPIConstructor
 		WebSocket *WebSocketConstructor
+		Grpc      *GrpcConstructor
 	}
 
 	// RestAPIConstructor - конструктор для построения ошибок rest api.
@@ -42,6 +45,11 @@ type (
 	// WebSocketConstructor - конструктор для построения ошибок web socket.
 	WebSocketConstructor struct {
 		StatusCode int
+	}
+
+	// GrpcConstructor - конструктор для построения ошибок grpc.
+	GrpcConstructor struct {
+		StatusCode grpc_codes.Code
 	}
 )
 
@@ -74,6 +82,12 @@ func (c Constructor[T]) Build() (fn Builder[T]) {
 				StatusCode: c.addons.WebSocket.StatusCode,
 			}
 		}
+
+		if c.addons.Grpc != nil {
+			store.Others.Grpc = &internal.GrpcStore{
+				StatusCode: c.addons.Grpc.StatusCode,
+			}
+		}
 	}
 
 	fn = func() (e T) {
@@ -93,6 +107,12 @@ func (c Constructor[T]) Build() (fn Builder[T]) {
 		case "*errors.WebSocket":
 			{
 				var i = ws.New(store)
+
+				e = interface{}(i).(T)
+			}
+		case "*errors.Grpc":
+			{
+				var i = grpc.New(store)
 
 				e = interface{}(i).(T)
 			}
@@ -121,6 +141,16 @@ func (c Constructor[T]) WebSocket(cstr WebSocketConstructor) Constructor[T] {
 	}
 
 	c.addons.WebSocket = &cstr
+	return c
+}
+
+// Grpc - записать данные конструктора grpc ошибок.
+func (c Constructor[T]) Grpc(cstr GrpcConstructor) Constructor[T] {
+	if c.addons == nil {
+		c.addons = new(constructorAddons)
+	}
+
+	c.addons.Grpc = &cstr
 	return c
 }
 

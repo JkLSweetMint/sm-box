@@ -12,7 +12,7 @@ import (
 func TestDetails_MarshalJSON(t *testing.T) {
 	type fields struct {
 		fields  Fields
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
@@ -31,7 +31,7 @@ func TestDetails_MarshalJSON(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -43,7 +43,7 @@ func TestDetails_MarshalJSON(t *testing.T) {
 			name: "Case 2",
 			fields: fields{
 				fields: nil,
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -75,7 +75,7 @@ func TestDetails_MarshalJSON(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: nil,
@@ -119,7 +119,7 @@ func TestDetails_MarshalJSON(t *testing.T) {
 func TestDetails_MarshalXML(t *testing.T) {
 	type fields struct {
 		fields  Fields
-		storage map[string]any
+		storage map[string]string
 		rwMux   *sync.RWMutex
 	}
 
@@ -138,7 +138,7 @@ func TestDetails_MarshalXML(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -150,7 +150,7 @@ func TestDetails_MarshalXML(t *testing.T) {
 			name: "Case 2",
 			fields: fields{
 				fields: nil,
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: new(sync.RWMutex),
@@ -182,7 +182,7 @@ func TestDetails_MarshalXML(t *testing.T) {
 						Message: new(messages.TextMessage).Text("123"),
 					},
 				},
-				storage: map[string]any{
+				storage: map[string]string{
 					"test": "123",
 				},
 				rwMux: nil,
@@ -217,7 +217,7 @@ func TestDetails_MarshalXML(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("MarshalJSON() got = %v, want %v", got, tt.want)
+				t.Errorf("MarshalXML() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

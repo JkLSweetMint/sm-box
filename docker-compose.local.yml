@@ -37,6 +37,8 @@ services:
       - ./var/lib:/home/app/var/lib
       - ./var/logs:/home/app/var/logs
       - ./var/test:/home/app/var/test
+    ports:
+      - 30001:8081
 
   authentication-service:
     build:

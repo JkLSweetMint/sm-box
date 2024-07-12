@@ -93,8 +93,10 @@ func (repo *Repository) GetListByUser(ctx context.Context, userID types.ID) (lis
 		query = `
 				select
 					projects.id,
+					projects.owner_id,
 					projects.name,
-					projects.version
+					projects.version,
+					projects.description
 				from
 					projects
 				where
@@ -136,6 +138,64 @@ func (repo *Repository) GetListByUser(ctx context.Context, userID types.ID) (lis
 			Description: model.Description,
 			Version:     model.Version,
 		})
+	}
+
+	return
+}
+
+// Get - получение проекта.
+func (repo *Repository) Get(ctx context.Context, id types.ID) (project *entities.Project, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, id)
+		defer func() { trc.Error(err).FunctionCallFinished(project) }()
+	}
+
+	var model = new(db_models.Project)
+
+	// Получение
+	{
+		var query = `
+				select
+					projects.id,
+					projects.owner_id,
+					projects.name,
+					projects.version,
+					projects.description
+				from
+					projects
+				where
+					projects.id = $1
+			`
+
+		var row = repo.connector.QueryRowxContext(ctx, query, id)
+
+		if err = row.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+			return
+		}
+
+		if err = row.StructScan(model); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	// Перенос в сущность
+	{
+		project = new(entities.Project)
+		project.FillEmptyFields()
+
+		project.ID = model.ID
+		project.OwnerID = model.OwnerID
+
+		project.Name = model.Name
+		project.Version = model.Version
+		project.Description = model.Description
 	}
 
 	return

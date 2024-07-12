@@ -37,22 +37,8 @@ var (
 
 // ERA-000003
 var (
-	TokenHasNotBeenTransferred_RestAPI = c_errors.Constructor[c_errors.RestAPI]{
-		ID:     "ERA-000003",
-		Type:   types.TypeSystem,
-		Status: types.StatusError,
-
-		Message: new(messages.TextMessage).
-			Text("The token has not been transferred. "),
-	}.RestAPI(c_errors.RestAPIConstructor{
-		StatusCode: fiber.StatusForbidden,
-	}).Build()
-)
-
-// ERA-000004
-var (
 	Forbidden_RestAPI = c_errors.Constructor[c_errors.RestAPI]{
-		ID:     "ERA-000004",
+		ID:     "ERA-000003",
 		Type:   types.TypeSystem,
 		Status: types.StatusError,
 

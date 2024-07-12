@@ -4,15 +4,20 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	app_entities "sm-box/internal/app/objects/entities"
 	app_models "sm-box/internal/app/objects/models"
 	error_list "sm-box/internal/common/errors"
 	"sm-box/internal/common/types"
 	authentication_repository "sm-box/internal/services/authentication/infrastructure/repositories/authentication"
 	"sm-box/internal/services/authentication/objects/entities"
 	authentication_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/authentication_service"
+	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
+	err_details "sm-box/pkg/errors/entities/details"
+	err_messages "sm-box/pkg/errors/entities/messages"
 )
 
 const (
@@ -33,6 +38,10 @@ type UseCase struct {
 type gateways struct {
 	Authentication interface {
 		BasicAuth(ctx context.Context, username, password string) (user *app_models.UserInfo, cErr c_errors.Error)
+	}
+	Projects interface {
+		GetListByUser(ctx context.Context, userID types.ID) (list app_models.ProjectList, cErr c_errors.Error)
+		Get(ctx context.Context, id types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error)
 	}
 }
 
@@ -94,6 +103,13 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 				return
 			}
 		}
+
+		// Projects
+		{
+			if usecase.gateways.Projects, err = projects_service_gateway.New(ctx); err != nil {
+				return
+			}
+		}
 	}
 
 	// Репозитории
@@ -146,7 +162,10 @@ func (usecase *UseCase) BasicAuth(ctx context.Context, rawToken, username, passw
 					cErr = error_list.InvalidAuthorizationDataWasTransferred()
 				}
 
-				cErr.Details().Set("username", "Is empty. ")
+				cErr.Details().SetField(
+					new(err_details.FieldKey).Add("username"),
+					new(err_messages.TextMessage).Text("Is empty. "),
+				)
 			}
 
 			if len(password) == 0 {
@@ -154,7 +173,10 @@ func (usecase *UseCase) BasicAuth(ctx context.Context, rawToken, username, passw
 					cErr = error_list.InvalidAuthorizationDataWasTransferred()
 				}
 
-				cErr.Details().Set("password", "Is empty. ")
+				cErr.Details().SetField(
+					new(err_details.FieldKey).Add("password"),
+					new(err_messages.TextMessage).Text("Is empty. "),
+				)
 			}
 
 			if len(username) > 256 {
@@ -162,7 +184,10 @@ func (usecase *UseCase) BasicAuth(ctx context.Context, rawToken, username, passw
 					cErr = error_list.InvalidAuthorizationDataWasTransferred()
 				}
 
-				cErr.Details().Set("username", "Is long. ")
+				cErr.Details().SetField(
+					new(err_details.FieldKey).Add("username"),
+					new(err_messages.TextMessage).Text("Is long. "),
+				)
 			}
 
 			if len(password) > 256 {
@@ -170,7 +195,10 @@ func (usecase *UseCase) BasicAuth(ctx context.Context, rawToken, username, passw
 					cErr = error_list.InvalidAuthorizationDataWasTransferred()
 				}
 
-				cErr.Details().Set("password", "Is long. ")
+				cErr.Details().SetField(
+					new(err_details.FieldKey).Add("password"),
+					new(err_messages.TextMessage).Text("Is long. "),
+				)
 			}
 
 			if cErr != nil {
@@ -334,6 +362,107 @@ func (usecase *UseCase) BasicAuth(ctx context.Context, rawToken, username, passw
 	return
 }
 
+// GetUserProjectList - получение списка проектов пользователя.
+func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawToken string) (list app_entities.ProjectList, cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, rawToken)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	var tok = new(entities.JwtToken)
+
+	// Валидация
+	{
+		// Токен
+		{
+			if len(rawToken) == 0 {
+				usecase.components.Logger.Error().
+					Text("An empty token string was passed. ").
+					Field("raw", rawToken).Write()
+
+				cErr = error_list.TokenWasNotTransferred()
+				return
+			}
+		}
+	}
+
+	// Получение токена
+	{
+		if err := tok.Parse(rawToken); err != nil {
+			usecase.components.Logger.Error().
+				Format("Failed to get token data: '%s'. ", err).
+				Field("raw", rawToken).Write()
+
+			cErr = error_list.InternalServerError()
+			cErr.SetError(err)
+			return
+		}
+	}
+
+	// Проверки
+	{
+		// Авторизация
+		{
+			if tok.UserID == 0 {
+				usecase.components.Logger.Error().
+					Text("The token is not authorized, it is impossible to receive the user's projects. ").
+					Field("token_id", tok.ID).Write()
+
+				cErr = error_list.Unauthorized()
+				return
+			}
+		}
+
+		// Проект уже выбран
+		{
+			if tok.ProjectID != 0 {
+				usecase.components.Logger.Error().
+					Text("The project has already been selected, it is not possible to re-select it. ").
+					Field("token_id", tok.ID).Write()
+
+				cErr = error_list.ProjectHasAlreadyBeenSelected()
+				return
+			}
+		}
+	}
+
+	// Получение
+	{
+		var (
+			err      error
+			projects app_models.ProjectList
+		)
+
+		if projects, err = usecase.gateways.Projects.GetListByUser(ctx, tok.UserID); err != nil {
+			usecase.components.Logger.Error().
+				Format("The list of user's projects could not be retrieved: '%s'. ", err).
+				Field("user_id", tok.UserID).Write()
+
+			cErr = error_list.InternalServerError()
+			cErr.SetError(err)
+			return
+		}
+
+		list = make(app_entities.ProjectList, 0)
+
+		for _, project := range projects {
+			list = append(list, &app_entities.Project{
+				ID:      project.ID,
+				OwnerID: project.OwnerID,
+
+				Name:        project.Name,
+				Description: project.Description,
+				Version:     project.Version,
+			})
+		}
+	}
+
+	return
+}
+
 // SetTokenProject - установить проект для токена.
 func (usecase *UseCase) SetTokenProject(ctx context.Context, rawToken string, projectID types.ID) (token *entities.JwtToken, cErr c_errors.Error) {
 	// tracer
@@ -351,6 +480,43 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawToken string, pr
 
 	var tok = new(entities.JwtToken)
 
+	// Валидация
+	{
+		// ID проекта
+		{
+			if projectID == 0 {
+				if cErr == nil {
+					cErr = error_list.InvalidDataWasTransmitted()
+				}
+
+				cErr.Details().SetField(
+					new(err_details.FieldKey).Add("id"),
+					new(err_messages.TextMessage).Text("Is empty. "),
+				)
+			}
+
+			if cErr != nil {
+				usecase.components.Logger.Error().
+					Text("Invalid data was transmitted for the project selection. ").
+					Field("project_id", projectID).Write()
+
+				return
+			}
+		}
+
+		// Токен
+		{
+			if len(rawToken) == 0 {
+				usecase.components.Logger.Error().
+					Text("An empty token string was passed. ").
+					Field("raw", rawToken).Write()
+
+				cErr = error_list.TokenWasNotTransferred()
+				return
+			}
+		}
+	}
+
 	// Получение токена
 	{
 		if err := tok.Parse(rawToken); err != nil {
@@ -361,6 +527,61 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawToken string, pr
 			cErr = error_list.InternalServerError()
 			cErr.SetError(err)
 			return
+		}
+	}
+
+	// Проверки
+	{
+		// Авторизация
+		{
+			if tok.UserID == 0 {
+				usecase.components.Logger.Error().
+					Text("The token was not authorized, the project selection is not allowed. ").
+					Field("token_id", tok.ID).
+					Field("project_id", projectID).Write()
+
+				cErr = error_list.Unauthorized()
+				return
+			}
+		}
+
+		// Проект уже выбран
+		{
+			if tok.ProjectID != 0 {
+				usecase.components.Logger.Error().
+					Text("The project has already been selected, it is not possible to re-select it. ").
+					Field("token_id", tok.ID).
+					Field("project_id", projectID).Write()
+
+				cErr = error_list.ProjectHasAlreadyBeenSelected()
+				return
+			}
+		}
+
+		// Существования проекта и доступа пользователя к нему
+		{
+			var (
+				project *app_models.ProjectInfo
+				err     error
+			)
+
+			if project, err = usecase.gateways.Projects.Get(ctx, projectID); err != nil {
+				usecase.components.Logger.Error().
+					Format("Failed to get the project: '%s'. ", err).
+					Field("id", projectID).Write()
+
+				if errors.Is(err, sql.ErrNoRows) {
+					cErr = error_list.ProjectNotFound()
+					cErr.SetError(err)
+					return
+				}
+
+				cErr = error_list.InternalServerError()
+				cErr.SetError(err)
+				return
+			}
+
+			fmt.Printf("%+v\n", project)
 		}
 	}
 

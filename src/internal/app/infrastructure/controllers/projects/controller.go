@@ -28,6 +28,7 @@ type Controller struct {
 type usecases struct {
 	Projects interface {
 		GetListByUser(ctx context.Context, userID types.ID) (list entities.ProjectList, cErr c_errors.Error)
+		Get(ctx context.Context, id types.ID) (project *entities.Project, cErr c_errors.Error)
 	}
 }
 
@@ -113,6 +114,35 @@ func (controller *Controller) GetListByUser(ctx context.Context, userID types.ID
 	{
 		if list_ != nil {
 			list = list_.ToModel()
+		}
+	}
+
+	return
+}
+
+// Get - получение проекта.
+func (controller *Controller) Get(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, id)
+		defer func() { trc.Error(cErr).FunctionCallFinished(project) }()
+	}
+
+	var proj *entities.Project
+
+	if proj, cErr = controller.usecases.Projects.Get(ctx, id); cErr != nil {
+		controller.components.Logger.Error().
+			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+
+		return
+	}
+
+	// Преобразование в модели
+	{
+		if proj != nil {
+			project = proj.ToModel()
 		}
 	}
 

@@ -3,6 +3,7 @@ package error_list
 import (
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v3"
+	grpc_codes "google.golang.org/grpc/codes"
 	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/errors/entities/details"
 	"sm-box/pkg/errors/entities/messages"
@@ -22,6 +23,8 @@ var (
 		StatusCode: fiber.StatusForbidden,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.PermissionDenied,
 	}).Build()
 )
 
@@ -38,6 +41,8 @@ var (
 		StatusCode: fiber.StatusForbidden,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.PermissionDenied,
 	}).Build()
 )
 
@@ -54,6 +59,8 @@ var (
 		StatusCode: fiber.StatusBadRequest,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Canceled,
 	}).Build()
 )
 
@@ -68,6 +75,8 @@ var (
 			Text("Not authorized. "),
 	}.RestAPI(c_errors.RestAPIConstructor{
 		StatusCode: fiber.StatusUnauthorized,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Unauthenticated,
 	}).Build()
 )
 
@@ -84,6 +93,8 @@ var (
 		StatusCode: fiber.StatusNotFound,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.NotFound,
 	}).Build()
 )
 
@@ -100,6 +111,8 @@ var (
 		StatusCode: fiber.StatusNotFound,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.NotFound,
 	}).Build()
 )
 
@@ -116,6 +129,26 @@ var (
 		StatusCode: fiber.StatusBadRequest,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Canceled,
+	}).Build()
+)
+
+// E-000008
+var (
+	InvalidDataWasTransmitted = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000008",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("Invalid data was transmitted. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusBadRequest,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.InvalidArgument,
 	}).Build()
 )
 
@@ -132,6 +165,8 @@ var (
 		StatusCode: fiber.StatusInternalServerError,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseInternalServerErr,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Internal,
 	}).Build()
 )
 
@@ -148,6 +183,8 @@ var (
 		StatusCode: fiber.StatusBadRequest,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Canceled,
 	}).Build()
 )
 
@@ -164,6 +201,8 @@ var (
 		StatusCode: fiber.StatusNotFound,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.NotFound,
 	}).Build()
 )
 
@@ -180,6 +219,8 @@ var (
 		StatusCode: fiber.StatusBadRequest,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.PermissionDenied,
 	}).Build()
 )
 
@@ -198,5 +239,25 @@ var (
 		StatusCode: fiber.StatusBadRequest,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.InvalidArgument,
+	}).Build()
+)
+
+// I-190001
+var (
+	UserCouldNotBeAuthorizedOnRemoteService = c_errors.Constructor[c_errors.Error]{
+		ID:     "I-190001",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("The user could not be authorized on the remote service "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusInternalServerError,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseInternalServerErr,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.Internal,
 	}).Build()
 )

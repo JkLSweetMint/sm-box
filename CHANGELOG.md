@@ -1,5 +1,12 @@
 # ChangeLog:
 
+### v24.0.35:
+- Доработки [приложения](src/internal/app/box.go)
+- Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+- Доработки взаимодействия сервисов через grpc;
+
+---
+
 ### v24.0.34:
 - Доработки системы доступа через nginx auth module;
 - Доработки [приложения](src/internal/app/box.go)

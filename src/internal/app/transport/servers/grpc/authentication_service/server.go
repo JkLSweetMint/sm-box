@@ -29,7 +29,7 @@ type server struct {
 // controllers - контроллеры сервера.
 type controllers struct {
 	Authentication interface {
-		BasicAuth(ctx context.Context, username, password string) (user *models.UserInfo, cErr c_errors.Error)
+		BasicAuth(ctx context.Context, username, password string) (user *models.UserInfo, cErr c_errors.Grpc)
 	}
 }
 

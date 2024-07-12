@@ -22,7 +22,7 @@ type Adapter_RestAPI struct {
 
 	controller interface {
 		BasicAuth(ctx context.Context, rawToken, username, password string) (token *models.JwtTokenInfo, cErr c_errors.Error)
-		GetUserProjectList(ctx context.Context, userID types.ID) (list app_models.ProjectList, cErr c_errors.Error)
+		GetUserProjectList(ctx context.Context, rawToken string) (list app_models.ProjectList, cErr c_errors.Error)
 		SetTokenProject(ctx context.Context, rawToken string, projectID types.ID) (token *entities.JwtToken, cErr c_errors.Error)
 	}
 
@@ -98,18 +98,18 @@ func (adapter *Adapter_RestAPI) BasicAuth(ctx context.Context, rawToken, usernam
 }
 
 // GetUserProjectList - получение списка проектов пользователя.
-func (adapter *Adapter_RestAPI) GetUserProjectList(ctx context.Context, userID types.ID) (list app_models.ProjectList, cErr c_errors.RestAPI) {
+func (adapter *Adapter_RestAPI) GetUserProjectList(ctx context.Context, rawToken string) (list app_models.ProjectList, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, userID)
+		trc.FunctionCall(ctx, rawToken)
 		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if list, proxyErr = adapter.controller.GetUserProjectList(ctx, userID); proxyErr != nil {
+	if list, proxyErr = adapter.controller.GetUserProjectList(ctx, rawToken); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().

@@ -7,13 +7,22 @@ option go_package = "./";
 import "src/transport/proto/src/app/models.proto";
 
 message ProjectsGetListByUserRequest {
-  uint64 ID = 1;
+  uint64 UserID = 1;
 }
 
 message ProjectsGetListByUserResponse {
   repeated Project List = 1;
 }
 
+message ProjectsGetRequest {
+  uint64 ID = 1;
+}
+
+message ProjectsGetResponse {
+  Project Project = 1;
+}
+
 service Projects {
   rpc GetListByUser(ProjectsGetListByUserRequest) returns (ProjectsGetListByUserResponse);
+  rpc Get(ProjectsGetRequest) returns (ProjectsGetResponse);
 }

@@ -3,7 +3,7 @@ package grpc_authentication_srv
 import (
 	"context"
 	"google.golang.org/grpc"
-	"sm-box/internal/app/infrastructure/controllers/authentication"
+	authentication_adapter "sm-box/internal/app/infrastructure/adapters/authentication"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	pb "sm-box/transport/proto/pb/golang/app"
@@ -60,7 +60,7 @@ func New(ctx context.Context) (srv Server, err error) {
 
 		// Authentication
 		{
-			if ref.controllers.Authentication, err = authentication_controller.New(ref.ctx); err != nil {
+			if ref.controllers.Authentication, err = authentication_adapter.New_Grpc(ref.ctx); err != nil {
 				return
 			}
 		}

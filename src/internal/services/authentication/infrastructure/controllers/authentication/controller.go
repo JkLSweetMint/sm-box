@@ -2,13 +2,12 @@ package authentication_controller
 
 import (
 	"context"
+	app_entities "sm-box/internal/app/objects/entities"
 	app_models "sm-box/internal/app/objects/models"
-	error_list "sm-box/internal/common/errors"
 	"sm-box/internal/common/types"
 	authentication_usecase "sm-box/internal/services/authentication/infrastructure/usecases/authentication"
 	"sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/authentication/objects/models"
-	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -21,18 +20,10 @@ const (
 // Controller - контроллер аутентификации пользователей.
 type Controller struct {
 	components *components
-	gateways   *gateways
 	usecases   *usecases
 
 	conf *Config
 	ctx  context.Context
-}
-
-// gateways - шлюзы контроллера.
-type gateways struct {
-	Projects interface {
-		GetListByUser(ctx context.Context, userID types.ID) (list app_models.ProjectList, cErr c_errors.Error)
-	}
 }
 
 // usecases - логика контроллера.
@@ -40,6 +31,7 @@ type usecases struct {
 	Authentication interface {
 		BasicAuth(ctx context.Context, rawToken, username, password string) (token *entities.JwtToken, cErr c_errors.Error)
 		SetTokenProject(ctx context.Context, rawToken string, projectID types.ID) (token *entities.JwtToken, cErr c_errors.Error)
+		GetUserProjectList(ctx context.Context, rawToken string) (list app_entities.ProjectList, cErr c_errors.Error)
 	}
 }
 
@@ -78,18 +70,6 @@ func New(ctx context.Context) (controller *Controller, err error) {
 		// Logger
 		{
 			if controller.components.Logger, err = logger.New(loggerInitiator); err != nil {
-				return
-			}
-		}
-	}
-
-	// Шлюзы
-	{
-		controller.gateways = new(gateways)
-
-		// Authentication
-		{
-			if controller.gateways.Projects, err = projects_service_gateway.New(ctx); err != nil {
 				return
 			}
 		}
@@ -145,21 +125,33 @@ func (controller *Controller) BasicAuth(ctx context.Context, rawToken, username,
 }
 
 // GetUserProjectList - получение списка проектов пользователя.
-func (controller *Controller) GetUserProjectList(ctx context.Context, userID types.ID) (list app_models.ProjectList, cErr c_errors.Error) {
+func (controller *Controller) GetUserProjectList(ctx context.Context, rawToken string) (list app_models.ProjectList, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, userID)
+		trc.FunctionCall(ctx, rawToken)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
-	var err error
+	var projects app_entities.ProjectList
 
-	if list, err = controller.gateways.Projects.GetListByUser(ctx, userID); err != nil {
-		cErr = error_list.InternalServerError()
-		cErr.SetError(err)
+	if projects, cErr = controller.usecases.Authentication.GetUserProjectList(ctx, rawToken); cErr != nil {
+		controller.components.Logger.Error().
+			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+
 		return
+	}
+
+	list = make(app_models.ProjectList, 0, len(list))
+
+	// Преобразование в модели
+	{
+		if projects != nil {
+			for _, project := range projects {
+				list = append(list, project.ToModel())
+			}
+		}
 	}
 
 	return

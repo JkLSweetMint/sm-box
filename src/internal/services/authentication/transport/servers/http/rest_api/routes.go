@@ -241,33 +241,13 @@ func (srv *server) registerRoutes() error {
 
 				// Обработка
 				{
-					var (
-						tokenRaw = ctx.Cookies(srv.conf.Components.AccessSystem.CookieKeyForToken)
-						token    = new(entities.JwtToken)
-					)
-
-					// Получение токена
-					{
-						if err = token.Parse(tokenRaw); err != nil {
-							srv.components.Logger.Error().
-								Format("Failed to get token data: '%s'. ", err).
-								Field("raw", tokenRaw).Write()
-
-							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
-								srv.components.Logger.Error().
-									Format("The response could not be recorded: '%s'. ", err).Write()
-
-								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
-							}
-							return
-						}
-					}
+					var tokenRaw = ctx.Cookies(srv.conf.Components.AccessSystem.CookieKeyForToken)
 
 					// Получение списка
 					{
 						var cErr c_errors.RestAPI
 
-						if response.Projects, cErr = srv.controllers.Authentication.GetUserProjectList(ctx.Context(), token.UserID); cErr != nil {
+						if response.Projects, cErr = srv.controllers.Authentication.GetUserProjectList(ctx.Context(), tokenRaw); cErr != nil {
 							srv.components.Logger.Error().
 								Format("The list of user's projects could not be retrieved: '%s'. ", cErr).Write()
 

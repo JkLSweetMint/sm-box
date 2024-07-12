@@ -2,8 +2,10 @@ package projects_service_gateway
 
 import (
 	"context"
+	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 	app_models "sm-box/internal/app/objects/models"
 	error_list "sm-box/internal/common/errors"
 	"sm-box/internal/common/types"
@@ -100,11 +102,16 @@ func (gw *Gateway) GetListByUser(ctx context.Context, userID types.ID) (list app
 		err      error
 		response *pb.ProjectsGetListByUserResponse
 		request  = &pb.ProjectsGetListByUserRequest{
-			ID: uint64(userID),
+			//UserID: uint64(userID),
 		}
 	)
 
 	if response, err = gw.client.GetListByUser(ctx, request); err != nil {
+		var st = status.Convert(err)
+
+		fmt.Printf("\n\n%+v\n", st)
+		fmt.Printf("%+v\n\n\n", st.Details())
+
 		gw.components.Logger.Error().
 			Format("Authorization failed on the remote service: '%s'. ", err).Write()
 
@@ -129,6 +136,49 @@ func (gw *Gateway) GetListByUser(ctx context.Context, userID types.ID) (list app
 					Version:     project.Version,
 				})
 			}
+		}
+	}
+
+	return
+}
+
+// Get - получение проекта.
+func (gw *Gateway) Get(ctx context.Context, id types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelGateway)
+
+		trc.FunctionCall(ctx, id)
+		defer func() { trc.Error(cErr).FunctionCallFinished(project) }()
+	}
+
+	var (
+		err      error
+		response *pb.ProjectsGetResponse
+		request  = &pb.ProjectsGetRequest{
+			ID: uint64(id),
+		}
+	)
+
+	if response, err = gw.client.Get(ctx, request); err != nil {
+		gw.components.Logger.Error().
+			Format("Failed to get the project: '%s'. ", err).Write()
+
+		cErr = error_list.InternalServerError()
+		cErr.SetError(err)
+
+		return
+	}
+
+	// Преобразование в модель
+	{
+		project = &app_models.ProjectInfo{
+			ID:      types.ID(response.Project.ID),
+			OwnerID: types.ID(response.Project.OwnerID),
+
+			Name:        response.Project.Name,
+			Description: response.Project.Description,
+			Version:     response.Project.Version,
 		}
 	}
 

@@ -159,7 +159,12 @@ func (i *Internal) UnmarshalJSON(bytes []byte) (err error) {
 					continue
 				}
 
-				i.Store.Details.Set(k, v)
+				switch q := v.(type) {
+				case string:
+					{
+						i.Store.Details.Set(k, q)
+					}
+				}
 			}
 		}
 	}

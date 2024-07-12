@@ -3,7 +3,7 @@ package grpc_projects_srv
 import (
 	"context"
 	"google.golang.org/grpc"
-	projects_controller "sm-box/internal/app/infrastructure/controllers/projects"
+	projects_adapter "sm-box/internal/app/infrastructure/adapters/projects"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	pb "sm-box/transport/proto/pb/golang/app"
@@ -60,7 +60,7 @@ func New(ctx context.Context) (srv Server, err error) {
 
 		// Projects
 		{
-			if ref.controllers.Projects, err = projects_controller.New(ref.ctx); err != nil {
+			if ref.controllers.Projects, err = projects_adapter.New_Grpc(ref.ctx); err != nil {
 				return
 			}
 		}

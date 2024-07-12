@@ -1,0 +1,1 @@
+@keyframes svelte-1fg87d-tilt-n-move-shaking{0%{transform:translate(0) rotate(0)}25%{transform:translate(5px,5px) rotate(5deg)}50%{transform:translate(0) rotate(0)}75%{transform:translate(-5px,5px) rotate(-5deg)}to{transform:translate(0) rotate(0)}}.monitor.svelte-1fg87d{will-change:transform;animation:svelte-1fg87d-tilt-n-move-shaking .3s infinite}

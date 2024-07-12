@@ -1,1 +1,0 @@
-import{S as r,N as o,O as i,R as c,T as l,V as p,a2 as a,a0 as d}from"./index-w8FV5FHi.js";function u(s){let t;return{c(){t=c("div"),t.innerHTML='<p class="text-center text-4xl m-auto">Пошёл нахуй ❤️</p>',l(t,"class","fs-page")},m(e,n){p(e,t,n)},p:a,i:a,o:a,d(e){e&&d(t)}}}class m extends r{constructor(t){super(),o(this,t,null,u,i,{})}}export{m as default};

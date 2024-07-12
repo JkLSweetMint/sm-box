@@ -41,7 +41,7 @@ type server struct {
 type controllers struct {
 	Authentication interface {
 		BasicAuth(ctx context.Context, rawToken, username, password string) (token *models.JwtTokenInfo, cErr c_errors.RestAPI)
-		GetUserProjectList(ctx context.Context, userID types.ID) (list app_models.ProjectList, cErr c_errors.RestAPI)
+		GetUserProjectList(ctx context.Context, rawToken string) (list app_models.ProjectList, cErr c_errors.RestAPI)
 		SetTokenProject(ctx context.Context, rawToken string, projectID types.ID) (token *entities.JwtToken, cErr c_errors.RestAPI)
 	}
 }

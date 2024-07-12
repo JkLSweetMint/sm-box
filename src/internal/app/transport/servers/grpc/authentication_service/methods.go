@@ -2,8 +2,7 @@ package grpc_authentication_srv
 
 import (
 	"context"
-	models2 "sm-box/internal/app/objects/models"
-	c_errors "sm-box/pkg/errors"
+	"sm-box/internal/app/objects/models"
 	pb "sm-box/transport/proto/pb/golang/app"
 )
 
@@ -12,16 +11,12 @@ import (
 func (srv *server) BasicAuth(ctx context.Context, request *pb.AuthenticationBasicAuthRequest) (response *pb.AuthenticationBasicAuthResponse, err error) {
 	response = new(pb.AuthenticationBasicAuthResponse)
 
-	var (
-		cErr c_errors.Error
-		user *models2.UserInfo
-	)
+	var user *models.UserInfo
 
-	if user, cErr = srv.controllers.Authentication.BasicAuth(ctx, request.Username, request.Password); cErr != nil {
+	if user, err = srv.controllers.Authentication.BasicAuth(ctx, request.Username, request.Password); err != nil {
 		srv.components.Logger.Error().
-			Format("User authorization failed: '%s'. ", cErr).Write()
+			Format("User authorization failed: '%s'. ", err).Write()
 
-		err = cErr
 		return
 	}
 
@@ -37,9 +32,9 @@ func (srv *server) BasicAuth(ctx context.Context, request *pb.AuthenticationBasi
 			Accesses: make([]*pb.Role, 0),
 		}
 
-		var writeInheritance func(parent *pb.Role, inheritances models2.RoleInfoInheritances)
+		var writeInheritance func(parent *pb.Role, inheritances models.RoleInfoInheritances)
 
-		writeInheritance = func(parent *pb.Role, inheritances models2.RoleInfoInheritances) {
+		writeInheritance = func(parent *pb.Role, inheritances models.RoleInfoInheritances) {
 			for _, rl := range inheritances {
 				var child = &pb.Role{
 					ID:        uint64(rl.ID),

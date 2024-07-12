@@ -118,7 +118,7 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 				}
 			} else {
 				if len(raw) == 0 {
-					if err = http_rest_api_io.WriteError(ctx, error_list.TokenHasNotBeenTransferred_RestAPI()); err != nil {
+					if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.TokenWasNotTransferred())); err != nil {
 						acc.components.Logger.Error().
 							Format("The response could not be recorded: '%s'. ", err).Write()
 
@@ -158,7 +158,7 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 						Field("token", token).Write()
 
 					var cErr = error_list.ValidityPeriodOfUserTokenHasNotStarted()
-					cErr.Details().Set("not_before", token.NotBefore)
+					cErr.Details().Set("not_before", token.NotBefore.Format(time.RFC3339Nano))
 
 					if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
 						acc.components.Logger.Error().

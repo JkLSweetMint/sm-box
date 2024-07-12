@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	grpc_codes "google.golang.org/grpc/codes"
 	"sm-box/pkg/errors/types"
 )
 
@@ -32,6 +33,7 @@ type (
 	StoreOthers struct {
 		RestAPI   *RestAPIStore
 		WebSocket *WebSocketStore
+		Grpc      *GrpcStore
 	}
 
 	// RestAPIStore - хранилище для построения ошибок rest api.
@@ -42,6 +44,11 @@ type (
 	// WebSocketStore - хранилище для построения ошибок web socket.
 	WebSocketStore struct {
 		StatusCode int
+	}
+
+	// GrpcStore - хранилище для построения ошибок grpc.
+	GrpcStore struct {
+		StatusCode grpc_codes.Code
 	}
 )
 

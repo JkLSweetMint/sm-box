@@ -3,10 +3,12 @@ package types
 type (
 	// Details - детали ошибки.
 	Details interface {
-		Peek(k string) (v any)
-		Set(k string, v any) Details
+		PeekAll() (data map[string]string)
+		Peek(k string) (v string)
+		Set(k string, v string) Details
 		Reset() Details
 
+		PeekFields() (data []DetailsField)
 		PeekFieldMessage(k string) (m DetailsFieldMessage)
 		SetField(k DetailsFieldKey, m DetailsFieldMessage) Details
 		SetFields(fields ...DetailsField) Details
