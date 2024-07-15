@@ -150,7 +150,8 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 
 // Auth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, password string) (sessionToken *entities.JwtSessionToken, cErr c_errors.Error) {
+func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, password string) (
+	sessionToken *entities.JwtSessionToken, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
@@ -325,8 +326,8 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 				Field("username", username).
 				Field("password", password).Write()
 
-			if errors.Is(cErr, sql.ErrNoRows) {
-				cErr = error_list.UserNotFound()
+			if cErr_ := error_list.UserNotFound(); errors.Is(cErr, cErr_) {
+				cErr = cErr_
 				return
 			}
 
@@ -390,7 +391,8 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 }
 
 // GetUserProjectList - получение списка проектов пользователя.
-func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_entities.ProjectList, cErr c_errors.Error) {
+func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken string) (
+	list app_entities.ProjectList, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
@@ -556,7 +558,6 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 	accessToken *entities.JwtAccessToken,
 	refreshToken *entities.JwtRefreshToken,
 	cErr c_errors.Error) {
-
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
@@ -684,10 +685,10 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 		if user, cErr = usecase.gateways.Users.GetOne(ctx, currentSessionToken.UserID); cErr != nil {
 			usecase.components.Logger.Error().
 				Format("Failed to get the user data: '%s'. ", cErr).
-				Field("id", projectID).Write()
+				Field("id", currentSessionToken.UserID).Write()
 
-			if errors.Is(cErr, sql.ErrNoRows) {
-				cErr = error_list.UserNotFound()
+			if cErr_ := error_list.UserNotFound(); errors.Is(cErr, cErr_) {
+				cErr = cErr_
 				return
 			}
 
@@ -850,6 +851,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 			accessToken = &entities.JwtAccessToken{
 				JwtToken: &entities.JwtToken{
 					ProjectID: projectID,
+					ParentID:  refreshToken.ID,
 					UserID:    user.ID,
 
 					Params: currentSessionToken.Params,
@@ -901,11 +903,15 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 	return
 }
 
-// RefreshAccessToken - обновление токена доступа.
-func (usecase *UseCase) RefreshAccessToken(ctx context.Context, rawRefreshToken string) (
-	accessToken *entities.JwtAccessToken,
-	refreshToken *entities.JwtRefreshToken,
-	cErr c_errors.Error) {
+// Logout - завершение действия токена пользователя.
+func (usecase *UseCase) Logout(ctx context.Context, rawToken string) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelUseCase)
+
+		trc.FunctionCall(ctx, rawToken)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
 
 	return
 }

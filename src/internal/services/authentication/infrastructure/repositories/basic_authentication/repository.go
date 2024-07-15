@@ -105,7 +105,10 @@ func (repo *Repository) GetToken(ctx context.Context, raw string) (tok *entities
 			from
 				tokens.jwt as tokens
 			where
-				tokens.raw = $1
+				tokens.raw = $1 and
+				not tokens.disabled and
+				now() < tokens.expires_at and 
+				now() >= tokens.not_before
 		`
 
 			var row = repo.connector.QueryRowxContext(ctx, query, raw)

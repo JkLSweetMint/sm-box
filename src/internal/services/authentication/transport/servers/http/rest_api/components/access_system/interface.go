@@ -3,6 +3,8 @@ package access_system
 import (
 	"context"
 	"github.com/gofiber/fiber/v3"
+	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
+	users_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/users_service"
 	"sm-box/internal/services/authentication/transport/servers/http/rest_api/components/access_system/repositories/http_routes"
 	"sm-box/internal/services/authentication/transport/servers/http/rest_api/components/access_system/repositories/jwt_tokens"
 	"sm-box/pkg/core/components/logger"
@@ -15,7 +17,7 @@ const (
 
 // AccessSystem - описание компонента системы доступа.
 type AccessSystem interface {
-	AuthenticationMiddleware(ctx fiber.Ctx) (err error)
+	Middleware(ctx fiber.Ctx) (err error)
 }
 
 // New - создание компонента.
@@ -48,6 +50,20 @@ func New(ctx context.Context, conf *Config) (acc AccessSystem, err error) {
 	// Шлюзы
 	{
 		ref.gateways = new(gateways)
+
+		// Projects
+		{
+			if ref.gateways.Projects, err = projects_service_gateway.New(ctx); err != nil {
+				return
+			}
+		}
+
+		// Users
+		{
+			if ref.gateways.Users, err = users_service_gateway.New(ctx); err != nil {
+				return
+			}
+		}
 	}
 
 	// Репозиторий

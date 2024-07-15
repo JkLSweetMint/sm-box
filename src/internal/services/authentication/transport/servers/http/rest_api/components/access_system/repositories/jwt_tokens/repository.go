@@ -2,6 +2,7 @@ package jwt_tokens_repository
 
 import (
 	"context"
+	"sm-box/internal/services/authentication/objects/db_models"
 	"sm-box/internal/services/authentication/objects/entities"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -151,6 +152,146 @@ func (repo *Repository) Register(ctx context.Context, tok *entities.JwtToken) (e
 				Format("Error inserting an item from the database: '%s'. ", err).Write()
 			return
 		}
+	}
+
+	return
+}
+
+// GetToken - получение jwt токена.
+func (repo *Repository) GetToken(ctx context.Context, raw string) (tok *entities.JwtToken, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, raw)
+		defer func() { trc.Error(err).FunctionCallFinished(tok) }()
+	}
+
+	// Основные данные
+	{
+		var model = new(db_models.JwtToken)
+
+		// Получение
+		{
+			var query = `
+			select
+				tokens.id,
+				tokens.parent_id,
+				coalesce(tokens.user_id, 0) as user_id,
+				coalesce(tokens.project_id, 0) as project_id,
+				tokens.type,
+				tokens.issued_at,
+				tokens.not_before,
+				tokens.expires_at
+			from
+				tokens.jwt as tokens
+			where
+				tokens.raw = $1 and
+				not tokens.disabled and
+				now() < tokens.expires_at and 
+				now() >= tokens.not_before
+		`
+
+			var row = repo.connector.QueryRowxContext(ctx, query, raw)
+
+			if err = row.Err(); err != nil {
+				repo.components.Logger.Error().
+					Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+				return
+			}
+
+			if err = row.StructScan(model); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+		}
+
+		// Перенос в сущность
+		{
+			tok = new(entities.JwtToken)
+			tok.FillEmptyFields()
+
+			tok.ID = model.ID
+			tok.ParentID = model.ParentID
+
+			tok.UserID = model.UserID
+			tok.ProjectID = model.ProjectID
+
+			tok.Raw = raw
+
+			tok.IssuedAt = model.IssuedAt
+			tok.NotBefore = model.NotBefore
+			tok.ExpiresAt = model.ExpiresAt
+		}
+	}
+
+	// Параметры
+	{
+		var model = new(db_models.JwtTokenParams)
+
+		// Получение
+		{
+			var query = `
+			select
+				params.remote_addr,
+				params.user_agent
+			from
+				tokens.jwt_params as params
+			where
+				params.token_id = $1
+		`
+
+			var row = repo.connector.QueryRowxContext(ctx, query, tok.ID)
+
+			if err = row.Err(); err != nil {
+				repo.components.Logger.Error().
+					Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+				return
+			}
+
+			if err = row.StructScan(model); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+		}
+
+		// Перенос в сущность
+		{
+			tok.Params = new(entities.JwtTokenParams)
+
+			tok.Params.RemoteAddr = model.RemoteAddr
+			tok.Params.UserAgent = model.UserAgent
+		}
+	}
+
+	return
+}
+
+// Disable - отключение токена.
+func (repo *Repository) Disable(ctx context.Context, raw string) (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, raw)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var query = `
+		update
+			tokens.jwt
+		set
+			disabled = true
+		where
+			raw = $1
+	`
+
+	if _, err = repo.connector.ExecContext(ctx, query, raw); err != nil {
+		repo.components.Logger.Error().
+			Format("Error inserting an updating from the database: '%s'. ", err).Write()
+		return
 	}
 
 	return

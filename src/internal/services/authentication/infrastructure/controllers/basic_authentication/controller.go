@@ -36,6 +36,7 @@ type usecases struct {
 			accessToken *entities.JwtAccessToken,
 			refreshToken *entities.JwtRefreshToken,
 			cErr c_errors.Error)
+		Logout(ctx context.Context, rawToken string) (cErr c_errors.Error)
 	}
 }
 
@@ -100,7 +101,8 @@ func New(ctx context.Context) (controller *Controller, err error) {
 
 // Auth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (controller *Controller) Auth(ctx context.Context, rawSessionToken, username, password string) (sessionToken *models.JwtTokenInfo, cErr c_errors.Error) {
+func (controller *Controller) Auth(ctx context.Context, rawSessionToken, username, password string) (
+	sessionToken *models.JwtTokenInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
@@ -129,7 +131,8 @@ func (controller *Controller) Auth(ctx context.Context, rawSessionToken, usernam
 }
 
 // GetUserProjectList - получение списка проектов пользователя.
-func (controller *Controller) GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_models.ProjectList, cErr c_errors.Error) {
+func (controller *Controller) GetUserProjectList(ctx context.Context, rawSessionToken string) (
+	list app_models.ProjectList, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
@@ -198,6 +201,26 @@ func (controller *Controller) SetTokenProject(ctx context.Context, rawSessionTok
 		if refreshTok != nil {
 			refreshToken = refreshTok.ToModel()
 		}
+	}
+
+	return
+}
+
+// Logout - завершение действия токена пользователя.
+func (controller *Controller) Logout(ctx context.Context, rawToken string) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, rawToken)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	if cErr = controller.usecases.BasicAuthentication.Logout(ctx, rawToken); cErr != nil {
+		controller.components.Logger.Error().
+			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+
+		return
 	}
 
 	return

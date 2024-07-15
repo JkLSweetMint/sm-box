@@ -43,7 +43,7 @@ func (conf *Config) Default() *Config {
 	conf.Connector = new(postgresql.Config).Default()
 
 	conf.Connector.DbName = "i18n"
-	conf.Connector.Auth.User = "root"
+	conf.Connector.Auth.User = "postgres"
 	conf.Connector.Auth.Password = "3bxMue16ztXPR635"
 	conf.Connector.Host = "postgres"
 	conf.Connector.Port = 5432

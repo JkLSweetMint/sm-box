@@ -3,9 +3,9 @@ services:
     image: postgres:16.3
     container_name: database
     restart: unless-stopped
-    attach: false
+#    attach: false
     environment:
-      POSTGRES_USER: "root"
+      POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "3bxMue16ztXPR635"
       TZ: 'GMT-4'
       PGTZ: 'GMT-4'
@@ -16,6 +16,11 @@ services:
       - "8081:5432"
     networks:
       - system
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   app:
 #    build:
@@ -26,7 +31,10 @@ services:
     restart: unless-stopped
 #    attach: false
     depends_on:
-      - postgres
+      authentication-service:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     networks:
       - system
     volumes:
@@ -47,7 +55,8 @@ services:
     restart: unless-stopped
 #    attach: false
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - system
     volumes:
@@ -68,8 +77,10 @@ services:
     restart: unless-stopped
 #    attach: false
     depends_on:
-      - postgres
-      - authentication-service
+      authentication-service:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     networks:
       - system
     volumes:
@@ -90,8 +101,10 @@ services:
     restart: unless-stopped
 #    attach: false
     depends_on:
-      - postgres
-      - authentication-service
+      authentication-service:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     networks:
       - system
     volumes:

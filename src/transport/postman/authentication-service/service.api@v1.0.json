@@ -317,39 +317,6 @@
             ]
         },
         {
-            "name": "Запрос для обновления токена доступа по базовой авторизации пользователя. ",
-            "request": {
-                "url": {
-                    "raw": "",
-                    "protocol": "https",
-                    "host": [
-                        "box",
-                        "samgk",
-                        "ru"
-                    ],
-                    "path": [
-                        "",
-                        "authentication",
-                        "api",
-                        "v1.0",
-                        "basic-auth",
-                        "refresh"
-                    ]
-                },
-                "method": "POST",
-                "description": "",
-                "body": {
-                    "mode": "raw",
-                    "raw": "\n{\n   \"token_raw\": \"\"\n}\n",
-                    "options": {
-                        "raw": {
-                            "language": "json"
-                        }
-                    }
-                }
-            }
-        },
-        {
             "name": "Запрос для завершения работы пользователя. ",
             "request": {
                 "url": {

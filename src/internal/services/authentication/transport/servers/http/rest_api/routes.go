@@ -205,10 +205,7 @@ func (srv *server) registerRoutes() error {
 					type Request struct {
 						ProjectID types.ID `json:"project_id"`
 					}
-					type Response struct {
-						AccessToken  *models.JwtTokenInfo `json:"access_token"  xml:"AccessToken"`
-						RefreshToken *models.JwtTokenInfo `json:"refresh_token" xml:"RefreshToken"`
-					}
+					type Response struct{}
 
 					var (
 						request  = new(Request)
@@ -238,12 +235,12 @@ func (srv *server) registerRoutes() error {
 					// Обработка
 					{
 						var (
-							rawSessionToken = ctx.Cookies(srv.conf.Components.AccessSystem.CookieKeyForSessionToken)
-							sessionToken    *models.JwtTokenInfo
-							cErr            c_errors.RestAPI
+							rawSessionToken                         = ctx.Cookies(srv.conf.Components.AccessSystem.CookieKeyForSessionToken)
+							cErr                                    c_errors.RestAPI
+							sessionToken, accessToken, refreshToken *models.JwtTokenInfo
 						)
 
-						if sessionToken, response.AccessToken, response.RefreshToken, cErr = srv.controllers.BasicAuthentication.SetTokenProject(ctx.Context(), rawSessionToken, request.ProjectID); cErr != nil {
+						if sessionToken, accessToken, refreshToken, cErr = srv.controllers.BasicAuthentication.SetTokenProject(ctx.Context(), rawSessionToken, request.ProjectID); cErr != nil {
 							srv.components.Logger.Error().
 								Format("The project value for the user token could not be set: '%s'. ", cErr).Write()
 
@@ -269,14 +266,31 @@ func (srv *server) registerRoutes() error {
 								ctx.Cookie(cookie)
 							}
 
-							if response.AccessToken != nil {
+							if accessToken != nil {
 								var cookie = &fiber.Cookie{
 									Name:        srv.conf.Components.AccessSystem.CookieKeyForAccessToken,
-									Value:       response.AccessToken.Raw,
+									Value:       accessToken.Raw,
 									Path:        "/",
 									Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
 									MaxAge:      0,
-									Expires:     sessionToken.ExpiresAt,
+									Expires:     accessToken.ExpiresAt,
+									Secure:      true,
+									HTTPOnly:    true,
+									SameSite:    fiber.CookieSameSiteLaxMode,
+									SessionOnly: false,
+								}
+
+								ctx.Cookie(cookie)
+							}
+
+							if refreshToken != nil {
+								var cookie = &fiber.Cookie{
+									Name:        srv.conf.Components.AccessSystem.CookieKeyForRefreshToken,
+									Value:       refreshToken.Raw,
+									Path:        "/",
+									Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+									MaxAge:      0,
+									Expires:     refreshToken.ExpiresAt,
 									Secure:      true,
 									HTTPOnly:    true,
 									SameSite:    fiber.CookieSameSiteLaxMode,
@@ -616,92 +630,6 @@ func (srv *server) registerRoutes() error {
 			})
 		}
 
-		// POST /refresh
-		{
-			var id = uuid.New().String()
-
-			router.Post("/refresh", func(ctx fiber.Ctx) (err error) {
-				type Request struct {
-					TokenRaw string `json:"token_raw"`
-				}
-				type Response struct{}
-
-				var (
-					request  = new(Request)
-					response = new(Response)
-				)
-
-				// Чтение данных
-				{
-					if err = ctx.Bind().Body(request); err != nil {
-						srv.components.Logger.Error().
-							Format("The request body data could not be read: '%s'. ", err).Write()
-
-						if err = http_rest_api_io.WriteError(ctx, error_list.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
-							srv.components.Logger.Error().
-								Format("The response could not be recorded: '%s'. ", err).Write()
-
-							var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
-							cErr.SetError(err)
-
-							return http_rest_api_io.WriteError(ctx, cErr)
-						}
-
-						return
-					}
-				}
-
-				// Обработка
-				{
-					fmt.Println()
-					fmt.Println()
-					fmt.Println(request.TokenRaw)
-					fmt.Println()
-					fmt.Println()
-				}
-
-				// Отправка ответа
-				{
-					if err = http_rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
-						srv.components.Logger.Error().
-							Format("The response could not be recorded: '%s'. ", err).Write()
-
-						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
-					}
-					return
-				}
-			}).Name(id)
-
-			var route = srv.app.GetRoute(id)
-
-			srv.postman.AddItem(&postman.Items{
-				Name: "Запрос для обновления токена доступа по базовой авторизации пользователя. ",
-				Request: &postman.Request{
-					URL: &postman.URL{
-						Protocol: srv.conf.Postman.Protocol,
-						Host:     strings.Split(srv.conf.Postman.Host, "."),
-						Path:     strings.Split(route.Path, "/"),
-					},
-					Method:      postman.Method(route.Method),
-					Description: ``,
-					Body: &postman.Body{
-						Mode: "raw",
-						Raw: `
-{
-   "token_raw": ""
-}
-`,
-						Options: &postman.BodyOptions{
-							Raw: postman.BodyOptionsRaw{
-								Language: postman.JSON,
-							},
-						},
-					},
-				},
-				Responses: []*postman.Response{},
-			})
-		}
-
 		// POST /logout
 		{
 			var id = uuid.New().String()
@@ -791,7 +719,7 @@ func (srv *server) registerRoutes() error {
 
 		// GET /auth
 		{
-			router.Get("/auth", srv.components.AccessSystem.AuthenticationMiddleware)
+			router.Get("/auth", srv.components.AccessSystem.Middleware)
 		}
 	}
 

@@ -16,6 +16,7 @@ type Controllers interface {
 		GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_models.ProjectList, cErr c_errors.Error)
 		SetTokenProject(ctx context.Context, rawSessionToken string, projectID types.ID) (
 			sessionToken, accessToken, refreshToken *models.JwtTokenInfo, cErr c_errors.Error)
+		Logout(ctx context.Context, rawToken string) (cErr c_errors.Error)
 	}
 }
 
@@ -30,6 +31,7 @@ func (controllers *controllers) BasicAuthentication() interface {
 	GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_models.ProjectList, cErr c_errors.Error)
 	SetTokenProject(ctx context.Context, rawSessionToken string, projectID types.ID) (
 		sessionToken, accessToken, refreshToken *models.JwtTokenInfo, cErr c_errors.Error)
+	Logout(ctx context.Context, rawToken string) (cErr c_errors.Error)
 } {
 	return controllers.basicAuthentication
 }

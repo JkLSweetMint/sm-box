@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	grpc_codes "google.golang.org/grpc/codes"
-	"reflect"
 	"sm-box/pkg/errors/types"
 )
 
@@ -139,7 +138,7 @@ func (i *Internal) Is(target error) (ok bool) {
 		err = errors.New(i.Store.Message.String())
 	}
 
-	ok = reflect.DeepEqual(err, target)
+	ok = err.Error() == target.Error()
 	return
 }
 

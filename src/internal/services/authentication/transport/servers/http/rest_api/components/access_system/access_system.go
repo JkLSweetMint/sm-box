@@ -2,13 +2,17 @@ package access_system
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"net/url"
+	app_models "sm-box/internal/app/objects/models"
 	error_list "sm-box/internal/common/errors"
 	"sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/entities"
+	users_models "sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/logger"
 	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/http/rest_api/io"
@@ -34,6 +38,14 @@ type (
 
 	// gateways - шлюзы компонента.
 	gateways struct {
+		Projects interface {
+			Get(ctx context.Context, ids ...types.ID) (list app_models.ProjectList, cErr c_errors.Error)
+			GetOne(ctx context.Context, id types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error)
+		}
+		Users interface {
+			Get(ctx context.Context, ids ...types.ID) (list []*users_models.UserInfo, cErr c_errors.Error)
+			GetOne(ctx context.Context, id types.ID) (project *users_models.UserInfo, cErr c_errors.Error)
+		}
 	}
 
 	// repositories - репозитории компонента.
@@ -44,19 +56,21 @@ type (
 		}
 		JwtTokens interface {
 			Register(ctx context.Context, tok *entities.JwtToken) (err error)
+			Disable(ctx context.Context, raw string) (err error)
+			GetToken(ctx context.Context, raw string) (tok *entities.JwtToken, err error)
 		}
 	}
 )
 
-// AuthenticationMiddleware - промежуточное программное обеспечение аутентификации пользователя по http маршрутам.
-func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
+// Middleware - промежуточное программное обеспечение аутентификации пользователя по http маршрутам.
+func (acc *accessSystem) Middleware(ctx fiber.Ctx) (err error) {
 	var (
 		sessionToken *entities.JwtSessionToken
 		accessToken  *entities.JwtAccessToken
 		route        *entities.HttpRoute
 	)
 
-	// Работа с токеном
+	// Работа с токенами
 	{
 		// Сессия
 		{
@@ -201,6 +215,11 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 			sessionToken = token
 		}
 
+		// Обновления
+		{
+
+		}
+
 		// Доступа
 		{
 			var token = accessToken
@@ -262,6 +281,286 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 						if tm.After(token.ExpiresAt) {
 							token = nil
 						}
+					}
+				}
+			}
+
+			// Если устарел или не передан, создаём новый если есть токен обновления
+			{
+				if raw := ctx.Cookies(acc.conf.CookieKeyForRefreshToken); token == nil && len(raw) > 0 {
+					var (
+						refreshToken = new(entities.JwtRefreshToken)
+						user         *users_models.UserInfo
+						project      *app_models.ProjectInfo
+					)
+
+					// Получение токена обновления если ещё живой
+					{
+						if refreshToken.JwtToken, err = acc.repositories.JwtTokens.GetToken(ctx.Context(), raw); err != nil {
+							acc.components.Logger.Error().
+								Format("Failed to get refresh token: '%s'. ", err).
+								Field("raw", raw).Write()
+
+							var cErr c_errors.RestAPI
+
+							if errors.Is(err, sql.ErrNoRows) {
+								cErr = c_errors.ToRestAPI(error_list.AnUnregisteredTokenWasTransferred())
+							} else {
+								cErr = c_errors.ToRestAPI(error_list.InternalServerError())
+							}
+
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								acc.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+							return
+						}
+					}
+
+					// Завершения токена обновления
+					{
+						if err = acc.repositories.JwtTokens.Disable(ctx.Context(), raw); err != nil {
+							acc.components.Logger.Error().
+								Format("Failed to complete the validity period of the refresh token: '%s'. ", err).
+								Field("raw", raw).Write()
+
+							var cErr = c_errors.ToRestAPI(error_list.InternalServerError())
+
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								acc.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+							return
+						}
+					}
+
+					// Получение данных пользователя
+					{
+						var cErr c_errors.Error
+
+						if user, cErr = acc.gateways.Users.GetOne(ctx.Context(), sessionToken.UserID); cErr != nil {
+							acc.components.Logger.Error().
+								Format("Failed to get the user data: '%s'. ", cErr).
+								Field("id", sessionToken.UserID).Write()
+
+							if errors.Is(cErr, sql.ErrNoRows) {
+								cErr = error_list.NotAccess()
+							} else {
+								cErr = error_list.InternalServerError()
+							}
+
+							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
+								acc.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+							return
+						}
+
+						acc.components.Logger.Info().
+							Text("The user's data has been successfully received. ").
+							Field("user", user).Write()
+					}
+
+					// Получение данных проекта
+					{
+						var cErr c_errors.Error
+
+						if project, cErr = acc.gateways.Projects.GetOne(ctx.Context(), sessionToken.ProjectID); cErr != nil {
+							acc.components.Logger.Error().
+								Format("Failed to get the project: '%s'. ", cErr).
+								Field("id", sessionToken.ProjectID).Write()
+
+							if errors.Is(cErr, sql.ErrNoRows) {
+								cErr = error_list.NotAccess()
+							} else {
+								cErr = error_list.InternalServerError()
+							}
+
+							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
+								acc.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+							return
+						}
+
+						acc.components.Logger.Info().
+							Text("The project data has been successfully received. ").
+							Field("project", project).Write()
+					}
+
+					// Проверка доступа
+					{
+						var (
+							ids  = make(map[types.ID]struct{})
+							cErr c_errors.Error
+						)
+
+						// Список id проектов
+						{
+							var writeInheritance func(rl *users_models.RoleInfo)
+
+							writeInheritance = func(rl *users_models.RoleInfo) {
+								if id := rl.ProjectID; id != 0 {
+									ids[id] = struct{}{}
+								}
+
+								for _, child := range rl.Inheritances {
+									writeInheritance(child.RoleInfo)
+								}
+							}
+
+							for _, rl := range user.Accesses {
+								writeInheritance(rl.RoleInfo)
+							}
+						}
+
+						if _, ok := ids[project.ID]; !ok {
+							acc.components.Logger.Error().
+								Format("The user does not have access to the project: '%s'. ", cErr).
+								Field("project_id", project.ID).
+								Field("user_id", user.ID).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccessToProject())); err != nil {
+								acc.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+							return
+						}
+					}
+
+					// Создание новых токенов
+					{
+						// Создание токена обновления
+						{
+							refreshToken = &entities.JwtRefreshToken{
+								JwtToken: &entities.JwtToken{
+									ProjectID: sessionToken.ProjectID,
+									ParentID:  refreshToken.ID,
+									UserID:    user.ID,
+
+									Params: sessionToken.Params,
+								},
+								Claims: nil,
+							}
+
+							if err = refreshToken.Generate(); err != nil {
+								acc.components.Logger.Error().
+									Format("User session token generation failed: '%s'. ", err).Write()
+
+								if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+									acc.components.Logger.Error().
+										Format("The response could not be recorded: '%s'. ", err).Write()
+
+									return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+								}
+								return
+							}
+
+							// Сохранение в базе
+							{
+								if err = acc.repositories.JwtTokens.Register(ctx.Context(), refreshToken.JwtToken); err != nil {
+									acc.components.Logger.Error().
+										Format("The client's token could not be registered in the database: '%s'. ", err).Write()
+
+									if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+										acc.components.Logger.Error().
+											Format("The response could not be recorded: '%s'. ", err).Write()
+
+										return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+									}
+									return
+								}
+							}
+						}
+
+						// Создание токена доступа
+						{
+							token = &entities.JwtAccessToken{
+								JwtToken: &entities.JwtToken{
+									ProjectID: sessionToken.ProjectID,
+									ParentID:  refreshToken.ID,
+									UserID:    user.ID,
+
+									Params: sessionToken.Params,
+								},
+								Claims: nil,
+							}
+
+							// Запись доступов пользователя
+							{
+								token.Claims = &entities.JwtAccessTokenClaims{
+									Accesses: user.Accesses.ListIDs(),
+								}
+							}
+
+							if err = token.Generate(); err != nil {
+								acc.components.Logger.Error().
+									Format("User session token generation failed: '%s'. ", err).Write()
+
+								if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+									acc.components.Logger.Error().
+										Format("The response could not be recorded: '%s'. ", err).Write()
+
+									return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+								}
+								return
+							}
+
+							// Сохранение в базе
+							{
+								if err = acc.repositories.JwtTokens.Register(ctx.Context(), token.JwtToken); err != nil {
+									acc.components.Logger.Error().
+										Format("The client's token could not be registered in the database: '%s'. ", err).Write()
+
+									if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+										acc.components.Logger.Error().
+											Format("The response could not be recorded: '%s'. ", err).Write()
+
+										return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+									}
+									return
+								}
+							}
+						}
+					}
+
+					// Запись печенек
+					{
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForAccessToken,
+							Value:       token.Raw,
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     token.ExpiresAt,
+							Secure:      true,
+							HTTPOnly:    true,
+							SameSite:    fiber.CookieSameSiteLaxMode,
+							SessionOnly: false,
+						})
+
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForRefreshToken,
+							Value:       refreshToken.Raw,
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     refreshToken.ExpiresAt,
+							Secure:      true,
+							HTTPOnly:    true,
+							SameSite:    fiber.CookieSameSiteLaxMode,
+							SessionOnly: false,
+						})
 					}
 				}
 			}

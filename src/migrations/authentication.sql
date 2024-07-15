@@ -51,7 +51,9 @@ create table
 
     issued_at  timestamptz   not null,
     not_before timestamptz   not null,
-    expires_at timestamptz   not null
+    expires_at timestamptz   not null,
+
+    disabled   boolean       not null default false
 
     constraint check_type
         check (type = 'session' or type = 'access' or type = 'refresh')

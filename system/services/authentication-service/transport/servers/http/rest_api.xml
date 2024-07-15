@@ -29,14 +29,14 @@
 		<EnableSplittingOnParsers>false</EnableSplittingOnParsers>
 	</Server>
 	<Components>
-		<AccessSystem cookie_key_for_session_token="box_session" cookie_key_for_access_token="box_access">
+		<AccessSystem cookie_key_for_session_token="st_box" cookie_key_for_access_token="at_box" cookie_key_for_refresh_token="rt_box">
 			<Repositories>
 				<HttpRoutes>
 					<Connector>
 						<DbName>authentication</DbName>
 						<Host>postgres</Host>
 						<Port>5432</Port>
-						<Auth user="root" password="3bxMue16ztXPR635"></Auth>
+						<Auth user="postgres" password="3bxMue16ztXPR635"></Auth>
 						<Tags sslmode="disable"></Tags>
 						<MaxOpenConns>50</MaxOpenConns>
 						<MaxIdleConns>50</MaxIdleConns>
@@ -48,7 +48,7 @@
 						<DbName>authentication</DbName>
 						<Host>postgres</Host>
 						<Port>5432</Port>
-						<Auth user="root" password="3bxMue16ztXPR635"></Auth>
+						<Auth user="postgres" password="3bxMue16ztXPR635"></Auth>
 						<Tags sslmode="disable"></Tags>
 						<MaxOpenConns>50</MaxOpenConns>
 						<MaxIdleConns>50</MaxIdleConns>

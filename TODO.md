@@ -8,6 +8,11 @@
  
 ---
 
+### v24.0.38:
+- [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+
+---
+
 ### v24.0.37:
 - [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
 

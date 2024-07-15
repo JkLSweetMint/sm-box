@@ -10,7 +10,8 @@ import (
 // Config - конфигурация компонента системы доступа.
 type Config struct {
 	CookieKeyForSessionToken string `json:"cookie_key_for_session_token" yaml:"CookieKeyForSessionToken" xml:"cookie_key_for_session_token,attr"`
-	CookieKeyForAccessToken  string `json:"cookie_key_for_access_token"   yaml:"CookieKeyForAccessToken"  xml:"cookie_key_for_access_token,attr"`
+	CookieKeyForAccessToken  string `json:"cookie_key_for_access_token"  yaml:"CookieKeyForAccessToken"  xml:"cookie_key_for_access_token,attr"`
+	CookieKeyForRefreshToken string `json:"cookie_key_for_refresh_token" yaml:"CookieKeyForRefreshToken" xml:"cookie_key_for_refresh_token,attr"`
 
 	Repositories *RepositoriesConfig `json:"repositories" yaml:"Repositories" xml:"Repositories"`
 }
@@ -105,8 +106,9 @@ func (conf *Config) Default() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.CookieKeyForSessionToken = "box_session"
-	conf.CookieKeyForAccessToken = "box_access"
+	conf.CookieKeyForSessionToken = "st_box"
+	conf.CookieKeyForAccessToken = "at_box"
+	conf.CookieKeyForRefreshToken = "rt_box"
 
 	conf.Repositories = new(RepositoriesConfig).Default()
 

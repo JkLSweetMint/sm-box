@@ -250,7 +250,7 @@ var (
 		Message: new(messages.TextMessage).
 			Text("There is no access to the project. "),
 	}.RestAPI(c_errors.RestAPIConstructor{
-		StatusCode: fiber.StatusBadRequest,
+		StatusCode: fiber.StatusForbidden,
 	}).WebSocket(c_errors.WebSocketConstructor{
 		StatusCode: websocket.CloseNormalClosure,
 	}).Grpc(c_errors.GrpcConstructor{

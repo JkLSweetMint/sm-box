@@ -47,7 +47,7 @@ func (entity *JwtAccessToken) FillEmptyFields() *JwtAccessToken {
 	var emptyTime time.Time
 
 	if entity.ExpiresAt == emptyTime {
-		entity.ExpiresAt = time.Now().Add(10 * time.Minute)
+		entity.ExpiresAt = time.Now().Add(3 * time.Minute)
 	}
 
 	if entity.NotBefore == emptyTime {

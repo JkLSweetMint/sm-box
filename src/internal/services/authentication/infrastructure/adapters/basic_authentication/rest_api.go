@@ -24,6 +24,7 @@ type Adapter_RestAPI struct {
 		GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_models.ProjectList, cErr c_errors.Error)
 		SetTokenProject(ctx context.Context, rawSessionToken string, projectID types.ID) (
 			sessionToken, accessToken, refreshToken *models.JwtTokenInfo, cErr c_errors.Error)
+		Logout(ctx context.Context, rawToken string) (cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -75,7 +76,8 @@ func New_RestAPI(ctx context.Context) (adapter *Adapter_RestAPI, err error) {
 
 // Auth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (adapter *Adapter_RestAPI) Auth(ctx context.Context, rawSessionToken, username, password string) (sessionToken *models.JwtTokenInfo, cErr c_errors.RestAPI) {
+func (adapter *Adapter_RestAPI) Auth(ctx context.Context, rawSessionToken, username, password string) (
+	sessionToken *models.JwtTokenInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
@@ -98,7 +100,8 @@ func (adapter *Adapter_RestAPI) Auth(ctx context.Context, rawSessionToken, usern
 }
 
 // GetUserProjectList - получение списка проектов пользователя.
-func (adapter *Adapter_RestAPI) GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_models.ProjectList, cErr c_errors.RestAPI) {
+func (adapter *Adapter_RestAPI) GetUserProjectList(ctx context.Context, rawSessionToken string) (
+	list app_models.ProjectList, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
@@ -134,6 +137,29 @@ func (adapter *Adapter_RestAPI) SetTokenProject(ctx context.Context, rawSessionT
 	var proxyErr c_errors.Error
 
 	if sessionToken, accessToken, refreshToken, proxyErr = adapter.controller.SetTokenProject(ctx, rawSessionToken, projectID); proxyErr != nil {
+		cErr = c_errors.ToRestAPI(proxyErr)
+
+		adapter.components.Logger.Error().
+			Format("The controller method was executed with an error: '%s'. ", cErr).Write()
+		return
+	}
+
+	return
+}
+
+// Logout - завершение действия токена пользователя.
+func (adapter *Adapter_RestAPI) Logout(ctx context.Context, rawToken string) (cErr c_errors.RestAPI) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelAdapter)
+
+		trc.FunctionCall(ctx, rawToken)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	var proxyErr c_errors.Error
+
+	if proxyErr = adapter.controller.Logout(ctx, rawToken); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().
