@@ -35,7 +35,7 @@ func (srv *service) serve(ctx context.Context) (err error) {
 		go func() {
 			defer env.Synchronization.WaitGroup.Done()
 
-			if err = srv.Transport().Servers().Grpc().AuthenticationService().Listen(); err != nil {
+			if err = srv.Transport().Servers().Grpc().BasicAuthenticationService().Listen(); err != nil {
 				srv.Components().Logger().Error().
 					Format("Failed to launch 'grpc server for authentication service': '%s'. ", err).Write()
 			}
@@ -77,7 +77,7 @@ func (srv *service) shutdown(ctx context.Context) (err error) {
 				Format("Failed to stop 'http rest api server': '%s'. ", err).Write()
 		}
 
-		if err = srv.Transport().Servers().Grpc().AuthenticationService().Shutdown(); err != nil {
+		if err = srv.Transport().Servers().Grpc().BasicAuthenticationService().Shutdown(); err != nil {
 			srv.Components().Logger().Error().
 				Format("grpc server for authentication service': '%s'. ", err).Write()
 		}

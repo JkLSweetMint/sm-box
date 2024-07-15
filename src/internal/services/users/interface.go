@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
-	grpc_authentication_srv "sm-box/internal/services/users/transport/servers/grpc/authentication_service"
+	basic_authentication_controller "sm-box/internal/services/users/infrastructure/controllers/basic_authentication"
+	users_controller "sm-box/internal/services/users/infrastructure/controllers/users"
+	grpc_basic_authentication_srv "sm-box/internal/services/users/transport/servers/grpc/basic_authentication_service"
 	grpc_users_srv "sm-box/internal/services/users/transport/servers/grpc/users_service"
 	http_rest_api "sm-box/internal/services/users/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
@@ -70,6 +72,19 @@ func New() (srv_ Service, err error) {
 	{
 		ref.controllers = new(controllers)
 
+		// BasicAuthentication
+		{
+			if ref.controllers.basicAuthentication, err = basic_authentication_controller.New(ref.Ctx()); err != nil {
+				return
+			}
+		}
+
+		// Users
+		{
+			if ref.controllers.users, err = users_controller.New(ref.Ctx()); err != nil {
+				return
+			}
+		}
 	}
 
 	// Транспортная часть
@@ -87,7 +102,7 @@ func New() (srv_ Service, err error) {
 				return
 			}
 
-			if ref.transport.servers.grpc.authenticationService, err = grpc_authentication_srv.New(ref.Ctx()); err != nil {
+			if ref.transport.servers.grpc.basicAuthenticationService, err = grpc_basic_authentication_srv.New(ref.Ctx()); err != nil {
 				return
 			}
 

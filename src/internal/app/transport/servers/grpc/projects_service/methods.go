@@ -36,7 +36,9 @@ func (srv *server) GetOne(ctx context.Context, request *pb.ProjectsGetOneRequest
 
 // Get - получение проектов по ID.
 func (srv *server) Get(ctx context.Context, request *pb.ProjectsGetRequest) (response *pb.ProjectsGetResponse, err error) {
-	response = new(pb.ProjectsGetResponse)
+	response = &pb.ProjectsGetResponse{
+		List: make([]*pb.Project, 0),
+	}
 
 	var (
 		projects models.ProjectList

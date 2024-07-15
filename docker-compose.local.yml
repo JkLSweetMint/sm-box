@@ -39,9 +39,9 @@ services:
       - ./var/test:/home/app/var/test
 
   authentication-service:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.authentication-service
+    build:
+      context: .
+      dockerfile: Dockerfile.authentication-service
     image: box/authentication-service:latest
     container_name: authentication-service
     restart: unless-stopped
@@ -88,7 +88,7 @@ services:
     image: box/users-service:latest
     container_name: users-service
     restart: unless-stopped
-    #    attach: false
+#    attach: false
     depends_on:
       - postgres
       - authentication-service

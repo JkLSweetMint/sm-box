@@ -84,44 +84,41 @@ func (repo *Repository) Register(ctx context.Context, tok *entities.JwtToken) (e
 			query = `
 			insert into 
 				tokens.jwt (
+						id,
 						parent_id,
 				        user_id,
 						project_id,
+						type,
 						raw, 
 						expires_at, 
 						not_before,
 						issued_at
 					) values (
-						nullif($1, 0),
-						nullif($2, 0),
+						$1,
+						$2,
 						nullif($3, 0),
-						$4,
+						nullif($4, 0),
 						$5,
 						$6,
-						$7
-					)
-			returning id;
+						$7,
+						$8,
+						$9
+					);
 		`
 		)
 
-		var row = repo.connector.QueryRowxContext(ctx, query,
+		if _, err = repo.connector.ExecContext(ctx, query,
+			model.ID,
 			model.ParentID,
 			model.UserID,
 			model.ProjectID,
+			model.Type,
 			model.Raw,
 			model.ExpiresAt,
 			model.NotBefore,
-			model.IssuedAt)
-
-		if err = row.Err(); err != nil {
+			model.IssuedAt); err != nil {
 			repo.components.Logger.Error().
-				Format("Error when retrieving an item from the database: '%s'. ", err).Write()
-			return
-		}
-
-		if err = row.Scan(&tok.ID); err != nil {
-			repo.components.Logger.Error().
-				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				Format("Error inserting an item from the database: '%s'. ", err).Write()
 			return
 		}
 	}
@@ -134,18 +131,12 @@ func (repo *Repository) Register(ctx context.Context, tok *entities.JwtToken) (e
 			insert into 
 				tokens.jwt_params (
 						token_id, 
-					    language,
 						remote_addr, 
 						user_agent
 					) values (
 						$1,
-						case
-							when $2 != ''
-								then $2
-							else get_default_language()
-						end,
-						$3,
-						$4
+						$2,
+						$3
 					)
 		`
 		)
@@ -154,7 +145,6 @@ func (repo *Repository) Register(ctx context.Context, tok *entities.JwtToken) (e
 
 		if _, err = repo.connector.ExecContext(ctx, query,
 			model.TokenID,
-			model.Language,
 			model.RemoteAddr,
 			model.UserAgent); err != nil {
 			repo.components.Logger.Error().

@@ -38,31 +38,34 @@ create schema
 create table
     if not exists tokens.jwt
 (
-    id         bigserial     not null
+    id         uuid     not null
         constraint jwt_tokens_pk
             primary key,
-    parent_id  bigint,
+    parent_id  uuid,
 
     user_id    bigint,
     project_id bigint,
 
+    type       varchar(128)  not null,
     raw        varchar(4096) not null,
 
     issued_at  timestamptz   not null,
     not_before timestamptz   not null,
     expires_at timestamptz   not null
+
+    constraint check_type
+        check (type = 'session' or type = 'access' or type = 'refresh')
 );
 
 create table
     if not exists tokens.jwt_params
 (
-    token_id    bigint        not null
+    token_id    uuid        not null
         references tokens.jwt(id)
             on delete cascade
                 constraint jwt_token_params_uq
                     unique,
 
-    language    varchar(5)    not null default public.get_default_language(),
     remote_addr varchar(1024) not null,
     user_agent  varchar(4096) not null,
 

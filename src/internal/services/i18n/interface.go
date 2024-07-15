@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	languages_controller "sm-box/internal/services/i18n/infrastructure/controllers/languages"
+	texts_controller "sm-box/internal/services/i18n/infrastructure/controllers/texts"
 	http_rest_api "sm-box/internal/services/i18n/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
@@ -68,6 +70,19 @@ func New() (srv_ Service, err error) {
 	{
 		ref.controllers = new(controllers)
 
+		// Texts
+		{
+			if ref.controllers.texts, err = texts_controller.New(ref.Ctx()); err != nil {
+				return
+			}
+		}
+
+		// Languages
+		{
+			if ref.controllers.languages, err = languages_controller.New(ref.Ctx()); err != nil {
+				return
+			}
+		}
 	}
 
 	// Транспортная часть

@@ -29,7 +29,7 @@
 		<EnableSplittingOnParsers>false</EnableSplittingOnParsers>
 	</Server>
 	<Components>
-		<AccessSystem cookie_key_for_token="token" cookie_domain="box.samgk.ru">
+		<AccessSystem cookie_key_for_session_token="box_session" cookie_key_for_access_token="box_access">
 			<Repositories>
 				<HttpRoutes>
 					<Connector>

@@ -11,7 +11,7 @@ type Components struct {
 
 // ComponentAccessSystem - конфигурация компонента системы доступа.
 type ComponentAccessSystem struct {
-	CookieKeyForToken string `json:"cookie_key_for_token" yaml:"CookieKeyForToken" xml:"cookie_key_for_token,attr"`
+	CookieKeyForSessionToken string `json:"cookie_key_for_session_token"  yaml:"CookieKeyForSessionToken"  xml:"cookie_key_for_session_token,attr"`
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации
@@ -71,7 +71,7 @@ func (conf *ComponentAccessSystem) Default() *ComponentAccessSystem {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.CookieKeyForToken = "token"
+	conf.CookieKeyForSessionToken = "box_session"
 
 	return conf
 }

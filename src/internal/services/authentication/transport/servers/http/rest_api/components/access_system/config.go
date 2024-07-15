@@ -9,8 +9,8 @@ import (
 
 // Config - конфигурация компонента системы доступа.
 type Config struct {
-	CookieKeyForToken string `json:"cookie_key_for_token" yaml:"CookieKeyForToken" xml:"cookie_key_for_token,attr"`
-	CookieDomain      string `json:"cookie_domain"        yaml:"CookieDomain"      xml:"cookie_domain,attr"`
+	CookieKeyForSessionToken string `json:"cookie_key_for_session_token" yaml:"CookieKeyForSessionToken" xml:"cookie_key_for_session_token,attr"`
+	CookieKeyForAccessToken  string `json:"cookie_key_for_access_token"   yaml:"CookieKeyForAccessToken"  xml:"cookie_key_for_access_token,attr"`
 
 	Repositories *RepositoriesConfig `json:"repositories" yaml:"Repositories" xml:"Repositories"`
 }
@@ -105,8 +105,8 @@ func (conf *Config) Default() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.CookieKeyForToken = "token"
-	conf.CookieDomain = "box.samgk.ru"
+	conf.CookieKeyForSessionToken = "box_session"
+	conf.CookieKeyForAccessToken = "box_access"
 
 	conf.Repositories = new(RepositoriesConfig).Default()
 

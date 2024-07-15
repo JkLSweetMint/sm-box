@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	projects_controller "sm-box/internal/app/infrastructure/controllers/projects"
 	grpc_projects_srv "sm-box/internal/app/transport/servers/grpc/projects_service"
 	http_rest_api "sm-box/internal/app/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
@@ -68,6 +69,13 @@ func New() (box_ Box, err error) {
 	// Контроллеры
 	{
 		ref.controllers = new(controllers)
+
+		// Projects
+		{
+			if ref.controllers.projects, err = projects_controller.New(ref.Ctx()); err != nil {
+				return
+			}
+		}
 	}
 
 	// Транспортная часть

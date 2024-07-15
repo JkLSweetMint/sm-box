@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/google/uuid"
 	"sm-box/internal/common/types"
 	"time"
 )
@@ -8,11 +9,14 @@ import (
 type (
 	// JwtTokenInfo - информация о jwt токене системы доступа.
 	JwtTokenInfo struct {
-		ID        types.ID `json:"id"         xml:"id,attr"`
+		ID       uuid.UUID `json:"id"        xml:"id,attr"`
+		ParentID uuid.UUID `json:"parent_id" xml:"parent_id,attr"`
+
 		UserID    types.ID `json:"user_id"    xml:"user_id,attr"`
 		ProjectID types.ID `json:"project_id" xml:"project_id,attr"`
 
-		Raw string `json:"raw" xml:"Raw"`
+		Type string `json:"type" xml:"type,attr"`
+		Raw  string `json:"raw"  xml:"Raw"`
 
 		ExpiresAt time.Time `json:"expires_at" xml:"expires_at,attr"`
 		NotBefore time.Time `json:"not_before" xml:"not_before,attr"`

@@ -34,17 +34,3 @@ var (
 		StatusCode: fiber.StatusBadRequest,
 	}).Build()
 )
-
-// ERA-000003
-var (
-	Forbidden_RestAPI = c_errors.Constructor[c_errors.RestAPI]{
-		ID:     "ERA-000003",
-		Type:   types.TypeSystem,
-		Status: types.StatusError,
-
-		Message: new(messages.TextMessage).
-			Text("You do not have access to visit this route. "),
-	}.RestAPI(c_errors.RestAPIConstructor{
-		StatusCode: fiber.StatusForbidden,
-	}).Build()
-)

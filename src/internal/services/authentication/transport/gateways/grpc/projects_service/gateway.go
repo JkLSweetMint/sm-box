@@ -124,12 +124,12 @@ func (gw *Gateway) Get(ctx context.Context, ids ...types.ID) (list app_models.Pr
 
 	// Проверки ответа
 	{
-		if response == nil || response.List == nil {
+		if response == nil {
 			gw.components.Logger.Error().
-				Text("Failed to get projects. ").Write()
+				Text("Failed to get users. ").Write()
 
 			cErr = error_list.InternalServerError()
-			cErr.SetError(errors.New("Projects list instance is nil. "))
+			cErr.SetError(errors.New("Response instance is nil. "))
 
 			return
 		}

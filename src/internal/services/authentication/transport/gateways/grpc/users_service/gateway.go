@@ -124,12 +124,12 @@ func (gw *Gateway) Get(ctx context.Context, ids ...types.ID) (list []*users_mode
 
 	// Проверки ответа
 	{
-		if response == nil || response.List == nil {
+		if response == nil {
 			gw.components.Logger.Error().
 				Text("Failed to get users. ").Write()
 
 			cErr = error_list.InternalServerError()
-			cErr.SetError(errors.New("Users list instance is nil. "))
+			cErr.SetError(errors.New("Response instance is nil. "))
 
 			return
 		}

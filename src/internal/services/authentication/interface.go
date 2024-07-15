@@ -2,7 +2,8 @@ package service
 
 import (
 	"context"
-	authentication_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/authentication_service"
+	basic_authentication_controller "sm-box/internal/services/authentication/infrastructure/controllers/basic_authentication"
+	basic_authentication_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/basic_authentication_service"
 	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
 	users_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/users_service"
 	http_rest_api "sm-box/internal/services/authentication/transport/servers/http/rest_api"
@@ -71,6 +72,12 @@ func New() (srv_ Service, err error) {
 	{
 		ref.controllers = new(controllers)
 
+		// BasicAuthentication
+		{
+			if ref.controllers.basicAuthentication, err = basic_authentication_controller.New(ref.Ctx()); err != nil {
+				return
+			}
+		}
 	}
 
 	// Транспортная часть
@@ -90,7 +97,7 @@ func New() (srv_ Service, err error) {
 
 		// Шлюзы
 		{
-			if ref.transport.gateways.authenticationService, err = authentication_service_gateway.New(ref.Ctx()); err != nil {
+			if ref.transport.gateways.basicAuthenticationService, err = basic_authentication_service_gateway.New(ref.Ctx()); err != nil {
 				return
 			}
 

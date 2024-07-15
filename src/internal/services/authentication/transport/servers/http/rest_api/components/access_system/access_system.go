@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 	"net/url"
 	error_list "sm-box/internal/common/errors"
+	"sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/entities"
 	"sm-box/pkg/core/components/logger"
 	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/http/rest_api/io"
+	"strings"
 	"time"
 )
 
@@ -48,66 +51,31 @@ type (
 // AuthenticationMiddleware - промежуточное программное обеспечение аутентификации пользователя по http маршрутам.
 func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 	var (
-		token *entities.JwtToken
-		route *entities.HttpRoute
+		sessionToken *entities.JwtSessionToken
+		accessToken  *entities.JwtAccessToken
+		route        *entities.HttpRoute
 	)
 
 	// Работа с токеном
 	{
-		// Получение токена, если нет, то создаём
+		// Сессия
 		{
-			if raw := ctx.Cookies(acc.conf.CookieKeyForToken); raw == "" {
-				token = &entities.JwtToken{
-					Params: &entities.JwtTokenParams{
-						RemoteAddr: fmt.Sprintf("%s:%s", ctx.IP(), ctx.Port()),
-						UserAgent:  string(ctx.Request().Header.UserAgent()),
-					},
-				}
+			var (
+				token   = sessionToken
+				expired bool
+			)
 
-				if err = token.Generate(); err != nil {
-					acc.components.Logger.Error().
-						Format("User token generation failed: '%s'. ", err).Write()
+			// Получение
+			{
+				if raw := ctx.Cookies(acc.conf.CookieKeyForSessionToken); len(raw) > 0 {
+					token = new(entities.JwtSessionToken)
 
-					var cErr = error_list.InternalServerError()
-					cErr.SetError(err)
-
-					if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
+					if err = token.Parse(raw); err != nil {
 						acc.components.Logger.Error().
-							Format("The response could not be recorded: '%s'. ", err).Write()
+							Format("Failed to get session token data: '%s'. ", err).
+							Field("raw", raw).Write()
 
-						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
-					}
-					return
-				}
-
-				// Запись печеньки
-				{
-					var cookie = &fiber.Cookie{
-						Name:        acc.conf.CookieKeyForToken,
-						Value:       token.Raw,
-						Path:        "/",
-						Domain:      acc.conf.CookieDomain,
-						MaxAge:      0,
-						Expires:     token.ExpiresAt,
-						Secure:      false,
-						HTTPOnly:    false,
-						SameSite:    fiber.CookieSameSiteLaxMode,
-						SessionOnly: false,
-					}
-
-					ctx.Cookie(cookie)
-				}
-
-				// Сохранение в базе
-				{
-					if err = acc.repositories.JwtTokens.Register(ctx.Context(), token); err != nil {
-						acc.components.Logger.Error().
-							Format("The client's token could not be registered in the database: '%s'. ", err).Write()
-
-						var cErr = error_list.InternalServerError()
-						cErr.SetError(err)
-
-						if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
+						if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InvalidToken())); err != nil {
 							acc.components.Logger.Error().
 								Format("The response could not be recorded: '%s'. ", err).Write()
 
@@ -116,114 +84,69 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 						return
 					}
 				}
-			} else {
-				if len(raw) == 0 {
-					if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.TokenWasNotTransferred())); err != nil {
-						acc.components.Logger.Error().
-							Format("The response could not be recorded: '%s'. ", err).Write()
-
-						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
-					}
-					return
-				}
-
-				token = new(entities.JwtToken)
-				token.FillEmptyFields()
-
-				if err = token.Parse(raw); err != nil {
-					acc.components.Logger.Error().
-						Format("Failed to get token data: '%s'. ", err).
-						Field("raw", raw).Write()
-
-					if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
-						acc.components.Logger.Error().
-							Format("The response could not be recorded: '%s'. ", err).Write()
-
-						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
-					}
-					return
-				}
 			}
-		}
 
-		// Проверка времени жизни токена, если закончился, нужно пересоздать
-		{
-			var tm = time.Now()
-
-			// Срок действия ещё не начался
+			// Проверки
 			{
-				if tm.Before(token.NotBefore) {
-					acc.components.Logger.Warn().
-						Text("The validity period of the user's token has not started yet. ").
-						Field("token", token).Write()
+				if token != nil {
+					var tm = time.Now()
 
-					var cErr = error_list.ValidityPeriodOfUserTokenHasNotStarted()
-					cErr.Details().Set("not_before", token.NotBefore.Format(time.RFC3339Nano))
+					// Срок действия ещё не начался
+					{
+						if tm.Before(token.NotBefore) {
+							acc.components.Logger.Warn().
+								Text("The validity period of the user's token has not started yet. ").
+								Field("token", token).Write()
 
-					if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
-						acc.components.Logger.Error().
-							Format("The response could not be recorded: '%s'. ", err).Write()
+							var cErr = error_list.ValidityPeriodOfUserTokenHasNotStarted()
+							cErr.Details().Set("not_before", token.NotBefore.Format(time.RFC3339Nano))
 
-						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
+								acc.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+							return
+						}
 					}
-					return
+
+					// Срок действия уже закончился, пересоздаём
+					{
+						if tm.After(token.ExpiresAt) {
+							expired = true
+						}
+					}
 				}
 			}
 
-			// Срок действия уже закончился, пересоздаём
+			// Если нужно создать, создаём
 			{
-				if tm.After(token.ExpiresAt) {
-					token = &entities.JwtToken{
-						ParentID: token.ID,
-
-						UserID:    token.UserID,
-						ProjectID: token.ProjectID,
-
-						Params: &entities.JwtTokenParams{
-							RemoteAddr: fmt.Sprintf("%s:%s", ctx.IP(), ctx.Port()),
-							UserAgent:  string(ctx.Request().Header.UserAgent()),
-						},
-					}
-
-					if err = token.Generate(); err != nil {
-						acc.components.Logger.Error().
-							Format("User token generation failed: '%s'. ", err).Write()
-
-						var cErr = error_list.InternalServerError()
-						cErr.SetError(err)
-
-						if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
-							acc.components.Logger.Error().
-								Format("The response could not be recorded: '%s'. ", err).Write()
-
-							return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
-						}
-						return
-					}
-
-					// Запись печеньки
+				if token == nil || expired {
+					// Создание токена
 					{
-						var cookie = &fiber.Cookie{
-							Name:        acc.conf.CookieKeyForToken,
-							Value:       token.Raw,
-							Path:        "/",
-							Domain:      acc.conf.CookieDomain,
-							MaxAge:      0,
-							Expires:     token.ExpiresAt,
-							Secure:      false,
-							HTTPOnly:    false,
-							SameSite:    fiber.CookieSameSiteLaxMode,
-							SessionOnly: false,
+						if expired && token != nil {
+							token.ParentID = token.ID
+							token.ID = uuid.UUID{}
+
+							token.ExpiresAt = time.Time{}
+							token.NotBefore = time.Time{}
+							token.IssuedAt = time.Time{}
+
+						} else {
+							token = &entities.JwtSessionToken{
+								JwtToken: &entities.JwtToken{
+									Params: &entities.JwtTokenParams{
+										RemoteAddr: fmt.Sprintf("%s:%s", ctx.IP(), ctx.Port()),
+										UserAgent:  string(ctx.Request().Header.UserAgent()),
+									},
+								},
+							}
 						}
 
-						ctx.Cookie(cookie)
-					}
-
-					// Сохранение в базе
-					{
-						if err = acc.repositories.JwtTokens.Register(ctx.Context(), token); err != nil {
+						if err = token.Generate(); err != nil {
 							acc.components.Logger.Error().
-								Format("The client's token could not be registered in the database: '%s'. ", err).Write()
+								Format("User token generation failed: '%s'. ", err).Write()
 
 							var cErr = error_list.InternalServerError()
 							cErr.SetError(err)
@@ -237,8 +160,113 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 							return
 						}
 					}
+
+					// Регистрация в базе
+					{
+						if err = acc.repositories.JwtTokens.Register(ctx.Context(), token.JwtToken); err != nil {
+							acc.components.Logger.Error().
+								Format("The client's session token could not be registered in the database: '%s'. ", err).Write()
+
+							var cErr = error_list.InternalServerError()
+							cErr.SetError(err)
+
+							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
+								acc.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+							return
+						}
+					}
+
+					// Печеньки
+					{
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForSessionToken,
+							Value:       token.Raw,
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     token.ExpiresAt,
+							Secure:      false,
+							HTTPOnly:    true,
+							SameSite:    fiber.CookieSameSiteLaxMode,
+							SessionOnly: false,
+						})
+					}
 				}
 			}
+
+			sessionToken = token
+		}
+
+		// Доступа
+		{
+			var token = accessToken
+
+			// Получение
+			{
+				var raw = strings.Replace(string(ctx.Request().Header.Peek("Authorization")), "Bearer ", "", 1)
+
+				if len(raw) == 0 {
+					raw = ctx.Cookies(acc.conf.CookieKeyForAccessToken)
+				}
+
+				if len(raw) > 0 {
+					token = new(entities.JwtAccessToken)
+
+					if err = token.Parse(raw); err != nil {
+						acc.components.Logger.Error().
+							Format("Failed to get access token data: '%s'. ", err).
+							Field("raw", raw).Write()
+
+						if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InvalidToken())); err != nil {
+							acc.components.Logger.Error().
+								Format("The response could not be recorded: '%s'. ", err).Write()
+
+							return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+						}
+						return
+					}
+				}
+			}
+
+			// Проверки
+			{
+				if token != nil {
+					var tm = time.Now()
+
+					// Срок действия ещё не начался
+					{
+						if tm.Before(token.NotBefore) {
+							acc.components.Logger.Warn().
+								Text("The validity period of the user's token has not started yet. ").
+								Field("token", token).Write()
+
+							var cErr = error_list.ValidityPeriodOfUserTokenHasNotStarted()
+							cErr.Details().Set("not_before", token.NotBefore.Format(time.RFC3339Nano))
+
+							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
+								acc.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+							return
+						}
+					}
+
+					// Срок действия уже закончился
+					{
+						if tm.After(token.ExpiresAt) {
+							token = nil
+						}
+					}
+				}
+			}
+
+			accessToken = token
 		}
 	}
 
@@ -301,7 +329,7 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 		// Проверка требуется ли авторизация, если да проводим
 		{
 			if route.Authorize {
-				if token.UserID == 0 || token.ProjectID == 0 {
+				if accessToken == nil || accessToken.UserID == 0 || accessToken.ProjectID == 0 {
 					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.Unauthorized()))
 				}
 			}
@@ -310,16 +338,46 @@ func (acc *accessSystem) AuthenticationMiddleware(ctx fiber.Ctx) (err error) {
 		// Проверка доступа к маршруту, если требуется авторизация
 		{
 			if route.Authorize {
+				var forbidden = true
 
+				for _, access := range route.Accesses {
+					for _, id := range accessToken.Claims.Accesses {
+						if types.ID(access) == id {
+							forbidden = false
+							break
+						}
+					}
+				}
+
+				if forbidden {
+					if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccess())); err != nil {
+						acc.components.Logger.Error().
+							Format("The response could not be recorded: '%s'. ", err).Write()
+
+						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+					}
+					return
+				}
 			}
 		}
 	}
 
-	// Authorization заголовок
+	// X-Authorization-State
 	{
-		if token.UserID != 0 {
-			ctx.Set("Authorization", fmt.Sprintf("Bearer %s", token.Raw))
+		var state string
+
+		switch {
+		case sessionToken.UserID == 0 && sessionToken.ProjectID == 0:
+			state = "auth"
+		case sessionToken.UserID != 0 && sessionToken.ProjectID == 0:
+			state = "project-select"
+		case sessionToken.UserID != 0 && sessionToken.ProjectID != 0:
+			state = "done"
+		default:
+			state = "unknown"
 		}
+
+		ctx.Response().Header.Set("X-Authorization-State", state)
 	}
 
 	// Отправка ответа

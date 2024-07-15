@@ -1,0 +1,12 @@
+<Config>
+	<Connector>
+		<DbName>authentication</DbName>
+		<Host>postgres</Host>
+		<Port>5432</Port>
+		<Auth user="root" password="3bxMue16ztXPR635"></Auth>
+		<Tags sslmode="disable"></Tags>
+		<MaxOpenConns>50</MaxOpenConns>
+		<MaxIdleConns>50</MaxIdleConns>
+		<ConnMaxLifetime>120000000000</ConnMaxLifetime>
+	</Connector>
+</Config>

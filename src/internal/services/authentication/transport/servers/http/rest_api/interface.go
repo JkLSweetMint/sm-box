@@ -2,7 +2,7 @@ package http_rest_api
 
 import (
 	"context"
-	authentication_adapter "sm-box/internal/services/authentication/infrastructure/adapters/authentication"
+	basic_authentication_adapter "sm-box/internal/services/authentication/infrastructure/adapters/basic_authentication"
 	"sm-box/internal/services/authentication/transport/servers/http/rest_api/components/access_system"
 	"sm-box/internal/services/authentication/transport/servers/http/rest_api/config"
 	"sm-box/pkg/core/components/logger"
@@ -66,9 +66,9 @@ func New(ctx context.Context) (srv Server, err error) {
 	{
 		ref.controllers = new(controllers)
 
-		// Authentication
+		// BasicAuthentication
 		{
-			if ref.controllers.Authentication, err = authentication_adapter.New_RestAPI(ref.ctx); err != nil {
+			if ref.controllers.BasicAuthentication, err = basic_authentication_adapter.New_RestAPI(ref.ctx); err != nil {
 				return
 			}
 		}

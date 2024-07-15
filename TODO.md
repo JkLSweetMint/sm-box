@@ -8,6 +8,11 @@
  
 ---
 
+### v24.0.37:
+- [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+
+---
+
 ### v24.0.36:
 - [x] Доработки [приложения](src/internal/app/box.go)
 - [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);

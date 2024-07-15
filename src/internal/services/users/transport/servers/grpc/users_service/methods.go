@@ -73,15 +73,20 @@ func (srv *server) GetOne(ctx context.Context, request *pb.UsersGetOneRequest) (
 
 // Get - получение пользователей по ID.
 func (srv *server) Get(ctx context.Context, request *pb.UsersGetRequest) (response *pb.UsersGetResponse, err error) {
-	response = new(pb.UsersGetResponse)
+	response = &pb.UsersGetResponse{
+		List: make([]*pb.User, 0),
+	}
 
 	var (
 		users []*models.UserInfo
 		ids   = make([]types.ID, 0, len(request.IDs))
 	)
 
-	for _, id := range request.IDs {
-		ids = append(ids, types.ID(id))
+	// Сбор id
+	{
+		for _, id := range request.IDs {
+			ids = append(ids, types.ID(id))
+		}
 	}
 
 	if users, err = srv.controllers.Users.Get(ctx, ids...); err != nil {

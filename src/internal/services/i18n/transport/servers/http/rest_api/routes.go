@@ -451,18 +451,18 @@ func (srv *server) registerRoutes() error {
 				// Обработка
 				{
 					var (
-						tokenRaw = ctx.Cookies(srv.conf.Components.AccessSystem.CookieKeyForToken)
-						token    = new(authentication_entities.JwtToken)
+						rawSessionToken = ctx.Cookies(srv.conf.Components.AccessSystem.CookieKeyForSessionToken)
+						sessionToken    = new(authentication_entities.JwtSessionToken)
 					)
 
-					// Получение токена
+					// Получение токена сессии
 					{
-						if err = token.Parse(tokenRaw); err != nil {
+						if err = sessionToken.Parse(rawSessionToken); err != nil {
 							srv.components.Logger.Error().
-								Format("Failed to get token data: '%s'. ", err).
-								Field("raw", tokenRaw).Write()
+								Format("Failed to get session token data: '%s'. ", err).
+								Field("raw", rawSessionToken).Write()
 
-							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InvalidToken())); err != nil {
 								srv.components.Logger.Error().
 									Format("The response could not be recorded: '%s'. ", err).Write()
 
@@ -476,7 +476,7 @@ func (srv *server) registerRoutes() error {
 					{
 						var cErr c_errors.RestAPI
 
-						if response.Dictionary, cErr = srv.controllers.Texts.AssembleDictionary(ctx.Context(), token.Params.Language, queryArgs.Paths); cErr != nil {
+						if response.Dictionary, cErr = srv.controllers.Texts.AssembleDictionary(ctx.Context(), sessionToken.Claims.Language, queryArgs.Paths); cErr != nil {
 							srv.components.Logger.Error().
 								Format("The localization dictionary could not be assembled: '%s'. ", cErr).Write()
 

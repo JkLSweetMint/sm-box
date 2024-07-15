@@ -124,7 +124,7 @@ func (usecase *UseCase) Get(ctx context.Context, ids ...types.ID) (list entities
 
 			usecase.components.Logger.Info().
 				Text("The projects data has been successfully received. ").
-				Field("list", list).Write()
+				Field("projects", list).Write()
 		}
 	}
 

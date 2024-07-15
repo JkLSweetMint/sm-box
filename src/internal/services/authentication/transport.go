@@ -1,7 +1,7 @@
 package service
 
 import (
-	authentication_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/authentication_service"
+	basic_authentication_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/basic_authentication_service"
 	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
 	users_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/users_service"
 	http_rest_api "sm-box/internal/services/authentication/transport/servers/http/rest_api"
@@ -25,7 +25,7 @@ type TransportServersHttp interface {
 
 // TransportGateways - описание шлюзов транспортной части сервиса.
 type TransportGateways interface {
-	AuthenticationService() *authentication_service_gateway.Gateway
+	BasicAuthenticationService() *basic_authentication_service_gateway.Gateway
 	ProjectService() *projects_service_gateway.Gateway
 	UsersService() *users_service_gateway.Gateway
 }
@@ -50,9 +50,9 @@ type transportServersHttp struct {
 
 // transportsGateways - шлюзы транспортной части сервиса.
 type transportGateways struct {
-	authenticationService *authentication_service_gateway.Gateway
-	projectService        *projects_service_gateway.Gateway
-	usersService          *users_service_gateway.Gateway
+	basicAuthenticationService *basic_authentication_service_gateway.Gateway
+	projectService             *projects_service_gateway.Gateway
+	usersService               *users_service_gateway.Gateway
 }
 
 // Servers - получение серверов транспортной части сервиса.
@@ -75,9 +75,9 @@ func (t *transportServersHttp) RestApi() http_rest_api.Server {
 	return t.restApi
 }
 
-// AuthenticationService - получение шлюза транспортной части сервиса.
-func (t *transportGateways) AuthenticationService() *authentication_service_gateway.Gateway {
-	return t.authenticationService
+// BasicAuthenticationService - получение шлюза транспортной части сервиса.
+func (t *transportGateways) BasicAuthenticationService() *basic_authentication_service_gateway.Gateway {
+	return t.basicAuthenticationService
 }
 
 // ProjectService - получение шлюза транспортной части сервиса.

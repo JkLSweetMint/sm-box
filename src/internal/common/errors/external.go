@@ -168,6 +168,24 @@ var (
 	}).Build()
 )
 
+// E-000010
+var (
+	InvalidToken = c_errors.Constructor[c_errors.Error]{
+		ID:     "E-000010",
+		Type:   types.TypeSystem,
+		Status: types.StatusError,
+
+		Message: new(messages.TextMessage).
+			Text("An invalid token was transferred. "),
+	}.RestAPI(c_errors.RestAPIConstructor{
+		StatusCode: fiber.StatusForbidden,
+	}).WebSocket(c_errors.WebSocketConstructor{
+		StatusCode: websocket.CloseNormalClosure,
+	}).Grpc(c_errors.GrpcConstructor{
+		StatusCode: grpc_codes.PermissionDenied,
+	}).Build()
+)
+
 // E-010001
 var (
 	ListUserProjectsCouldNotBeRetrieved = c_errors.Constructor[c_errors.Error]{

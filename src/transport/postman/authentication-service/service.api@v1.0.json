@@ -132,64 +132,6 @@
             ]
         },
         {
-            "name": "Запрос для базовой авторизации пользователя. ",
-            "request": {
-                "url": {
-                    "raw": "",
-                    "protocol": "https",
-                    "host": [
-                        "box",
-                        "samgk",
-                        "ru"
-                    ],
-                    "path": [
-                        "",
-                        "authentication",
-                        "api",
-                        "v1.0",
-                        "basic-auth"
-                    ]
-                },
-                "method": "POST",
-                "description": "Используется для аутентификации пользователя по логину и паролю. Этот запрос принимает два параметра: username \n(имя пользователя) и password (пароль). Сервер проверяет предоставленные учетные данные и, если они верны, авторизирует\nтокен хранящийся в Cookie, который затем будет использован для выполнения других операций в системе.",
-                "body": {
-                    "mode": "raw",
-                    "raw": "\n{\n   \"username\": \"\",\n   \"password\": \"\"\n}\n",
-                    "options": {
-                        "raw": {
-                            "language": "json"
-                        }
-                    }
-                }
-            },
-            "response": [
-                {
-                    "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
-                    "status": "Ǵ",
-                    "code": 500,
-                    "name": "Произошла внутренняя ошибка сервера. "
-                },
-                {
-                    "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\"\n}\n",
-                    "status": "È",
-                    "code": 200,
-                    "name": "Пример успешного ответа. "
-                },
-                {
-                    "body": "\n{\n    \"code\": 404,\n    \"code_message\": \"Not Found\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"E-000004\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The user was not found. \",\n        \"details\": {}\n    }\n}\n",
-                    "status": "Ɣ",
-                    "code": 404,
-                    "name": "Пример ответа если пользователь не найден. "
-                },
-                {
-                    "body": "\n{\n    \"code\": 400,\n    \"code_message\": \"Bad Request\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"ERA-000002\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The request body data could not be read. \",\n        \"details\": {}\n    }\n}\n",
-                    "status": "Ɛ",
-                    "code": 400,
-                    "name": "Пример ответа при не корректном запросе. "
-                }
-            ]
-        },
-        {
             "name": "Получение списка проектов пользователя для выбора после авторизации. ",
             "request": {
                 "url": {
@@ -205,6 +147,7 @@
                         "authentication",
                         "api",
                         "v1.0",
+                        "basic-auth",
                         "projects",
                         "select"
                     ]
@@ -264,6 +207,7 @@
                         "authentication",
                         "api",
                         "v1.0",
+                        "basic-auth",
                         "projects",
                         "set"
                     ]
@@ -312,6 +256,130 @@
                     "name": "Ошибка если нет доступа к проекту. "
                 }
             ]
+        },
+        {
+            "name": "Запрос для базовой авторизации пользователя. ",
+            "request": {
+                "url": {
+                    "raw": "",
+                    "protocol": "https",
+                    "host": [
+                        "box",
+                        "samgk",
+                        "ru"
+                    ],
+                    "path": [
+                        "",
+                        "authentication",
+                        "api",
+                        "v1.0",
+                        "basic-auth",
+                        ""
+                    ]
+                },
+                "method": "POST",
+                "description": "Используется для аутентификации пользователя по логину и паролю. Этот запрос принимает два параметра: username \n(имя пользователя) и password (пароль). Сервер проверяет предоставленные учетные данные и, если они верны, авторизирует\nтокен хранящийся в Cookie, который затем будет использован для выполнения других операций в системе.",
+                "body": {
+                    "mode": "raw",
+                    "raw": "\n{\n   \"username\": \"\",\n   \"password\": \"\"\n}\n",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                }
+            },
+            "response": [
+                {
+                    "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                    "status": "Ǵ",
+                    "code": 500,
+                    "name": "Произошла внутренняя ошибка сервера. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\"\n}\n",
+                    "status": "È",
+                    "code": 200,
+                    "name": "Пример успешного ответа. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 404,\n    \"code_message\": \"Not Found\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"E-000004\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The user was not found. \",\n        \"details\": {}\n    }\n}\n",
+                    "status": "Ɣ",
+                    "code": 404,
+                    "name": "Пример ответа если пользователь не найден. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 400,\n    \"code_message\": \"Bad Request\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"ERA-000002\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"The request body data could not be read. \",\n        \"details\": {}\n    }\n}\n",
+                    "status": "Ɛ",
+                    "code": 400,
+                    "name": "Пример ответа при не корректном запросе. "
+                }
+            ]
+        },
+        {
+            "name": "Запрос для обновления токена доступа по базовой авторизации пользователя. ",
+            "request": {
+                "url": {
+                    "raw": "",
+                    "protocol": "https",
+                    "host": [
+                        "box",
+                        "samgk",
+                        "ru"
+                    ],
+                    "path": [
+                        "",
+                        "authentication",
+                        "api",
+                        "v1.0",
+                        "basic-auth",
+                        "refresh"
+                    ]
+                },
+                "method": "POST",
+                "description": "",
+                "body": {
+                    "mode": "raw",
+                    "raw": "\n{\n   \"token_raw\": \"\"\n}\n",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Запрос для завершения работы пользователя. ",
+            "request": {
+                "url": {
+                    "raw": "",
+                    "protocol": "https",
+                    "host": [
+                        "box",
+                        "samgk",
+                        "ru"
+                    ],
+                    "path": [
+                        "",
+                        "authentication",
+                        "api",
+                        "v1.0",
+                        "basic-auth",
+                        "logout"
+                    ]
+                },
+                "method": "POST",
+                "description": "",
+                "body": {
+                    "mode": "raw",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                }
+            }
         }
     ]
 }

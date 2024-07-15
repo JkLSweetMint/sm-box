@@ -1,6 +1,8 @@
 package models
 
-import "sm-box/internal/common/types"
+import (
+	"sm-box/internal/common/types"
+)
 
 type (
 	// UserInfo - пользователь системы.
@@ -21,3 +23,22 @@ type (
 		*RoleInfo
 	}
 )
+
+// ListIDs - получение списка ID доступов.
+func (accesses UserInfoAccesses) ListIDs() (list []types.ID) {
+	var writeInheritance func(rl *RoleInfo)
+
+	writeInheritance = func(rl *RoleInfo) {
+		list = append(list, rl.ID)
+
+		for _, inheritRl := range rl.Inheritances {
+			writeInheritance(inheritRl.RoleInfo)
+		}
+	}
+
+	for _, rl := range accesses {
+		writeInheritance(rl.RoleInfo)
+	}
+
+	return
+}

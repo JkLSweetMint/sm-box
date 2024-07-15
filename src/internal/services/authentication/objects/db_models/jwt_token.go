@@ -1,6 +1,7 @@
 package db_models
 
 import (
+	"github.com/google/uuid"
 	"sm-box/internal/common/types"
 	"time"
 )
@@ -8,13 +9,14 @@ import (
 type (
 	// JwtToken - модель jwt токена системы доступа для базы данных.
 	JwtToken struct {
-		ID       types.ID `db:"id"`
-		ParentID types.ID `db:"parent_id"`
+		ID       uuid.UUID `db:"id"`
+		ParentID uuid.UUID `db:"parent_id"`
 
 		UserID    types.ID `db:"user_id"`
 		ProjectID types.ID `db:"project_id"`
 
-		Raw string `db:"raw"`
+		Type string `db:"type"`
+		Raw  string `db:"raw"`
 
 		ExpiresAt time.Time `db:"expires_at"`
 		NotBefore time.Time `db:"not_before"`
@@ -23,9 +25,8 @@ type (
 
 	// JwtTokenParams - модель с параметрами jwt токена системы доступа для базы данных.
 	JwtTokenParams struct {
-		TokenID types.ID `db:"token_id"`
+		TokenID uuid.UUID `db:"token_id"`
 
-		Language   string `db:"language"`
 		RemoteAddr string `db:"remote_addr"`
 		UserAgent  string `db:"user_agent"`
 	}
