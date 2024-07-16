@@ -1,12 +1,11 @@
-package access_system
+package http_access_system
 
 import (
 	"context"
 	"github.com/gofiber/fiber/v3"
+	jwt_tokens_repository "sm-box/internal/services/authentication/components/http_access_system/repositories/jwt_tokens"
 	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
 	users_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/users_service"
-	"sm-box/internal/services/authentication/transport/servers/http/rest_api/components/access_system/repositories/http_routes"
-	"sm-box/internal/services/authentication/transport/servers/http/rest_api/components/access_system/repositories/jwt_tokens"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 )
@@ -17,7 +16,7 @@ const (
 
 // AccessSystem - описание компонента системы доступа.
 type AccessSystem interface {
-	Middleware(ctx fiber.Ctx) (err error)
+	BasicAuthentication(ctx fiber.Ctx) (err error)
 }
 
 // New - создание компонента.
@@ -70,12 +69,11 @@ func New(ctx context.Context, conf *Config) (acc AccessSystem, err error) {
 	{
 		ref.repositories = new(repositories)
 
-		if ref.repositories.HttpRoutes, err = http_routes_repository.New(ref.ctx, ref.conf.Repositories.HttpRoutes); err != nil {
-			return
-		}
-
-		if ref.repositories.JwtTokens, err = jwt_tokens_repository.New(ref.ctx, ref.conf.Repositories.JwtTokens); err != nil {
-			return
+		// JwtTokens
+		{
+			if ref.repositories.JwtTokens, err = jwt_tokens_repository.New(ctx, ref.conf.Repositories.JwtTokens); err != nil {
+				return
+			}
 		}
 	}
 

@@ -719,7 +719,7 @@ func (srv *server) registerRoutes() error {
 
 		// GET /auth
 		{
-			router.Get("/auth", srv.components.AccessSystem.Middleware)
+			router.Get("/auth", srv.components.AccessSystem.BasicAuthentication)
 		}
 	}
 

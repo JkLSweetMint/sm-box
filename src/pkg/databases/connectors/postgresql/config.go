@@ -14,13 +14,13 @@ const templateConnectionString = "host={{host}} port={{port}} user={{user}} pass
 // Config - конфигурация коннектора к базе данных.
 type Config struct {
 	// DbName - название базы данных.
-	DbName string `json:"db_name" yaml:"DbName" xml:"DbName"`
+	DbName string `json:"db_name" yaml:"DbName" xml:"db_name,attr"`
 
 	// Host - адрес базы данных.
-	Host string `json:"host" yaml:"Host" xml:"Host"`
+	Host string `json:"host" yaml:"Host" xml:"host,attr"`
 
 	// Port - порт базы данных.
-	Port uint `json:"port" yaml:"Port" xml:"Port"`
+	Port uint `json:"port" yaml:"Port" xml:"port,attr"`
 
 	// Auth - конфигурация авторизации в базе данных.
 	Auth *ConfigAuth `json:"auth" yaml:"Auth" xml:"Auth"`

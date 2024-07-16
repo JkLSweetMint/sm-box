@@ -8,11 +8,13 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
+	"github.com/google/uuid"
 	app_entities "sm-box/internal/app/objects/entities"
 	app_models "sm-box/internal/app/objects/models"
 	error_list "sm-box/internal/common/errors"
 	"sm-box/internal/common/types"
 	basic_authentication_repository "sm-box/internal/services/authentication/infrastructure/repositories/basic_authentication"
+	jwt_tokens_repository "sm-box/internal/services/authentication/infrastructure/repositories/jwt_tokens"
 	"sm-box/internal/services/authentication/objects/entities"
 	basic_authentication_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/basic_authentication_service"
 	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
@@ -57,9 +59,15 @@ type gateways struct {
 
 // repositories - репозитории логики.
 type repositories struct {
-	BasicAuthentication interface {
-		GetToken(ctx context.Context, raw string) (tok *entities.JwtToken, err error)
-		Register(ctx context.Context, tok *entities.JwtToken) (err error)
+	BasicAuthentication interface{}
+	JwtTokens           interface {
+		RegisterJwtRefreshToken(ctx context.Context, tok *entities.JwtRefreshToken) (err error)
+		GetJwtRefreshToken(ctx context.Context, id uuid.UUID) (tok *entities.JwtRefreshToken, err error)
+
+		RegisterJwtAccessToken(ctx context.Context, tok *entities.JwtAccessToken) (err error)
+		GetJwtAccessToken(ctx context.Context, id uuid.UUID) (tok *entities.JwtAccessToken, err error)
+
+		Remove(ctx context.Context, id uuid.UUID) (err error)
 	}
 }
 
@@ -136,6 +144,13 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 		// BasicAuthentication
 		{
 			if usecase.repositories.BasicAuthentication, err = basic_authentication_repository.New(ctx); err != nil {
+				return
+			}
+		}
+
+		// JwtTokens
+		{
+			if usecase.repositories.JwtTokens, err = jwt_tokens_repository.New(ctx); err != nil {
 				return
 			}
 		}
@@ -258,22 +273,6 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 			return
 		}
 
-		if currentSessionToken.JwtToken, err = usecase.repositories.BasicAuthentication.GetToken(ctx, rawSessionToken); err != nil {
-			usecase.components.Logger.Error().
-				Format("Failed to get token: '%s'. ", err).
-				Field("raw", rawSessionToken).Write()
-
-			if errors.Is(err, sql.ErrNoRows) {
-				cErr = error_list.AnUnregisteredTokenWasTransferred()
-				cErr.SetError(err)
-				return
-			}
-
-			cErr = error_list.InternalServerError()
-			cErr.SetError(err)
-			return
-		}
-
 		usecase.components.Logger.Info().
 			Text("The user's current session token was received. ").
 			Field("token", currentSessionToken).Write()
@@ -362,19 +361,6 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 			cErr.SetError(err)
 
 			return
-		}
-
-		// Сохранение в базе
-		{
-			if err = usecase.repositories.BasicAuthentication.Register(ctx, sessionToken.JwtToken); err != nil {
-				usecase.components.Logger.Error().
-					Format("The client's token could not be registered in the database: '%s'. ", err).Write()
-
-				cErr = error_list.InternalServerError()
-				cErr.SetError(err)
-
-				return
-			}
 		}
 
 		usecase.components.Logger.Info().
@@ -630,22 +616,6 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 			return
 		}
 
-		if currentSessionToken.JwtToken, err = usecase.repositories.BasicAuthentication.GetToken(ctx, rawSessionToken); err != nil {
-			usecase.components.Logger.Error().
-				Format("Failed to get session token: '%s'. ", err).
-				Field("raw", rawSessionToken).Write()
-
-			if errors.Is(err, sql.ErrNoRows) {
-				cErr = error_list.AnUnregisteredTokenWasTransferred()
-				cErr.SetError(err)
-				return
-			}
-
-			cErr = error_list.InternalServerError()
-			cErr.SetError(err)
-			return
-		}
-
 		usecase.components.Logger.Info().
 			Text("The user's current session token was received. ").
 			Field("token", currentSessionToken).Write()
@@ -783,19 +753,6 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 				return
 			}
 
-			// Сохранение в базе
-			{
-				if err = usecase.repositories.BasicAuthentication.Register(ctx, sessionToken.JwtToken); err != nil {
-					usecase.components.Logger.Error().
-						Format("The client's token could not be registered in the database: '%s'. ", err).Write()
-
-					cErr = error_list.InternalServerError()
-					cErr.SetError(err)
-
-					return
-				}
-			}
-
 			usecase.components.Logger.Info().
 				Text("The user's jwt session token has been updated. ").
 				Field("old", currentSessionToken).
@@ -813,7 +770,6 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 
 					Params: currentSessionToken.Params,
 				},
-				Claims: nil,
 			}
 
 			if err = refreshToken.Generate(); err != nil {
@@ -828,7 +784,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 
 			// Сохранение в базе
 			{
-				if err = usecase.repositories.BasicAuthentication.Register(ctx, refreshToken.JwtToken); err != nil {
+				if err = usecase.repositories.JwtTokens.RegisterJwtRefreshToken(ctx, refreshToken); err != nil {
 					usecase.components.Logger.Error().
 						Format("The client's token could not be registered in the database: '%s'. ", err).Write()
 
@@ -856,14 +812,9 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 
 					Params: currentSessionToken.Params,
 				},
-				Claims: nil,
-			}
-
-			// Запись доступов пользователя
-			{
-				accessToken.Claims = &entities.JwtAccessTokenClaims{
+				UserInfo: &entities.JwtAccessTokenUserInfo{
 					Accesses: user.Accesses.ListIDs(),
-				}
+				},
 			}
 
 			if err = accessToken.Generate(); err != nil {
@@ -878,7 +829,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 
 			// Сохранение в базе
 			{
-				if err = usecase.repositories.BasicAuthentication.Register(ctx, accessToken.JwtToken); err != nil {
+				if err = usecase.repositories.JwtTokens.RegisterJwtAccessToken(ctx, accessToken); err != nil {
 					usecase.components.Logger.Error().
 						Format("The client's token could not be registered in the database: '%s'. ", err).Write()
 

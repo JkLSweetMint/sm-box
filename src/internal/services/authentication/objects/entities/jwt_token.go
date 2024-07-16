@@ -96,7 +96,6 @@ func (entity *JwtToken) ToDbModel() (model *db_models.JwtToken) {
 		ProjectID: entity.ProjectID,
 
 		Type: string(entity.Type),
-		Raw:  entity.Raw,
 
 		ExpiresAt: entity.ExpiresAt,
 		NotBefore: entity.NotBefore,

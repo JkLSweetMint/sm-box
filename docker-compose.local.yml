@@ -22,6 +22,29 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7.2.5
+    container_name: redis
+    restart: unless-stopped
+    #    attach: false
+    environment:
+      REDIS_PASSWORD: "76&D&IEa&YL)284d"
+      REDIS_USER: "root"
+      REDIS_USER_PASSWORD: "T4b4g9)53(W)l(SM"
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./system/redis/data:/var/lib/redis
+      - ./system/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "8082:6379"
+    networks:
+      - system
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "76&D&IEa&YL)284d", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   app:
 #    build:
 #      context: .
@@ -56,6 +79,8 @@ services:
 #    attach: false
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - system
@@ -140,7 +165,7 @@ services:
       - type: bind
         source: ./var/logs/nginx
         target: /var/log/nginx
-        consistency: cached
+        consistency: cachedx
     ports:
       - "80:80"
       - "443:443"

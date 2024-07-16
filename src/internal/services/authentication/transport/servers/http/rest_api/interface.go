@@ -2,8 +2,8 @@ package http_rest_api
 
 import (
 	"context"
+	"sm-box/internal/services/authentication/components/http_access_system"
 	basic_authentication_adapter "sm-box/internal/services/authentication/infrastructure/adapters/basic_authentication"
-	"sm-box/internal/services/authentication/transport/servers/http/rest_api/components/access_system"
 	"sm-box/internal/services/authentication/transport/servers/http/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -56,7 +56,7 @@ func New(ctx context.Context) (srv Server, err error) {
 
 		// AccessSystem
 		{
-			if ref.components.AccessSystem, err = access_system.New(ref.ctx, ref.conf.Components.AccessSystem); err != nil {
+			if ref.components.AccessSystem, err = http_access_system.New(ref.ctx, ref.conf.Components.AccessSystem); err != nil {
 				return
 			}
 		}

@@ -1,8 +1,5 @@
 <Config>
-	<Connector>
-		<DbName>users</DbName>
-		<Host>postgres</Host>
-		<Port>5432</Port>
+	<Connector db_name="users" host="postgres" port="5432">
 		<Auth user="postgres" password="3bxMue16ztXPR635"></Auth>
 		<Tags sslmode="disable"></Tags>
 		<MaxOpenConns>50</MaxOpenConns>

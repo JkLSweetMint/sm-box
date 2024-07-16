@@ -1,20 +1,18 @@
-package mysql
+package redis
 
 import (
-	"fmt"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/tools/format"
 	"strings"
-	"time"
 )
 
 // templateConnectionString - шаблон строки для подключения к базе.
-const templateConnectionString = "{{user}}:{{password}}@tcp({{host}}:{{port}})/{{dbname}}{{tags}}"
+const templateConnectionString = "redis://{{user}}:{{password}}@{{host}}:{{port}}/{{db}}"
 
 // Config - конфигурация коннектора к базе данных.
 type Config struct {
-	// DbName - название базы данных.
-	DbName string `json:"db_name" yaml:"DbName" xml:"db_name,attr"`
+	// Db - название базы данных.
+	Db string `json:"db" yaml:"Db" xml:"db,attr"`
 
 	// Host - адрес базы данных.
 	Host string `json:"host" yaml:"Host" xml:"host,attr"`
@@ -24,18 +22,6 @@ type Config struct {
 
 	// Auth - конфигурация авторизации в базе данных.
 	Auth *ConfigAuth `json:"auth" yaml:"Auth" xml:"Auth"`
-
-	// Tags - теги для подключения
-	Tags Tags `json:"tags" yaml:"Tags" xml:"Tags"`
-
-	// MaxOpenConns - макс. кол-во. подключений к бд.
-	MaxOpenConns int `json:"max_open_conns" yaml:"MaxOpenConns" xml:"MaxOpenConns"`
-
-	// MaxIdleConns - макс. ожидаемых подключений к бд.
-	MaxIdleConns int `json:"max_idle_conns" yaml:"MaxIdleConns" xml:"MaxIdleConns"`
-
-	// ConnMaxLifetime - макс. время жизни соединения.
-	ConnMaxLifetime time.Duration `json:"conn_max_lifetime" yaml:"ConnMaxLifetime" xml:"ConnMaxLifetime"`
 }
 
 // ConfigAuth - конфигурация авторизации в базе данных.
@@ -59,10 +45,6 @@ func (conf *Config) FillEmptyFields() *Config {
 
 	if conf.Auth == nil {
 		conf.Auth = new(ConfigAuth)
-	}
-
-	if conf.Tags == nil {
-		conf.Tags = make(Tags)
 	}
 
 	conf.Auth.FillEmptyFields()
@@ -93,16 +75,9 @@ func (conf *Config) Default() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.DbName = ""
+	conf.Db = "0"
 	conf.Host = "127.0.0.1"
-	conf.Port = 3306
-
-	conf.Tags = make(Tags)
-
-	conf.MaxOpenConns = 50
-	conf.MaxIdleConns = 50
-
-	conf.ConnMaxLifetime = time.Minute * 2
+	conf.Port = 6379
 
 	conf.Auth = new(ConfigAuth).Default()
 
@@ -135,7 +110,7 @@ func (conf *Config) Validate() (err error) {
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	if strings.ReplaceAll(conf.DbName, " ", "") == "" {
+	if strings.ReplaceAll(conf.Db, " ", "") == "" {
 		err = ErrDatabaseNameIsNotSpecified
 		return
 	}
@@ -190,17 +165,6 @@ func (conf *Config) ConnectionString() (str string) {
 		defer func() { trace.FunctionCallFinished(str) }()
 	}
 
-	var tags string
-
-	// tags
-	{
-		if len(conf.Tags) > 0 {
-			for key, value := range conf.Tags {
-				tags += fmt.Sprintf(" %s=%s", key, value)
-			}
-		}
-	}
-
 	var textOpts = []format.TextOption{
 		{
 			Key:   "host",
@@ -219,12 +183,8 @@ func (conf *Config) ConnectionString() (str string) {
 			Value: conf.Auth.Password,
 		},
 		{
-			Key:   "dbname",
-			Value: conf.DbName,
-		},
-		{
-			Key:   "tags",
-			Value: tags,
+			Key:   "db",
+			Value: conf.Db,
 		},
 	}
 

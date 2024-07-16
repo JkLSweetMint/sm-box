@@ -71,7 +71,7 @@ func (conf *ComponentAccessSystem) Default() *ComponentAccessSystem {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.CookieKeyForSessionToken = "box_session"
+	conf.CookieKeyForSessionToken = "st_box"
 
 	return conf
 }

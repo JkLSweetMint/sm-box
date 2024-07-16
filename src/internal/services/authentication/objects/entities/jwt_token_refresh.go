@@ -2,6 +2,8 @@ package entities
 
 import (
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	"sm-box/internal/services/authentication/objects/db_models"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	"time"
@@ -11,15 +13,13 @@ type (
 	// JwtRefreshToken - jwt токен обновления.
 	JwtRefreshToken struct {
 		*JwtToken
-
-		Claims *JwtRefreshTokenClaims
 	}
 
 	// JwtRefreshTokenClaims - данные для подписи jwt токена обновления.
 	JwtRefreshTokenClaims struct {
 		*jwt.RegisteredClaims
 
-		Token *JwtTokenClaims
+		TokenID uuid.UUID
 	}
 )
 
@@ -37,10 +37,6 @@ func (entity *JwtRefreshToken) FillEmptyFields() *JwtRefreshToken {
 		entity.JwtToken = new(JwtToken)
 	}
 
-	if entity.Claims == nil {
-		entity.Claims = new(JwtRefreshTokenClaims)
-	}
-
 	var emptyTime time.Time
 
 	if entity.ExpiresAt == emptyTime {
@@ -56,7 +52,6 @@ func (entity *JwtRefreshToken) FillEmptyFields() *JwtRefreshToken {
 	}
 
 	entity.JwtToken.FillEmptyFields()
-	entity.Claims.FillEmptyFields()
 
 	return entity
 }
@@ -90,28 +85,21 @@ func (entity *JwtRefreshToken) Parse(raw string) (err error) {
 
 	entity.FillEmptyFields()
 
-	var token *jwt.Token
+	var (
+		claims = new(JwtRefreshTokenClaims)
+		token  *jwt.Token
+	)
 
-	if token, err = jwt.ParseWithClaims(raw, entity.Claims, func(t *jwt.Token) (interface{}, error) {
+	if token, err = jwt.ParseWithClaims(raw, claims, func(t *jwt.Token) (interface{}, error) {
 		return env.Vars.EncryptionKeys.Public, nil
 	}); err != nil {
 		return
 	}
 
-	entity.ID = entity.Claims.Token.ID
-	entity.ParentID = entity.Claims.Token.ParentID
-
-	entity.UserID = entity.Claims.Token.UserID
-	entity.ProjectID = entity.Claims.Token.ProjectID
+	entity.ID = claims.TokenID
 
 	entity.Type = JwtTokenTypeSession
 	entity.Raw = token.Raw
-
-	entity.ExpiresAt = entity.Claims.ExpiresAt.Time
-	entity.NotBefore = entity.Claims.NotBefore.Time
-	entity.IssuedAt = entity.Claims.IssuedAt.Time
-
-	entity.Params = entity.Claims.Token.Params
 
 	return
 }
@@ -130,30 +118,55 @@ func (entity *JwtRefreshToken) Generate() (err error) {
 
 	entity.FillEmptyFields()
 
-	entity.Claims.Token = &JwtTokenClaims{
-		ID:       entity.ID,
-		ParentID: entity.ParentID,
+	var claims = &JwtRefreshTokenClaims{
+		TokenID: entity.JwtToken.ID,
 
-		UserID:    entity.UserID,
-		ProjectID: entity.ProjectID,
-
-		Params: entity.Params,
+		RegisteredClaims: &jwt.RegisteredClaims{
+			ExpiresAt: &jwt.NumericDate{
+				Time: entity.ExpiresAt,
+			},
+			NotBefore: &jwt.NumericDate{
+				Time: entity.NotBefore,
+			},
+			IssuedAt: &jwt.NumericDate{
+				Time: entity.IssuedAt,
+			},
+		},
 	}
 
-	entity.Claims.ExpiresAt = &jwt.NumericDate{
-		Time: entity.ExpiresAt,
-	}
-	entity.Claims.NotBefore = &jwt.NumericDate{
-		Time: entity.NotBefore,
-	}
-	entity.Claims.IssuedAt = &jwt.NumericDate{
-		Time: entity.IssuedAt,
-	}
-
-	var tok = jwt.NewWithClaims(jwt.SigningMethodRS256, entity.Claims)
+	var tok = jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
 	if entity.Raw, err = tok.SignedString(env.Vars.EncryptionKeys.Private); err != nil {
 		return
+	}
+
+	return
+}
+
+// ToDbModel - получение модели базы данных.
+func (entity *JwtRefreshToken) ToDbModel() (model *db_models.JwtRefreshToken) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(model) }()
+	}
+
+	model = &db_models.JwtRefreshToken{
+		JwtToken: &db_models.JwtToken{
+			ID:       entity.ID,
+			ParentID: entity.ParentID,
+
+			UserID:    entity.UserID,
+			ProjectID: entity.ProjectID,
+
+			Type: string(entity.Type),
+
+			ExpiresAt: entity.ExpiresAt,
+			NotBefore: entity.NotBefore,
+			IssuedAt:  entity.IssuedAt,
+		},
 	}
 
 	return

@@ -1,8 +1,7 @@
-package access_system
+package http_access_system
 
 import (
-	"sm-box/internal/services/authentication/transport/servers/http/rest_api/components/access_system/repositories/http_routes"
-	"sm-box/internal/services/authentication/transport/servers/http/rest_api/components/access_system/repositories/jwt_tokens"
+	jwt_tokens_repository "sm-box/internal/services/authentication/components/http_access_system/repositories/jwt_tokens"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
 )
@@ -18,8 +17,7 @@ type Config struct {
 
 // RepositoriesConfig - конфигурация репозиториев компонента системы доступа.
 type RepositoriesConfig struct {
-	HttpRoutes *http_routes_repository.Config `json:"http_routes" yaml:"HttpRoutes" xml:"HttpRoutes"`
-	JwtTokens  *jwt_tokens_repository.Config  `json:"jwt_tokens"  yaml:"jwt_tokens" xml:"JwtTokens"`
+	JwtTokens *jwt_tokens_repository.Config `json:"jwt_tokens" yaml:"JwtTokens" xml:"JwtTokens"`
 }
 
 // Read - чтение конфигурации.
@@ -35,8 +33,8 @@ func (conf *Config) Read() (err error) {
 	var (
 		c       configurator.Configurator[*Config]
 		profile = configurator.PrivateProfile{
-			Dir:      "/components/",
-			Filename: "system_access.xml",
+			Dir:      "/components/access_system/",
+			Filename: "config.xml",
 		}
 	)
 
@@ -82,15 +80,10 @@ func (conf *RepositoriesConfig) FillEmptyFields() *RepositoriesConfig {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	if conf.HttpRoutes == nil {
-		conf.HttpRoutes = new(http_routes_repository.Config)
-	}
-
 	if conf.JwtTokens == nil {
 		conf.JwtTokens = new(jwt_tokens_repository.Config)
 	}
 
-	conf.HttpRoutes.FillEmptyFields()
 	conf.JwtTokens.FillEmptyFields()
 
 	return conf
@@ -125,7 +118,6 @@ func (conf *RepositoriesConfig) Default() *RepositoriesConfig {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.HttpRoutes = new(http_routes_repository.Config).Default()
 	conf.JwtTokens = new(jwt_tokens_repository.Config).Default()
 
 	return conf
@@ -156,10 +148,6 @@ func (conf *RepositoriesConfig) Validate() (err error) {
 
 		trc.FunctionCall()
 		defer func() { trc.Error(err).FunctionCallFinished() }()
-	}
-
-	if err = conf.HttpRoutes.Validate(); err != nil {
-		return
 	}
 
 	if err = conf.JwtTokens.Validate(); err != nil {

@@ -9,25 +9,22 @@ import (
 type (
 	// JwtToken - модель jwt токена системы доступа для базы данных.
 	JwtToken struct {
-		ID       uuid.UUID `db:"id"`
-		ParentID uuid.UUID `db:"parent_id"`
+		ID       uuid.UUID `json:"id"`
+		ParentID uuid.UUID `json:"parent_id"`
 
-		UserID    types.ID `db:"user_id"`
-		ProjectID types.ID `db:"project_id"`
+		UserID    types.ID `json:"user_id"`
+		ProjectID types.ID `json:"project_id"`
 
-		Type string `db:"type"`
-		Raw  string `db:"raw"`
+		Type string `json:"type"`
 
-		ExpiresAt time.Time `db:"expires_at"`
-		NotBefore time.Time `db:"not_before"`
-		IssuedAt  time.Time `db:"issued_at"`
+		ExpiresAt time.Time `json:"expires_at"`
+		NotBefore time.Time `json:"not_before"`
+		IssuedAt  time.Time `json:"issued_at"`
 	}
 
 	// JwtTokenParams - модель с параметрами jwt токена системы доступа для базы данных.
 	JwtTokenParams struct {
-		TokenID uuid.UUID `db:"token_id"`
-
-		RemoteAddr string `db:"remote_addr"`
-		UserAgent  string `db:"user_agent"`
+		RemoteAddr string `json:"remote_addr"`
+		UserAgent  string `json:"user_agent"`
 	}
 )

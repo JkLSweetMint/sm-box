@@ -1,17 +1,17 @@
-package config
+package jwt_tokens_repository
 
 import (
-	"sm-box/internal/services/authentication/components/http_access_system"
 	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/databases/connectors/redis"
 )
 
-// Components - конфигурация компонентов http rest api.
-type Components struct {
-	AccessSystem *http_access_system.Config `json:"access_system" yaml:"AccessSystem" xml:"AccessSystem"`
+// Config - конфигурация.
+type Config struct {
+	Connector *redis.Config `json:"connector" yaml:"Connector" xml:"Connector"`
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации
-func (conf *Components) FillEmptyFields() *Components {
+func (conf *Config) FillEmptyFields() *Config {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelConfig)
@@ -20,17 +20,17 @@ func (conf *Components) FillEmptyFields() *Components {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	if conf.AccessSystem == nil {
-		conf.AccessSystem = new(http_access_system.Config)
+	if conf.Connector == nil {
+		conf.Connector = new(redis.Config)
 	}
 
-	conf.AccessSystem.FillEmptyFields()
+	conf.Connector.FillEmptyFields()
 
 	return conf
 }
 
 // Default - запись стандартной конфигурации.
-func (conf *Components) Default() *Components {
+func (conf *Config) Default() *Config {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelConfig)
@@ -39,13 +39,19 @@ func (conf *Components) Default() *Components {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.AccessSystem = new(http_access_system.Config).Default()
+	conf.Connector = new(redis.Config).Default()
+
+	conf.Connector.Db = "0"
+	conf.Connector.Auth.User = "root"
+	conf.Connector.Auth.Password = "T4b4g9)53(W)l(SM"
+	conf.Connector.Host = "redis"
+	conf.Connector.Port = 6379
 
 	return conf
 }
 
 // Validate - валидация конфигурации.
-func (conf *Components) Validate() (err error) {
+func (conf *Config) Validate() (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelConfig)
@@ -54,7 +60,7 @@ func (conf *Components) Validate() (err error) {
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	if err = conf.AccessSystem.Validate(); err != nil {
+	if err = conf.Connector.Validate(); err != nil {
 		return
 	}
 

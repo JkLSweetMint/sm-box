@@ -8,8 +8,8 @@ import (
 	"path"
 	app_models "sm-box/internal/app/objects/models"
 	"sm-box/internal/common/types"
+	"sm-box/internal/services/authentication/components/http_access_system"
 	"sm-box/internal/services/authentication/objects/models"
-	"sm-box/internal/services/authentication/transport/servers/http/rest_api/components/access_system"
 	"sm-box/internal/services/authentication/transport/servers/http/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -49,7 +49,7 @@ type controllers struct {
 // components - компоненты сервера.
 type components struct {
 	Logger       logger.Logger
-	AccessSystem access_system.AccessSystem
+	AccessSystem http_access_system.AccessSystem
 }
 
 // Listen - запуск сервера.

@@ -31,28 +31,9 @@
 	<Components>
 		<AccessSystem cookie_key_for_session_token="st_box" cookie_key_for_access_token="at_box" cookie_key_for_refresh_token="rt_box">
 			<Repositories>
-				<HttpRoutes>
-					<Connector>
-						<DbName>authentication</DbName>
-						<Host>postgres</Host>
-						<Port>5432</Port>
-						<Auth user="postgres" password="3bxMue16ztXPR635"></Auth>
-						<Tags sslmode="disable"></Tags>
-						<MaxOpenConns>50</MaxOpenConns>
-						<MaxIdleConns>50</MaxIdleConns>
-						<ConnMaxLifetime>120000000000</ConnMaxLifetime>
-					</Connector>
-				</HttpRoutes>
 				<JwtTokens>
-					<Connector>
-						<DbName>authentication</DbName>
-						<Host>postgres</Host>
-						<Port>5432</Port>
-						<Auth user="postgres" password="3bxMue16ztXPR635"></Auth>
-						<Tags sslmode="disable"></Tags>
-						<MaxOpenConns>50</MaxOpenConns>
-						<MaxIdleConns>50</MaxIdleConns>
-						<ConnMaxLifetime>120000000000</ConnMaxLifetime>
+					<Connector db="0" host="redis" port="6379">
+						<Auth user="root" password="T4b4g9)53(W)l(SM"></Auth>
 					</Connector>
 				</JwtTokens>
 			</Repositories>

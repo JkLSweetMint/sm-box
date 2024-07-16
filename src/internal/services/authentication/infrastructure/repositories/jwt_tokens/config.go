@@ -3,12 +3,12 @@ package jwt_tokens_repository
 import (
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
-	"sm-box/pkg/databases/connectors/postgresql"
+	"sm-box/pkg/databases/connectors/redis"
 )
 
 // Config - конфигурация.
 type Config struct {
-	Connector *postgresql.Config `json:"connector" yaml:"Connector" xml:"Connector"`
+	Connector *redis.Config `json:"connector" yaml:"Connector" xml:"Connector"`
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации
@@ -22,7 +22,7 @@ func (conf *Config) FillEmptyFields() *Config {
 	}
 
 	if conf.Connector == nil {
-		conf.Connector = new(postgresql.Config)
+		conf.Connector = new(redis.Config)
 	}
 
 	conf.Connector.FillEmptyFields()
@@ -40,15 +40,13 @@ func (conf *Config) Default() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.Connector = new(postgresql.Config).Default()
+	conf.Connector = new(redis.Config).Default()
 
-	conf.Connector.DbName = "authentication"
-	conf.Connector.Auth.User = "postgres"
-	conf.Connector.Auth.Password = "3bxMue16ztXPR635"
-	conf.Connector.Host = "postgres"
-	conf.Connector.Port = 5432
-
-	conf.Connector.Tags["sslmode"] = "disable"
+	conf.Connector.Db = "0"
+	conf.Connector.Auth.User = "root"
+	conf.Connector.Auth.Password = "T4b4g9)53(W)l(SM"
+	conf.Connector.Host = "redis"
+	conf.Connector.Port = 6379
 
 	return conf
 }
@@ -83,8 +81,8 @@ func (conf *Config) Read() (err error) {
 	var (
 		c       configurator.Configurator[*Config]
 		profile = configurator.PrivateProfile{
-			Dir:      "/infrastructure/repositories/",
-			Filename: "authentication.xml",
+			Dir:      "/components/access_system/repositories/",
+			Filename: "jwt_tokens.xml",
 		}
 	)
 

@@ -29,7 +29,7 @@
 		<EnableSplittingOnParsers>false</EnableSplittingOnParsers>
 	</Server>
 	<Components>
-		<AccessSystem cookie_key_for_session_token="box_session"></AccessSystem>
+		<AccessSystem cookie_key_for_session_token="st_box"></AccessSystem>
 	</Components>
 	<Middlewares>
 		<Cors enable="true">

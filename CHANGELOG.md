@@ -1,5 +1,12 @@
 # ChangeLog:
 
+### v24.0.39:
+- Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+- Добавления redis в архитектуру;
+- Реализация [коннектора для redis](src/pkg/databases/connectors/redis);
+
+---
+
 ### v24.0.38:
 - Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
 

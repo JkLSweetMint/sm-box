@@ -8,6 +8,13 @@
  
 ---
 
+### v24.0.39:
+- [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+- [x] Добавления redis в архитектуру;
+- [x] Реализация [коннектора для redis](src/pkg/databases/connectors/redis);
+
+---
+
 ### v24.0.38:
 - [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
 
