@@ -28,41 +28,6 @@
 		<EnableIPValidation>false</EnableIPValidation>
 		<EnableSplittingOnParsers>false</EnableSplittingOnParsers>
 	</Server>
-	<Middlewares>
-		<Cors enable="true">
-			<AllowOrigins></AllowOrigins>
-			<AllowMethods>
-				<AllowMethod>GET</AllowMethod>
-				<AllowMethod>POST</AllowMethod>
-				<AllowMethod>HEAD</AllowMethod>
-				<AllowMethod>PUT</AllowMethod>
-				<AllowMethod>DELETE</AllowMethod>
-				<AllowMethod>PATCH</AllowMethod>
-				<AllowMethod>OPTIONS</AllowMethod>
-			</AllowMethods>
-			<AllowHeaders>
-				<AllowHeader>Origin</AllowHeader>
-				<AllowHeader>Access-Control-Allow-Headers</AllowHeader>
-				<AllowHeader>Access-Control-Allow-Origin</AllowHeader>
-				<AllowHeader>Access-Control-Allow-Credentials</AllowHeader>
-				<AllowHeader>Content-Type</AllowHeader>
-				<AllowHeader>Content-Length</AllowHeader>
-				<AllowHeader>Accept-Encoding</AllowHeader>
-				<AllowHeader>Cookie</AllowHeader>
-				<AllowHeader>Authorization</AllowHeader>
-				<AllowHeader>RequestURL</AllowHeader>
-				<AllowHeader>Set-Cookie</AllowHeader>
-				<AllowHeader>X-Requested-With</AllowHeader>
-			</AllowHeaders>
-			<AllowCredentials>false</AllowCredentials>
-			<ExposeHeaders>
-				<ExposeHeader>Content-Disposition</ExposeHeader>
-				<ExposeHeader>Content-Length</ExposeHeader>
-			</ExposeHeaders>
-			<MaxAge>36000</MaxAge>
-			<AllowPrivateNetwork>true</AllowPrivateNetwork>
-		</Cors>
-	</Middlewares>
 	<Postman>
 		<Protocol>https</Protocol>
 		<Host>box.samgk.ru</Host>

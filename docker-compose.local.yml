@@ -18,8 +18,8 @@ services:
       - system
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 5s
-      timeout: 5s
+      interval: 3s
+      timeout: 3s
       retries: 5
 
   redis:
@@ -41,8 +41,8 @@ services:
       - system
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "76&D&IEa&YL)284d", "ping"]
-      interval: 30s
-      timeout: 10s
+      interval: 3s
+      timeout: 3s
       retries: 5
 
   app:
@@ -70,9 +70,9 @@ services:
       - ./var/test:/home/app/var/test
 
   authentication-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.authentication-service
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.authentication-service
     image: box/authentication-service:latest
     container_name: authentication-service
     restart: unless-stopped

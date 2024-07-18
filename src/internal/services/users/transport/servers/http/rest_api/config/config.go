@@ -7,10 +7,9 @@ import (
 
 // Config - конфигурация сервера
 type Config struct {
-	Server      *Server      `json:"server"      yaml:"Server"      xml:"Server"`
-	Components  *Components  `json:"components"  yaml:"Components"  xml:"Components"`
-	Middlewares *Middlewares `json:"middlewares" yaml:"Middlewares" xml:"Middlewares"`
-	Postman     *Postman     `json:"postman"     yaml:"Postman"     xml:"Postman"`
+	Server     *Server     `json:"server"      yaml:"Server"      xml:"Server"`
+	Components *Components `json:"components"  yaml:"Components"  xml:"Components"`
+	Postman    *Postman    `json:"postman"     yaml:"Postman"     xml:"Postman"`
 }
 
 // Read - чтение конфигурации.
@@ -62,17 +61,12 @@ func (conf *Config) FillEmptyFields() *Config {
 		conf.Components = new(Components)
 	}
 
-	if conf.Middlewares == nil {
-		conf.Middlewares = new(Middlewares)
-	}
-
 	if conf.Postman == nil {
 		conf.Postman = new(Postman)
 	}
 
 	conf.Server.FillEmptyFields()
 	conf.Components.FillEmptyFields()
-	conf.Middlewares.FillEmptyFields()
 	conf.Postman.FillEmptyFields()
 
 	return conf
@@ -90,7 +84,6 @@ func (conf *Config) Default() *Config {
 
 	conf.Server = new(Server).Default()
 	conf.Components = new(Components).Default()
-	conf.Middlewares = new(Middlewares).Default()
 	conf.Postman = new(Postman).Default()
 
 	return conf
@@ -111,10 +104,6 @@ func (conf *Config) Validate() (err error) {
 	}
 
 	if err = conf.Components.Validate(); err != nil {
-		return
-	}
-
-	if err = conf.Middlewares.Validate(); err != nil {
 		return
 	}
 

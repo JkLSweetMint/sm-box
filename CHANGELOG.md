@@ -1,5 +1,10 @@
 # ChangeLog:
 
+### v24.0.40:
+- Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+
+---
+
 ### v24.0.39:
 - Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
 - Добавления redis в архитектуру;

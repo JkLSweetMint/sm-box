@@ -476,7 +476,7 @@ func (srv *server) registerRoutes() error {
 					{
 						var cErr c_errors.RestAPI
 
-						if response.Dictionary, cErr = srv.controllers.Texts.AssembleDictionary(ctx.Context(), sessionToken.Claims.Language, queryArgs.Paths); cErr != nil {
+						if response.Dictionary, cErr = srv.controllers.Texts.AssembleDictionary(ctx.Context(), sessionToken.Language, queryArgs.Paths); cErr != nil {
 							srv.components.Logger.Error().
 								Format("The localization dictionary could not be assembled: '%s'. ", cErr).Write()
 

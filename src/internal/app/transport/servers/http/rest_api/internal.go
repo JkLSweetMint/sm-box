@@ -3,7 +3,6 @@ package http_rest_api
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v3"
-	cors_middleware "github.com/gofiber/fiber/v3/middleware/cors"
 	"path"
 	error_list "sm-box/internal/common/errors"
 	"sm-box/pkg/core/components/tracer"
@@ -60,15 +59,6 @@ func (srv *server) initFiberServer() (err error) {
 		var location = path.Join(srv.conf.Server.Location, srv.conf.Server.Name, srv.conf.Server.Version)
 
 		srv.router = srv.app.Group(location)
-	}
-
-	// Промежуточные слои
-	{
-		if srv.conf.Middlewares != nil &&
-			srv.conf.Middlewares.Cors != nil &&
-			srv.conf.Middlewares.Cors.Enable {
-			srv.app.Use(cors_middleware.New(srv.conf.Middlewares.Cors.ToFiberConfig()))
-		}
 	}
 
 	if err = srv.registerBaseRoutes(); err != nil {

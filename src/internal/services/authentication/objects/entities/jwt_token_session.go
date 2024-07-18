@@ -12,7 +12,7 @@ type (
 	JwtSessionToken struct {
 		*JwtToken
 
-		Claims *JwtSessionTokenClaims
+		Language string
 	}
 
 	// JwtSessionTokenClaims - данные для подписи jwt токена сессии.
@@ -39,10 +39,6 @@ func (entity *JwtSessionToken) FillEmptyFields() *JwtSessionToken {
 		entity.JwtToken = new(JwtToken)
 	}
 
-	if entity.Claims == nil {
-		entity.Claims = new(JwtSessionTokenClaims)
-	}
-
 	var emptyTime time.Time
 
 	if entity.ExpiresAt == emptyTime {
@@ -58,7 +54,6 @@ func (entity *JwtSessionToken) FillEmptyFields() *JwtSessionToken {
 	}
 
 	entity.JwtToken.FillEmptyFields()
-	entity.Claims.FillEmptyFields()
 
 	return entity
 }
@@ -92,28 +87,33 @@ func (entity *JwtSessionToken) Parse(raw string) (err error) {
 
 	entity.FillEmptyFields()
 
-	var token *jwt.Token
+	var (
+		token  *jwt.Token
+		claims = new(JwtSessionTokenClaims)
+	)
 
-	if token, err = jwt.ParseWithClaims(raw, entity.Claims, func(t *jwt.Token) (interface{}, error) {
+	if token, err = jwt.ParseWithClaims(raw, claims, func(t *jwt.Token) (interface{}, error) {
 		return env.Vars.EncryptionKeys.Public, nil
 	}); err != nil {
 		return
 	}
 
-	entity.ID = entity.Claims.Token.ID
-	entity.ParentID = entity.Claims.Token.ParentID
+	entity.ID = claims.Token.ID
+	entity.ParentID = claims.Token.ParentID
 
-	entity.UserID = entity.Claims.Token.UserID
-	entity.ProjectID = entity.Claims.Token.ProjectID
+	entity.UserID = claims.Token.UserID
+	entity.ProjectID = claims.Token.ProjectID
 
 	entity.Type = JwtTokenTypeSession
 	entity.Raw = token.Raw
 
-	entity.ExpiresAt = entity.Claims.ExpiresAt.Time
-	entity.NotBefore = entity.Claims.NotBefore.Time
-	entity.IssuedAt = entity.Claims.IssuedAt.Time
+	entity.ExpiresAt = claims.ExpiresAt.Time
+	entity.NotBefore = claims.NotBefore.Time
+	entity.IssuedAt = claims.IssuedAt.Time
 
-	entity.Params = entity.Claims.Token.Params
+	entity.Language = claims.Language
+
+	entity.Params = claims.Token.Params
 
 	return
 }
@@ -132,27 +132,33 @@ func (entity *JwtSessionToken) Generate() (err error) {
 
 	entity.FillEmptyFields()
 
-	entity.Claims.Token = &JwtTokenClaims{
-		ID:       entity.ID,
-		ParentID: entity.ParentID,
+	var claims = &JwtSessionTokenClaims{
+		Token: &JwtTokenClaims{
+			ID:       entity.ID,
+			ParentID: entity.ParentID,
 
-		UserID:    entity.UserID,
-		ProjectID: entity.ProjectID,
+			UserID:    entity.UserID,
+			ProjectID: entity.ProjectID,
 
-		Params: entity.Params,
+			Params: entity.Params,
+		},
+
+		Language: entity.Language,
+
+		RegisteredClaims: &jwt.RegisteredClaims{
+			ExpiresAt: &jwt.NumericDate{
+				Time: entity.ExpiresAt,
+			},
+			NotBefore: &jwt.NumericDate{
+				Time: entity.NotBefore,
+			},
+			IssuedAt: &jwt.NumericDate{
+				Time: entity.IssuedAt,
+			},
+		},
 	}
 
-	entity.Claims.ExpiresAt = &jwt.NumericDate{
-		Time: entity.ExpiresAt,
-	}
-	entity.Claims.NotBefore = &jwt.NumericDate{
-		Time: entity.NotBefore,
-	}
-	entity.Claims.IssuedAt = &jwt.NumericDate{
-		Time: entity.IssuedAt,
-	}
-
-	var tok = jwt.NewWithClaims(jwt.SigningMethodRS256, entity.Claims)
+	var tok = jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
 	if entity.Raw, err = tok.SignedString(env.Vars.EncryptionKeys.Private); err != nil {
 		return

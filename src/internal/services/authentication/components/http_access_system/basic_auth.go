@@ -13,7 +13,6 @@ import (
 	users_models "sm-box/internal/services/users/objects/models"
 	c_errors "sm-box/pkg/errors"
 	http_rest_api_io "sm-box/pkg/http/rest_api/io"
-	"strings"
 	"time"
 )
 
@@ -33,7 +32,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 			var cErr c_errors.Error
 
 			if sessionToken, cErr = acc.basicAuthenticationProcessingSessionToken(ctx); cErr != nil {
-				if err = http_rest_api_io.WriteError(ctx.Status(fiber.StatusOK), c_errors.ToRestAPI(cErr)); err != nil {
+				if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
 					acc.components.Logger.Error().
 						Format("The response could not be recorded: '%s'. ", err).Write()
 
@@ -51,16 +50,8 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 			var cErr c_errors.Error
 
 			if accessToken, cErr = acc.basicAuthenticationProcessingAccessToken(ctx); cErr != nil {
-				if err = http_rest_api_io.WriteError(ctx.Status(fiber.StatusOK), c_errors.ToRestAPI(cErr)); err != nil {
-					acc.components.Logger.Error().
-						Format("The response could not be recorded: '%s'. ", err).Write()
-
-					var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
-					cErr.SetError(err)
-
-					return http_rest_api_io.WriteError(ctx, cErr)
-				}
-				return
+				acc.components.Logger.Warn().
+					Format("Access token processing failed: '%s'. ", cErr).Write()
 			}
 		}
 
@@ -72,16 +63,8 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 					var cErr c_errors.Error
 
 					if refreshToken, cErr = acc.basicAuthenticationProcessingRefreshToken(ctx); cErr != nil {
-						if err = http_rest_api_io.WriteError(ctx.Status(fiber.StatusOK), c_errors.ToRestAPI(cErr)); err != nil {
-							acc.components.Logger.Error().
-								Format("The response could not be recorded: '%s'. ", err).Write()
-
-							var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
-							cErr.SetError(err)
-
-							return http_rest_api_io.WriteError(ctx, cErr)
-						}
-						return
+						acc.components.Logger.Warn().
+							Format("Refresh token processing failed: '%s'. ", cErr).Write()
 					}
 				}
 
@@ -239,8 +222,8 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 						{
 							accessToken = &entities.JwtAccessToken{
 								JwtToken: &entities.JwtToken{
-									ProjectID: sessionToken.ProjectID,
 									ParentID:  refreshToken.ID,
+									ProjectID: sessionToken.ProjectID,
 									UserID:    user.ID,
 
 									Params: sessionToken.Params,
@@ -316,52 +299,86 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 				}
 			}
 
-			if accessToken == nil {
-				refreshToken = nil
-
-				if sessionToken.UserID != 0 && sessionToken.ProjectID != 0 {
-					// Создание нового токена сессии
-					{
-						sessionToken.ParentID = sessionToken.ID
-						sessionToken.ID = uuid.UUID{}
-
-						sessionToken.ExpiresAt = time.Time{}
-						sessionToken.NotBefore = time.Time{}
-						sessionToken.IssuedAt = time.Time{}
-
-						if err = sessionToken.Generate(); err != nil {
-							acc.components.Logger.Error().
-								Format("User token generation failed: '%s'. ", err).Write()
-
-							if err = http_rest_api_io.WriteError(ctx.Status(fiber.StatusOK), c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
-								acc.components.Logger.Error().
-									Format("The response could not be recorded: '%s'. ", err).Write()
-
-								var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
-								cErr.SetError(err)
-
-								return http_rest_api_io.WriteError(ctx, cErr)
-							}
-							return
-						}
-					}
-
-					// Печеньки
-					{
-						ctx.Cookie(&fiber.Cookie{
-							Name:        acc.conf.CookieKeyForSessionToken,
-							Value:       sessionToken.Raw,
-							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
-							MaxAge:      0,
-							Expires:     sessionToken.ExpiresAt,
-							Secure:      false,
-							HTTPOnly:    true,
-							SameSite:    fiber.CookieSameSiteLaxMode,
-							SessionOnly: false,
-						})
-					}
-				}
+			// Пересоздание токена сессии чтоб сбросить данные пользователя в нём
+			{
+				//if accessToken == nil {
+				//	refreshToken = nil
+				//
+				//	if sessionToken.UserID != 0 && sessionToken.ProjectID != 0 {
+				//		// Создание нового токена сессии
+				//		{
+				//			sessionToken = &entities.JwtSessionToken{
+				//				JwtToken: &entities.JwtToken{
+				//					ParentID: sessionToken.ID,
+				//
+				//					Params: sessionToken.Params,
+				//				},
+				//			}
+				//
+				//			if err = sessionToken.Generate(); err != nil {
+				//				acc.components.Logger.Error().
+				//					Format("User token generation failed: '%s'. ", err).Write()
+				//
+				//				if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+				//					acc.components.Logger.Error().
+				//						Format("The response could not be recorded: '%s'. ", err).Write()
+				//
+				//					var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+				//					cErr.SetError(err)
+				//
+				//					return http_rest_api_io.WriteError(ctx, cErr)
+				//				}
+				//				return
+				//			}
+				//		}
+				//
+				//		// Печеньки
+				//		{
+				//			ctx.Cookie(&fiber.Cookie{
+				//				Name:        acc.conf.CookieKeyForSessionToken,
+				//				Value:       sessionToken.Raw,
+				//				Path:        "/",
+				//				Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+				//				MaxAge:      0,
+				//				Expires:     sessionToken.ExpiresAt,
+				//				Secure:      false,
+				//				HTTPOnly:    true,
+				//				SameSite:    fiber.CookieSameSiteLaxMode,
+				//				SessionOnly: false,
+				//			})
+				//		}
+				//	}
+				//
+				//	if raw := ctx.Cookies(acc.conf.CookieKeyForAccessToken); len(raw) > 0 {
+				//		ctx.Cookie(&fiber.Cookie{
+				//			Name:        acc.conf.CookieKeyForAccessToken,
+				//			Value:       "",
+				//			Path:        "/",
+				//			Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+				//			MaxAge:      0,
+				//			Expires:     time.Unix(0, 0),
+				//			Secure:      false,
+				//			HTTPOnly:    false,
+				//			SameSite:    fiber.CookieSameSiteNoneMode,
+				//			SessionOnly: false,
+				//		})
+				//	}
+				//
+				//	if raw := ctx.Cookies(acc.conf.CookieKeyForRefreshToken); len(raw) > 0 {
+				//		ctx.Cookie(&fiber.Cookie{
+				//			Name:        acc.conf.CookieKeyForRefreshToken,
+				//			Value:       "",
+				//			Path:        "/",
+				//			Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+				//			MaxAge:      0,
+				//			Expires:     time.Unix(0, 0),
+				//			Secure:      false,
+				//			HTTPOnly:    false,
+				//			SameSite:    fiber.CookieSameSiteNoneMode,
+				//			SessionOnly: false,
+				//		})
+				//	}
+				//}
 			}
 		}
 	}
@@ -383,6 +400,9 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 		ctx.Response().Header.Set("X-Authorization-State", state)
 	}
+
+	fmt.Printf("\n%+v\n", ctx.Request().Header.String())
+	fmt.Printf("\n\n%+v\n\n", ctx.Response().Header.String())
 
 	// Отправка ответа
 	{
@@ -513,13 +533,9 @@ func (acc *accessSystem) basicAuthenticationProcessingSessionToken(ctx fiber.Ctx
 func (acc *accessSystem) basicAuthenticationProcessingAccessToken(ctx fiber.Ctx) (token *entities.JwtAccessToken, cErr c_errors.Error) {
 	// Получение
 	{
-		var raw = strings.Replace(string(ctx.Request().Header.Peek("Authorization")), "Bearer ", "", 1)
+		var raw string
 
-		if len(raw) == 0 {
-			raw = ctx.Cookies(acc.conf.CookieKeyForAccessToken)
-		}
-
-		if len(raw) == 0 {
+		if raw = ctx.Cookies(acc.conf.CookieKeyForAccessToken); len(raw) == 0 {
 			return
 		}
 

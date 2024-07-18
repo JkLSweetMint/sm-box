@@ -350,7 +350,8 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 
 				Params: currentSessionToken.Params,
 			},
-			Claims: currentSessionToken.Claims,
+
+			Language: currentSessionToken.Language,
 		}
 
 		if err = sessionToken.Generate(); err != nil {
@@ -740,7 +741,8 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 
 					Params: currentSessionToken.Params,
 				},
-				Claims: currentSessionToken.Claims,
+
+				Language: currentSessionToken.Language,
 			}
 
 			if err = sessionToken.Generate(); err != nil {
