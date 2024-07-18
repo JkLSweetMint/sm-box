@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16.3
-    container_name: database
+    container_name: postgres
     restart: unless-stopped
 #    attach: false
     environment:
@@ -10,8 +10,9 @@ services:
       TZ: 'GMT-4'
       PGTZ: 'GMT-4'
     volumes:
-      - ./system/database:/var/lib/postgresql/data
+      - ./system/databases/postgres:/var/lib/postgresql/data
       - ./src/migrations/:/docker-entrypoint-initdb.d/
+      - ./var/logs/databases/postgres:/var/log/postgresql
     ports:
       - "8081:5432"
     networks:
@@ -22,9 +23,9 @@ services:
       timeout: 3s
       retries: 5
 
-  redis:
+  authentication-redis:
     image: redis:7.2.5
-    container_name: redis
+    container_name: authentication-redis
     restart: unless-stopped
     #    attach: false
     environment:
@@ -33,8 +34,9 @@ services:
       REDIS_USER_PASSWORD: "T4b4g9)53(W)l(SM"
     command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
-      - ./system/redis/data:/var/lib/redis
-      - ./system/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./system/databases/authentication_redis/data:/var/lib/redis
+      - ./system/databases/authentication_redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./var/logs/databases/authentication_redis:/var/log/redis
     ports:
       - "8082:6379"
     networks:
@@ -70,9 +72,9 @@ services:
       - ./var/test:/home/app/var/test
 
   authentication-service:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.authentication-service
+    build:
+      context: .
+      dockerfile: Dockerfile.authentication-service
     image: box/authentication-service:latest
     container_name: authentication-service
     restart: unless-stopped
@@ -80,7 +82,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      authentication-redis:
         condition: service_healthy
     networks:
       - system
@@ -141,6 +143,24 @@ services:
       - ./var/logs:/home/app/var/logs
       - ./var/test:/home/app/var/test
 
+  dashboard:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.dashboard
+    image: box/dashboard:latest
+    container_name: dashboard
+    restart: unless-stopped
+    environment:
+      PORT: 5173
+      ORIGIN: http://dashboard:5173
+    depends_on:
+      - app
+      - i18n-service
+      - authentication-service
+      - users-service
+    networks:
+      - system
+
   nginx:
     image: nginx:1.27.0
     container_name: proxy
@@ -151,16 +171,13 @@ services:
       - i18n-service
       - authentication-service
       - users-service
+      - dashboard
     networks:
       - system
     volumes:
       - type: bind
         source: ./system/nginx
         target: /etc/nginx
-        consistency: cached
-      - type: bind
-        source: ./var/www/dashboard
-        target: /var/www/dashboard
         consistency: cached
       - type: bind
         source: ./var/logs/nginx

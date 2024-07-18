@@ -3,7 +3,6 @@ package entities
 import (
 	"github.com/google/uuid"
 	"sm-box/internal/common/types"
-	"sm-box/internal/services/authentication/objects/db_models"
 	"sm-box/internal/services/authentication/objects/models"
 	"sm-box/pkg/core/components/tracer"
 	"time"
@@ -78,33 +77,6 @@ func (entity *JwtToken) FillEmptyFields() *JwtToken {
 	return entity
 }
 
-// ToDbModel - получение модели базы данных.
-func (entity *JwtToken) ToDbModel() (model *db_models.JwtToken) {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelEntity)
-
-		trc.FunctionCall()
-		defer func() { trc.FunctionCallFinished(model) }()
-	}
-
-	model = &db_models.JwtToken{
-		ID:       entity.ID,
-		ParentID: entity.ParentID,
-
-		UserID:    entity.UserID,
-		ProjectID: entity.ProjectID,
-
-		Type: string(entity.Type),
-
-		ExpiresAt: entity.ExpiresAt,
-		NotBefore: entity.NotBefore,
-		IssuedAt:  entity.IssuedAt,
-	}
-
-	return
-}
-
 // ToModel - получение модели.
 func (entity *JwtToken) ToModel() (model *models.JwtTokenInfo) {
 	// tracer
@@ -144,40 +116,4 @@ func (entity *JwtTokenParams) FillEmptyFields() *JwtTokenParams {
 	}
 
 	return entity
-}
-
-// ToDbModel - получение модели базы данных.
-func (entity *JwtTokenParams) ToDbModel() (model *db_models.JwtTokenParams) {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelEntity)
-
-		trc.FunctionCall()
-		defer func() { trc.FunctionCallFinished(model) }()
-	}
-
-	model = &db_models.JwtTokenParams{
-		RemoteAddr: entity.RemoteAddr,
-		UserAgent:  entity.UserAgent,
-	}
-
-	return
-}
-
-// ToModel - получение модели.
-func (entity *JwtTokenParams) ToModel() (model *models.JwtTokenInfoParams) {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelEntity)
-
-		trc.FunctionCall()
-		defer func() { trc.FunctionCallFinished(model) }()
-	}
-
-	model = &models.JwtTokenInfoParams{
-		RemoteAddr: entity.RemoteAddr,
-		UserAgent:  entity.UserAgent,
-	}
-
-	return
 }

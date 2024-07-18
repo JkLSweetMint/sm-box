@@ -167,7 +167,7 @@ func (conf *Config) Default() *Config {
 					TimeFormat: time.RFC3339,
 					Rotation: &FilesLogFileOptionRotation{
 						Enable:   true,
-						FileSize: "4GB",
+						FileSize: "1GB",
 					},
 				},
 
@@ -240,7 +240,7 @@ func (conf *Config) Default() *Config {
 					TimeFormat: time.RFC3339,
 					Rotation: &FilesLogFileOptionRotation{
 						Enable:   true,
-						FileSize: "4GB",
+						FileSize: "1GB",
 					},
 				},
 
@@ -273,7 +273,7 @@ func (conf *Config) Default() *Config {
 					TimeFormat: time.RFC3339,
 					Rotation: &FilesLogFileOptionRotation{
 						Enable:   true,
-						FileSize: "4GB",
+						FileSize: "1GB",
 					},
 				},
 

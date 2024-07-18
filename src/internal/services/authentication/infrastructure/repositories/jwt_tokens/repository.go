@@ -91,7 +91,7 @@ func (repo *Repository) RegisterJwtRefreshToken(ctx context.Context, tok *entiti
 
 	var (
 		key        string = fmt.Sprintf("jwt_token:%s", tok.ID)
-		value      any    = tok.ToDbModel()
+		value      any    = tok.ToRedisDbModel()
 		expiration        = tok.ExpiresAt.Sub(time.Now())
 
 		result = repo.connector.Set(ctx, key, value, expiration)
@@ -172,7 +172,7 @@ func (repo *Repository) RegisterJwtAccessToken(ctx context.Context, tok *entitie
 
 	var (
 		key        string = fmt.Sprintf("jwt_token:%s", tok.ID)
-		value      any    = tok.ToDbModel()
+		value      any    = tok.ToRedisDbModel()
 		expiration        = tok.ExpiresAt.Sub(time.Now())
 
 		result = repo.connector.Set(ctx, key, value, expiration)

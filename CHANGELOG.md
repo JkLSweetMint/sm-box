@@ -1,5 +1,13 @@
 # ChangeLog:
 
+### v24.0.41:
+- Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+- Добавление [контейнера панели управления](Dockerfile.dashboard);
+- Доработки архитектуры системы;
+- Включение записи логов базы данных postgres и authentication-redis
+
+---
+
 ### v24.0.40:
 - Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
 

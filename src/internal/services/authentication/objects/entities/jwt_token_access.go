@@ -173,8 +173,8 @@ func (entity *JwtAccessToken) Generate() (err error) {
 	return
 }
 
-// ToDbModel - получение модели базы данных.
-func (entity *JwtAccessToken) ToDbModel() (model *db_models.JwtAccessToken) {
+// ToRedisDbModel - получение модели базы данных.
+func (entity *JwtAccessToken) ToRedisDbModel() (model *db_models.JwtAccessToken) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelEntity)

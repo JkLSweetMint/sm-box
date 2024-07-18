@@ -8,4 +8,23 @@ var/run/*
 var/temp/*
 var/test/cache/*
 
-system/database
+system/databases/authentication_redis/data
+system/databases/postgres/base
+system/databases/postgres/global
+system/databases/postgres/pg_commit_ts
+system/databases/postgres/pg_dynshmem
+system/databases/postgres/pg_logical
+system/databases/postgres/pg_multixact
+system/databases/postgres/pg_notify
+system/databases/postgres/pg_replslot
+system/databases/postgres/pg_serial
+system/databases/postgres/pg_snapshots
+system/databases/postgres/pg_stat
+system/databases/postgres/pg_stat_tmp
+system/databases/postgres/pg_subtrans
+system/databases/postgres/pg_tblspc
+system/databases/postgres/pg_twophase
+system/databases/postgres/pg_wal
+system/databases/postgres/pg_xact
+system/databases/postgres/current_logfiles
+system/databases/postgres/postmaster.opts

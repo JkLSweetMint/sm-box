@@ -301,84 +301,84 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 			// Пересоздание токена сессии чтоб сбросить данные пользователя в нём
 			{
-				//if accessToken == nil {
-				//	refreshToken = nil
-				//
-				//	if sessionToken.UserID != 0 && sessionToken.ProjectID != 0 {
-				//		// Создание нового токена сессии
-				//		{
-				//			sessionToken = &entities.JwtSessionToken{
-				//				JwtToken: &entities.JwtToken{
-				//					ParentID: sessionToken.ID,
-				//
-				//					Params: sessionToken.Params,
-				//				},
-				//			}
-				//
-				//			if err = sessionToken.Generate(); err != nil {
-				//				acc.components.Logger.Error().
-				//					Format("User token generation failed: '%s'. ", err).Write()
-				//
-				//				if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
-				//					acc.components.Logger.Error().
-				//						Format("The response could not be recorded: '%s'. ", err).Write()
-				//
-				//					var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
-				//					cErr.SetError(err)
-				//
-				//					return http_rest_api_io.WriteError(ctx, cErr)
-				//				}
-				//				return
-				//			}
-				//		}
-				//
-				//		// Печеньки
-				//		{
-				//			ctx.Cookie(&fiber.Cookie{
-				//				Name:        acc.conf.CookieKeyForSessionToken,
-				//				Value:       sessionToken.Raw,
-				//				Path:        "/",
-				//				Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
-				//				MaxAge:      0,
-				//				Expires:     sessionToken.ExpiresAt,
-				//				Secure:      false,
-				//				HTTPOnly:    true,
-				//				SameSite:    fiber.CookieSameSiteLaxMode,
-				//				SessionOnly: false,
-				//			})
-				//		}
-				//	}
-				//
-				//	if raw := ctx.Cookies(acc.conf.CookieKeyForAccessToken); len(raw) > 0 {
-				//		ctx.Cookie(&fiber.Cookie{
-				//			Name:        acc.conf.CookieKeyForAccessToken,
-				//			Value:       "",
-				//			Path:        "/",
-				//			Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
-				//			MaxAge:      0,
-				//			Expires:     time.Unix(0, 0),
-				//			Secure:      false,
-				//			HTTPOnly:    false,
-				//			SameSite:    fiber.CookieSameSiteNoneMode,
-				//			SessionOnly: false,
-				//		})
-				//	}
-				//
-				//	if raw := ctx.Cookies(acc.conf.CookieKeyForRefreshToken); len(raw) > 0 {
-				//		ctx.Cookie(&fiber.Cookie{
-				//			Name:        acc.conf.CookieKeyForRefreshToken,
-				//			Value:       "",
-				//			Path:        "/",
-				//			Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
-				//			MaxAge:      0,
-				//			Expires:     time.Unix(0, 0),
-				//			Secure:      false,
-				//			HTTPOnly:    false,
-				//			SameSite:    fiber.CookieSameSiteNoneMode,
-				//			SessionOnly: false,
-				//		})
-				//	}
-				//}
+				if accessToken == nil {
+					refreshToken = nil
+
+					if sessionToken.UserID != 0 && sessionToken.ProjectID != 0 {
+						// Создание нового токена сессии
+						{
+							sessionToken = &entities.JwtSessionToken{
+								JwtToken: &entities.JwtToken{
+									ParentID: sessionToken.ID,
+
+									Params: sessionToken.Params,
+								},
+							}
+
+							if err = sessionToken.Generate(); err != nil {
+								acc.components.Logger.Error().
+									Format("User token generation failed: '%s'. ", err).Write()
+
+								if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+									acc.components.Logger.Error().
+										Format("The response could not be recorded: '%s'. ", err).Write()
+
+									var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+									cErr.SetError(err)
+
+									return http_rest_api_io.WriteError(ctx, cErr)
+								}
+								return
+							}
+						}
+
+						// Печеньки
+						{
+							ctx.Cookie(&fiber.Cookie{
+								Name:        acc.conf.CookieKeyForSessionToken,
+								Value:       sessionToken.Raw,
+								Path:        "/",
+								Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+								MaxAge:      0,
+								Expires:     sessionToken.ExpiresAt,
+								Secure:      false,
+								HTTPOnly:    true,
+								SameSite:    fiber.CookieSameSiteLaxMode,
+								SessionOnly: false,
+							})
+						}
+					}
+
+					if raw := ctx.Cookies(acc.conf.CookieKeyForAccessToken); len(raw) > 0 {
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForAccessToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
+
+					if raw := ctx.Cookies(acc.conf.CookieKeyForRefreshToken); len(raw) > 0 {
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForRefreshToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
+				}
 			}
 		}
 	}
@@ -400,9 +400,6 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 		ctx.Response().Header.Set("X-Authorization-State", state)
 	}
-
-	fmt.Printf("\n%+v\n", ctx.Request().Header.String())
-	fmt.Printf("\n\n%+v\n\n", ctx.Response().Header.String())
 
 	// Отправка ответа
 	{

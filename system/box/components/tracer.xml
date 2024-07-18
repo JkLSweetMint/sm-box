@@ -76,7 +76,7 @@
 					</Error>
 				</Levels>
 				<Options time_format="2006-01-02T15:04:05Z07:00">
-					<Rotation enable="true" file_size="4GB"></Rotation>
+					<Rotation enable="true" file_size="1GB"></Rotation>
 				</Options>
 			</File>
 		</Files>

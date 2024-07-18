@@ -44,7 +44,7 @@ func (conf *Config) Default() *Config {
 	conf.Connector.Db = "0"
 	conf.Connector.Auth.User = "root"
 	conf.Connector.Auth.Password = "T4b4g9)53(W)l(SM"
-	conf.Connector.Host = "redis"
+	conf.Connector.Host = "authentication-redis"
 	conf.Connector.Port = 6379
 
 	return conf

@@ -19,4 +19,4 @@ var/run
 var/temp
 
 system/nginx
-system/database
+system/databases/database

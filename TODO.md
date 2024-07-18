@@ -8,6 +8,12 @@
  
 ---
 
+### v24.0.41:
+- [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+- [x] Добавление [контейнера панели управления](Dockerfile.dashboard);
+
+---
+
 ### v24.0.40:
 - [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
 
