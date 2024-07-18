@@ -22,7 +22,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 		sessionToken *entities.JwtSessionToken
 		accessToken  *entities.JwtAccessToken
 		refreshToken *entities.JwtRefreshToken
-		//route        *entities.HttpRoute
+		route        *entities.HttpRoute
 	)
 
 	// Работа с токенами
@@ -378,6 +378,78 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							SessionOnly: false,
 						})
 					}
+				}
+			}
+		}
+	}
+
+	// Получение маршрута
+	{
+		var (
+			protocol = string(ctx.Request().Header.Peek("X-Original-Protocol"))
+			method   = string(ctx.Request().Header.Peek("X-Original-Method"))
+			path     = string(ctx.Request().Header.Peek("X-Original-Path"))
+		)
+
+		if string(ctx.Request().Header.Peek("Upgrade")) == "websocket" {
+			switch protocol {
+			case "http":
+				protocol = "ws"
+			case "https":
+				protocol = "wss"
+			}
+		}
+
+		if route, err = acc.repositories.HttpRoutesRedis.Get(ctx.Context(), protocol, method, path); err != nil {
+			acc.components.Logger.Error().
+				Format("Failed to get the route data: '%s'. ", err).
+				Field("protocol", protocol).
+				Field("method", method).
+				Field("path", path).Write()
+
+			if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+				acc.components.Logger.Error().
+					Format("The response could not be recorded: '%s'. ", err).Write()
+
+				return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+			}
+			return
+		}
+
+		if route == nil || !route.Active {
+			return http_rest_api_io.WriteError(ctx, error_list.RouteNotFound_RestAPI())
+		}
+
+		// Проверка требуется ли авторизация
+		{
+			if route.Authorize {
+				if accessToken == nil {
+					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.Unauthorized()))
+				}
+			}
+		}
+
+		// Проверка доступа (при включенной авторизации
+		{
+			if route.Authorize {
+				var allowed bool
+
+				if accessToken.UserInfo == nil {
+					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccess()))
+				}
+
+			CheckAccessForRoute:
+				for _, userRoleID := range accessToken.UserInfo.Accesses {
+					for _, routeRoleID := range route.Accesses {
+						if userRoleID == types.ID(routeRoleID) {
+							allowed = true
+							break CheckAccessForRoute
+						}
+					}
+				}
+
+				if !allowed {
+					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccess()))
 				}
 			}
 		}

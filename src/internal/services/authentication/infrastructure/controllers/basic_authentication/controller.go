@@ -36,7 +36,7 @@ type usecases struct {
 			accessToken *entities.JwtAccessToken,
 			refreshToken *entities.JwtRefreshToken,
 			cErr c_errors.Error)
-		Logout(ctx context.Context, rawToken string) (cErr c_errors.Error)
+		Logout(ctx context.Context, rawSessionToken, rawAccessToken, rawRefreshToken string) (cErr c_errors.Error)
 	}
 }
 
@@ -207,16 +207,16 @@ func (controller *Controller) SetTokenProject(ctx context.Context, rawSessionTok
 }
 
 // Logout - завершение действия токена пользователя.
-func (controller *Controller) Logout(ctx context.Context, rawToken string) (cErr c_errors.Error) {
+func (controller *Controller) Logout(ctx context.Context, rawSessionToken, rawAccessToken, rawRefreshToken string) (cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, rawToken)
+		trc.FunctionCall(ctx, rawSessionToken, rawAccessToken, rawRefreshToken)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
-	if cErr = controller.usecases.BasicAuthentication.Logout(ctx, rawToken); cErr != nil {
+	if cErr = controller.usecases.BasicAuthentication.Logout(ctx, rawSessionToken, rawAccessToken, rawRefreshToken); cErr != nil {
 		controller.components.Logger.Error().
 			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 

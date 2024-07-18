@@ -1,0 +1,5 @@
+<Config>
+	<Connector db="0" host="authentication-redis" port="6379">
+		<Auth user="root" password="T4b4g9)53(W)l(SM"></Auth>
+	</Connector>
+</Config>

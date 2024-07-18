@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"encoding/json"
 	"sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/db_models"
 	"sm-box/pkg/core/components/tracer"
@@ -10,21 +11,21 @@ import (
 type (
 	// HttpRoute - http маршрут системы.
 	HttpRoute struct {
-		ID types.ID
+		ID types.ID `json:"id"`
 
-		SystemName  string
-		Name        string
-		Description string
+		SystemName  string `json:"system_name"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
 
-		Protocols  []string
-		Method     string
-		Path       string
-		RegexpPath string
+		Protocols  []string `json:"protocols"`
+		Method     string   `json:"method"`
+		Path       string   `json:"path"`
+		RegexpPath string   `json:"regexp_path"`
 
-		Active    bool
-		Authorize bool
+		Active    bool `json:"active"`
+		Authorize bool `json:"authorize"`
 
-		Accesses HttpRouteAccesses
+		Accesses HttpRouteAccesses `json:"accesses"`
 	}
 
 	// HttpRouteAccesses - доступы к http маршруту системы.
@@ -78,4 +79,14 @@ func (entity *HttpRoute) ToDbModel() (model *db_models.HttpRoute) {
 	}
 
 	return
+}
+
+// MarshalBinary - упаковка структуры в бинарный формат.
+func (entity *HttpRoute) MarshalBinary() ([]byte, error) {
+	return json.Marshal(entity)
+}
+
+// UnmarshalBinary - распаковка структуры из бинарного формата.
+func (entity *HttpRoute) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, &entity)
 }

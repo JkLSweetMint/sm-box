@@ -1,7 +1,6 @@
 package http_rest_api
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	app_models "sm-box/internal/app/objects/models"
@@ -13,6 +12,7 @@ import (
 	"sm-box/pkg/http/postman"
 	http_rest_api_io "sm-box/pkg/http/rest_api/io"
 	"strings"
+	"time"
 )
 
 // registerRoutes - регистрация маршрутов сервера.
@@ -634,42 +634,63 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Post("/logout", func(ctx fiber.Ctx) (err error) {
-				type Request struct{}
+			router.Get("/logout", func(ctx fiber.Ctx) (err error) {
 				type Response struct{}
 
-				var (
-					request  = new(Request)
-					response = new(Response)
-				)
-
-				// Чтение данных
-				{
-					if err = ctx.Bind().Body(request); err != nil {
-						srv.components.Logger.Error().
-							Format("The request body data could not be read: '%s'. ", err).Write()
-
-						if err = http_rest_api_io.WriteError(ctx, error_list.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
-							srv.components.Logger.Error().
-								Format("The response could not be recorded: '%s'. ", err).Write()
-
-							var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
-							cErr.SetError(err)
-
-							return http_rest_api_io.WriteError(ctx, cErr)
-						}
-
-						return
-					}
-				}
+				var response = new(Response)
 
 				// Обработка
 				{
-					fmt.Println()
-					fmt.Println()
-					fmt.Println("logout")
-					fmt.Println()
-					fmt.Println()
+					var rawSessionToken, rawAccessToken, rawRefreshToken string
+
+					if cErr := srv.controllers.BasicAuthentication.Logout(ctx.Context(), rawSessionToken, rawAccessToken, rawRefreshToken); cErr != nil {
+						srv.components.Logger.Error().
+							Format("The user's session could not be terminated: '%s'. ", cErr).Write()
+
+						return http_rest_api_io.WriteError(ctx, cErr)
+					}
+
+					// Очистка куков
+					{
+						ctx.Cookie(&fiber.Cookie{
+							Name:        srv.conf.Components.AccessSystem.CookieKeyForSessionToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+
+						ctx.Cookie(&fiber.Cookie{
+							Name:        srv.conf.Components.AccessSystem.CookieKeyForAccessToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+
+						ctx.Cookie(&fiber.Cookie{
+							Name:        srv.conf.Components.AccessSystem.CookieKeyForRefreshToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
 				}
 
 				// Отправка ответа

@@ -1,6 +1,8 @@
 package http_access_system
 
 import (
+	http_routes_repository "sm-box/internal/services/authentication/components/http_access_system/repositories/http_routes"
+	http_routes_redis_repository "sm-box/internal/services/authentication/components/http_access_system/repositories/http_routes_redis"
 	jwt_tokens_repository "sm-box/internal/services/authentication/components/http_access_system/repositories/jwt_tokens"
 	"sm-box/pkg/core/components/configurator"
 	"sm-box/pkg/core/components/tracer"
@@ -17,7 +19,9 @@ type Config struct {
 
 // RepositoriesConfig - конфигурация репозиториев компонента системы доступа.
 type RepositoriesConfig struct {
-	JwtTokens *jwt_tokens_repository.Config `json:"jwt_tokens" yaml:"JwtTokens" xml:"JwtTokens"`
+	JwtTokens       *jwt_tokens_repository.Config        `json:"jwt_tokens"        yaml:"JwtTokens"       xml:"JwtTokens"`
+	HttpRoutes      *http_routes_repository.Config       `json:"http_routes"       yaml:"HttpRoutes"      xml:"HttpRoutes"`
+	HttpRoutesRedis *http_routes_redis_repository.Config `json:"http_routes_redis" yaml:"HttpRoutesRedis" xml:"HttpRoutesRedis"`
 }
 
 // Read - чтение конфигурации.
@@ -84,7 +88,17 @@ func (conf *RepositoriesConfig) FillEmptyFields() *RepositoriesConfig {
 		conf.JwtTokens = new(jwt_tokens_repository.Config)
 	}
 
+	if conf.HttpRoutes == nil {
+		conf.HttpRoutes = new(http_routes_repository.Config)
+	}
+
+	if conf.HttpRoutesRedis == nil {
+		conf.HttpRoutesRedis = new(http_routes_redis_repository.Config)
+	}
+
 	conf.JwtTokens.FillEmptyFields()
+	conf.HttpRoutes.FillEmptyFields()
+	conf.HttpRoutesRedis.FillEmptyFields()
 
 	return conf
 }
@@ -119,6 +133,8 @@ func (conf *RepositoriesConfig) Default() *RepositoriesConfig {
 	}
 
 	conf.JwtTokens = new(jwt_tokens_repository.Config).Default()
+	conf.HttpRoutes = new(http_routes_repository.Config).Default()
+	conf.HttpRoutesRedis = new(http_routes_redis_repository.Config).Default()
 
 	return conf
 }
@@ -151,6 +167,14 @@ func (conf *RepositoriesConfig) Validate() (err error) {
 	}
 
 	if err = conf.JwtTokens.Validate(); err != nil {
+		return
+	}
+
+	if err = conf.HttpRoutes.Validate(); err != nil {
+		return
+	}
+
+	if err = conf.HttpRoutesRedis.Validate(); err != nil {
 		return
 	}
 

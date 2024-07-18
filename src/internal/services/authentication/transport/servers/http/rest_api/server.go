@@ -43,6 +43,7 @@ type controllers struct {
 		GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_models.ProjectList, cErr c_errors.RestAPI)
 		SetTokenProject(ctx context.Context, rawSessionToken string, projectID types.ID) (
 			sessionToken, accessToken, refreshToken *models.JwtTokenInfo, cErr c_errors.RestAPI)
+		Logout(ctx context.Context, rawSessionToken, rawAccessToken, rawRefreshToken string) (cErr c_errors.RestAPI)
 	}
 }
 

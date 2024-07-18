@@ -3,6 +3,8 @@ package http_access_system
 import (
 	"context"
 	"github.com/gofiber/fiber/v3"
+	http_routes_repository "sm-box/internal/services/authentication/components/http_access_system/repositories/http_routes"
+	http_routes_redis_repository "sm-box/internal/services/authentication/components/http_access_system/repositories/http_routes_redis"
 	jwt_tokens_repository "sm-box/internal/services/authentication/components/http_access_system/repositories/jwt_tokens"
 	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
 	users_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/users_service"
@@ -74,6 +76,27 @@ func New(ctx context.Context, conf *Config) (acc AccessSystem, err error) {
 			if ref.repositories.JwtTokens, err = jwt_tokens_repository.New(ctx, ref.conf.Repositories.JwtTokens); err != nil {
 				return
 			}
+		}
+
+		// HttpRoutes
+		{
+			if ref.repositories.HttpRoutes, err = http_routes_repository.New(ctx, ref.conf.Repositories.HttpRoutes); err != nil {
+				return
+			}
+		}
+
+		// HttpRoutesRedis
+		{
+			if ref.repositories.HttpRoutesRedis, err = http_routes_redis_repository.New(ctx, ref.conf.Repositories.HttpRoutesRedis); err != nil {
+				return
+			}
+		}
+	}
+
+	// Загрузка http маршрутов в redis
+	{
+		if err = ref.registerHttpRoutesInRedisDb(); err != nil {
+			return
 		}
 	}
 

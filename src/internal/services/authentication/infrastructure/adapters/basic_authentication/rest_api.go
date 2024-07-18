@@ -24,7 +24,7 @@ type Adapter_RestAPI struct {
 		GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_models.ProjectList, cErr c_errors.Error)
 		SetTokenProject(ctx context.Context, rawSessionToken string, projectID types.ID) (
 			sessionToken, accessToken, refreshToken *models.JwtTokenInfo, cErr c_errors.Error)
-		Logout(ctx context.Context, rawToken string) (cErr c_errors.Error)
+		Logout(ctx context.Context, rawSessionToken, rawAccessToken, rawRefreshToken string) (cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -148,18 +148,18 @@ func (adapter *Adapter_RestAPI) SetTokenProject(ctx context.Context, rawSessionT
 }
 
 // Logout - завершение действия токена пользователя.
-func (adapter *Adapter_RestAPI) Logout(ctx context.Context, rawToken string) (cErr c_errors.RestAPI) {
+func (adapter *Adapter_RestAPI) Logout(ctx context.Context, rawSessionToken, rawAccessToken, rawRefreshToken string) (cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, rawToken)
+		trc.FunctionCall(ctx, rawSessionToken, rawAccessToken, rawRefreshToken)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if proxyErr = adapter.controller.Logout(ctx, rawToken); proxyErr != nil {
+	if proxyErr = adapter.controller.Logout(ctx, rawSessionToken, rawAccessToken, rawRefreshToken); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().

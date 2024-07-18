@@ -336,7 +336,7 @@
                         "logout"
                     ]
                 },
-                "method": "POST",
+                "method": "GET",
                 "description": "",
                 "body": {
                     "mode": "raw",

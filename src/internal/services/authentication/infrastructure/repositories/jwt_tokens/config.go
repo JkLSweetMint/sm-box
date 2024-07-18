@@ -81,7 +81,7 @@ func (conf *Config) Read() (err error) {
 	var (
 		c       configurator.Configurator[*Config]
 		profile = configurator.PrivateProfile{
-			Dir:      "/components/access_system/repositories/",
+			Dir:      "/infrastructure/repositories/",
 			Filename: "jwt_tokens.xml",
 		}
 	)

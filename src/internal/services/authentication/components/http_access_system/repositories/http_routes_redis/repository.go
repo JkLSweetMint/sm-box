@@ -3,7 +3,7 @@ package http_routes_redis_repository
 import (
 	"context"
 	"fmt"
-	"sm-box/internal/services/authentication/objects/db_models"
+	"regexp"
 	"sm-box/internal/services/authentication/objects/entities"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -71,101 +71,108 @@ func New(ctx context.Context, conf *Config) (repo *Repository, err error) {
 }
 
 // Register - регистрация http маршрута.
-func (repo *Repository) Register(ctx context.Context, route *entities.HttpRoute) (err error) {
+func (repo *Repository) Register(ctx context.Context, routes ...*entities.HttpRoute) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
 
-		trc.FunctionCall(ctx, route)
+		trc.FunctionCall(ctx, routes)
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	var (
-		key        string = fmt.Sprintf("http_route:%s:%s", route.Method, route.Path)
-		value      any    = route.ToDbModel()
-		expiration        = 24 * time.Hour
+	var expiration = 24 * time.Hour
 
-		result = repo.connector.Set(ctx, key, value, expiration)
-	)
+	for _, route := range routes {
+		var (
+			key   string
+			value any = route
+		)
 
-	if err = result.Err(); err != nil {
-		repo.components.Logger.Error().
-			Format("Error inserting an item from the database: '%s'. ", err).Write()
-		return
-	}
+		for _, protocol := range route.Protocols {
+			if route.Path != "" {
+				key = fmt.Sprintf("http_route:%s:%s:%s", protocol, route.Method, route.Path)
+			} else if route.RegexpPath != "" {
+				key = fmt.Sprintf("http_route:%s:%s:%s", protocol, route.Method, route.RegexpPath)
+			}
 
-	return
-}
+			var result = repo.connector.Set(ctx, key, value, expiration)
 
-// Get - получение http маршрута.
-func (repo *Repository) Get(ctx context.Context, method, path string) (route *entities.HttpRoute, err error) {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelRepository)
-
-		trc.FunctionCall(ctx, id)
-		defer func() { trc.Error(err).FunctionCallFinished(tok) }()
-	}
-
-	var (
-		key   string = fmt.Sprintf("jwt_token:%s", id)
-		value        = new(db_models.JwtRefreshToken)
-
-		result = repo.connector.Get(ctx, key)
-	)
-
-	if err = result.Err(); err != nil {
-		repo.components.Logger.Error().
-			Format("Error while reading item data from the database:: '%s'. ", err).Write()
-		return
-	}
-
-	if err = result.Scan(value); err != nil {
-		repo.components.Logger.Error().
-			Format("Error while reading item data from the database:: '%s'. ", err).Write()
-		return
-	}
-
-	// Преобразование в сущность
-	{
-		tok = &entities.JwtRefreshToken{
-			JwtToken: &entities.JwtToken{
-				ID:       value.ID,
-				ParentID: value.ParentID,
-
-				UserID:    value.UserID,
-				ProjectID: value.ProjectID,
-
-				Type: entities.JwtTokenType(value.Type),
-				Raw:  "",
-
-				ExpiresAt: value.ExpiresAt,
-				NotBefore: value.NotBefore,
-				IssuedAt:  value.IssuedAt,
-
-				Params: nil,
-			},
+			if err = result.Err(); err != nil {
+				repo.components.Logger.Error().
+					Format("Error inserting an item from the database: '%s'. ", err).Write()
+				return
+			}
 		}
 	}
 
 	return
 }
 
-// Remove - удаление http маршрута.
-func (repo *Repository) Remove(ctx context.Context, method, path string) (err error) {
+// Get - получение http маршрута.
+func (repo *Repository) Get(ctx context.Context, protocol, method, path string) (route *entities.HttpRoute, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
 
-		trc.FunctionCall(ctx, id)
-		defer func() { trc.Error(err).FunctionCallFinished() }()
+		trc.FunctionCall(ctx, protocol, method, path)
+		defer func() { trc.Error(err).FunctionCallFinished(route) }()
 	}
 
 	var (
-		key string = fmt.Sprintf("jwt_token:%s", id)
-
-		result = repo.connector.Del(ctx, key)
+		prefix  = fmt.Sprintf("http_route:%s:%s:", protocol, method)
+		pattern = fmt.Sprintf("%s*", prefix)
+		key     = fmt.Sprintf("%s%s", prefix, path)
+		result  = repo.connector.Keys(ctx, pattern)
 	)
+
+	if err = result.Err(); err != nil {
+		repo.components.Logger.Error().
+			Format("Error while reading item data from the database:: '%s'. ", err).Write()
+		return
+	}
+
+	var keys = result.Val()
+
+	for _, k := range keys {
+		if ok, _ := regexp.MatchString(fmt.Sprintf("^%s$", k), key); ok {
+			var (
+				key    = k
+				value  = new(entities.HttpRoute)
+				result = repo.connector.Get(ctx, key)
+			)
+
+			if err = result.Err(); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+
+			if err = result.Scan(value); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+
+			route = value
+
+			break
+		}
+	}
+
+	return
+}
+
+// Clear - очистка всех http маршрутов.
+func (repo *Repository) Clear(ctx context.Context) (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var result = repo.connector.FlushDB(ctx)
 
 	if err = result.Err(); err != nil {
 		repo.components.Logger.Error().

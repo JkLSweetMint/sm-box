@@ -36,6 +36,20 @@
 						<Auth user="root" password="T4b4g9)53(W)l(SM"></Auth>
 					</Connector>
 				</JwtTokens>
+				<HttpRoutes>
+					<Connector db_name="authentication" host="postgres" port="5432">
+						<Auth user="postgres" password="3bxMue16ztXPR635"></Auth>
+						<Tags sslmode="disable"></Tags>
+						<MaxOpenConns>50</MaxOpenConns>
+						<MaxIdleConns>50</MaxIdleConns>
+						<ConnMaxLifetime>120000000000</ConnMaxLifetime>
+					</Connector>
+				</HttpRoutes>
+				<HttpRoutesRedis>
+					<Connector db="1" host="authentication-redis" port="6379">
+						<Auth user="root" password="T4b4g9)53(W)l(SM"></Auth>
+					</Connector>
+				</HttpRoutesRedis>
 			</Repositories>
 		</AccessSystem>
 	</Components>

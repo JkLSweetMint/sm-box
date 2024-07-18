@@ -50,5 +50,13 @@ type (
 
 			Remove(ctx context.Context, id uuid.UUID) (err error)
 		}
+		HttpRoutes interface {
+			GetAll(ctx context.Context) (list []*entities.HttpRoute, err error)
+		}
+		HttpRoutesRedis interface {
+			Register(ctx context.Context, routes ...*entities.HttpRoute) (err error)
+			Get(ctx context.Context, protocol, method, path string) (route *entities.HttpRoute, err error)
+			Clear(ctx context.Context) (err error)
+		}
 	}
 )

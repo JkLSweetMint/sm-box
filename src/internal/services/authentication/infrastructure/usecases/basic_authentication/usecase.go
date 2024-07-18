@@ -857,12 +857,12 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 }
 
 // Logout - завершение действия токена пользователя.
-func (usecase *UseCase) Logout(ctx context.Context, rawToken string) (cErr c_errors.Error) {
+func (usecase *UseCase) Logout(ctx context.Context, rawSessionToken, rawAccessToken, rawRefreshToken string) (cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
 
-		trc.FunctionCall(ctx, rawToken)
+		trc.FunctionCall(ctx, rawSessionToken, rawAccessToken, rawRefreshToken)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
