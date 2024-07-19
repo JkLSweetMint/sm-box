@@ -3,21 +3,33 @@ package grpc_basic_authentication_srv
 import (
 	"context"
 	"sm-box/internal/services/users/objects/models"
+	"sm-box/pkg/core/components/tracer"
 	pb "sm-box/transport/proto/pb/golang/users-service"
 )
 
 // BasicAuth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
 func (srv *server) Auth(ctx context.Context, request *pb.BasicAuthenticationAuthRequest) (response *pb.BasicAuthenticationAuthResponse, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelTransportGrpc)
+
+		trc.FunctionCall(ctx, request)
+		defer func() { trc.Error(err).FunctionCallFinished(response) }()
+	}
+
 	response = new(pb.BasicAuthenticationAuthResponse)
 
 	var user *models.UserInfo
 
-	if user, err = srv.controllers.BasicAuthentication.Auth(ctx, request.Username, request.Password); err != nil {
-		srv.components.Logger.Error().
-			Format("User authorization failed: '%s'. ", err).Write()
+	// Получение данных
+	{
+		if user, err = srv.controllers.BasicAuthentication.Auth(ctx, request.Username, request.Password); err != nil {
+			srv.components.Logger.Error().
+				Format("User authorization failed: '%s'. ", err).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование данных в структуры grpc

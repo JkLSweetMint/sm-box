@@ -106,48 +106,56 @@ func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list []*entiti
 
 	var ids_ = make(pq.Int64Array, 0, len(ids))
 
-	for _, id := range ids {
-		ids_ = append(ids_, int64(id))
+	// Подготовка данных
+	{
+		for _, id := range ids {
+			ids_ = append(ids_, int64(id))
+		}
 	}
 
-	if rows, err = repo.connector.QueryxContext(ctx, query, ids_); err != nil {
-		repo.components.Logger.Error().
-			Format("Error when retrieving an items from the database: '%s'. ", err).Write()
-		return
-	}
-
-	list = make([]*entities.User, 0)
-
-	for rows.Next() {
-		var model = new(db_models.User)
-
-		if err = rows.StructScan(model); err != nil {
+	// Выполнение запроса
+	{
+		if rows, err = repo.connector.QueryxContext(ctx, query, ids_); err != nil {
 			repo.components.Logger.Error().
-				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
 			return
 		}
+	}
 
-		var us = &entities.User{
-			ID: model.ID,
+	// Чтение данных
+	{
+		list = make([]*entities.User, 0)
 
-			Email:    model.Email,
-			Username: model.Username,
-		}
+		for rows.Next() {
+			var model = new(db_models.User)
 
-		// Доступы
-		{
-			type Model struct {
-				*db_models.Role
-				*db_models.RoleInheritance
+			if err = rows.StructScan(model); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
 			}
 
-			var models = make([]*Model, 0, 10)
+			var us = &entities.User{
+				ID: model.ID,
 
-			// Получение
+				Email:    model.Email,
+				Username: model.Username,
+			}
+
+			// Доступы
 			{
-				var (
-					rows  *sqlx.Rows
-					query = `
+				type Model struct {
+					*db_models.Role
+					*db_models.RoleInheritance
+				}
+
+				var models = make([]*Model, 0, 10)
+
+				// Получение
+				{
+					var (
+						rows  *sqlx.Rows
+						query = `
 				select
 					distinct id,
 					coalesce(project_id, 0) as project_id,
@@ -156,34 +164,58 @@ func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list []*entiti
 				from
 					access_system.get_user_access($1) as (id bigint, project_id bigint, name varchar, parent bigint);
 			`
-				)
+					)
 
-				if rows, err = repo.connector.QueryxContext(ctx, query, us.ID); err != nil {
-					repo.components.Logger.Error().
-						Format("Error when retrieving an items from the database: '%s'. ", err).Write()
-					return
-				}
-
-				for rows.Next() {
-					var model = new(Model)
-
-					if err = rows.StructScan(model); err != nil {
+					if rows, err = repo.connector.QueryxContext(ctx, query, us.ID); err != nil {
 						repo.components.Logger.Error().
-							Format("Error while reading item data from the database:: '%s'. ", err).Write()
+							Format("Error when retrieving an items from the database: '%s'. ", err).Write()
 						return
 					}
 
-					models = append(models, model)
+					for rows.Next() {
+						var model = new(Model)
+
+						if err = rows.StructScan(model); err != nil {
+							repo.components.Logger.Error().
+								Format("Error while reading item data from the database:: '%s'. ", err).Write()
+							return
+						}
+
+						models = append(models, model)
+					}
 				}
-			}
 
-			// Перенос в сущность
-			{
-				var writeInheritance func(parent *entities.UserAccess)
+				// Перенос в сущность
+				{
+					var writeInheritance func(parent *entities.UserAccess)
 
-				writeInheritance = func(parent *entities.UserAccess) {
+					writeInheritance = func(parent *entities.UserAccess) {
+						for _, model := range models {
+							if model.Parent == parent.ID {
+								var (
+									role = &entities.Role{
+										ID:        model.ID,
+										ProjectID: model.ProjectID,
+										Name:      model.Name,
+
+										Inheritances: make(entities.RoleInheritances, 0),
+									}
+								)
+								role.FillEmptyFields()
+
+								parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
+									Role: role,
+								})
+
+								writeInheritance(&entities.UserAccess{
+									Role: role,
+								})
+							}
+						}
+					}
+
 					for _, model := range models {
-						if model.Parent == parent.ID {
+						if model.Parent == 0 {
 							var (
 								role = &entities.Role{
 									ID:        model.ID,
@@ -192,43 +224,20 @@ func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list []*entiti
 
 									Inheritances: make(entities.RoleInheritances, 0),
 								}
+								acc = &entities.UserAccess{
+									Role: role.FillEmptyFields(),
+								}
 							)
-							role.FillEmptyFields()
 
-							parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
-								Role: role,
-							})
-
-							writeInheritance(&entities.UserAccess{
-								Role: role,
-							})
+							writeInheritance(acc)
+							us.Accesses = append(us.Accesses, acc)
 						}
 					}
 				}
-
-				for _, model := range models {
-					if model.Parent == 0 {
-						var (
-							role = &entities.Role{
-								ID:        model.ID,
-								ProjectID: model.ProjectID,
-								Name:      model.Name,
-
-								Inheritances: make(entities.RoleInheritances, 0),
-							}
-							acc = &entities.UserAccess{
-								Role: role.FillEmptyFields(),
-							}
-						)
-
-						writeInheritance(acc)
-						us.Accesses = append(us.Accesses, acc)
-					}
-				}
 			}
-		}
 
-		list = append(list, us)
+			list = append(list, us)
+		}
 	}
 
 	return
@@ -242,11 +251,6 @@ func (repo *Repository) GetOne(ctx context.Context, id types.ID) (us *entities.U
 
 		trc.FunctionCall(ctx, id)
 		defer func() { trc.Error(err).FunctionCallFinished(us) }()
-	}
-
-	// Подготовка
-	{
-		us = new(entities.User).FillEmptyFields()
 	}
 
 	// Основные данные
@@ -283,6 +287,8 @@ func (repo *Repository) GetOne(ctx context.Context, id types.ID) (us *entities.U
 
 		// Перенос в сущность
 		{
+			us = new(entities.User).FillEmptyFields()
+
 			us.ID = model.ID
 			us.Email = model.Email
 			us.Username = model.Username

@@ -1,5 +1,11 @@
 # ChangeLog:
 
+### v24.0.43:
+- Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+- Навести порядок в коде;
+
+---
+
 ### v24.0.42:
 - Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
 

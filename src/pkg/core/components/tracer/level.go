@@ -27,10 +27,16 @@ const (
 	LevelTransportInternal
 	LevelTransportEvent
 
-	LevelGateway
-	LevelGatewayDebug
-	LevelGatewayInternal
-	LevelGatewayEvent
+	LevelTransportGateway
+	LevelTransportGatewayDebug
+	LevelTransportGatewayInternal
+	LevelTransportGatewayEvent
+
+	LevelTransportGrpc
+	LevelTransportGatewayGrpc
+
+	LevelTransportHttp
+	LevelTransportGatewayHttp
 
 	LevelPackage
 	LevelPackageDebug
@@ -94,10 +100,16 @@ var (
 		"TransportInternal",
 		"TransportEvent",
 
-		"Gateway",
-		"GatewayDebug",
-		"GatewayInternal",
-		"GatewayEvent",
+		"TransportGateway",
+		"TransportGatewayDebug",
+		"TransportGatewayInternal",
+		"TransportGatewayEvent",
+
+		"TransportGrpc",
+		"TransportGatewayGrpc",
+
+		"TransportHttp",
+		"TransportGatewayHttp",
 
 		"Package",
 		"PackageDebug",
@@ -159,10 +171,16 @@ var (
 		LevelTransportInternal,
 		LevelTransportEvent,
 
-		LevelGateway,
-		LevelGatewayDebug,
-		LevelGatewayInternal,
-		LevelGatewayEvent,
+		LevelTransportGateway,
+		LevelTransportGatewayDebug,
+		LevelTransportGatewayInternal,
+		LevelTransportGatewayEvent,
+
+		LevelTransportGrpc,
+		LevelTransportGatewayGrpc,
+
+		LevelTransportHttp,
+		LevelTransportGatewayHttp,
 
 		LevelPackage,
 		LevelPackageDebug,

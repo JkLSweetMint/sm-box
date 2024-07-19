@@ -3,7 +3,6 @@ package http_access_system
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	app_models "sm-box/internal/app/objects/models"
@@ -25,6 +24,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 		route        *entities.HttpRoute
 	)
 
+	var (
+		remoteAddr = string(ctx.Request().Header.Peek("X-Real-IP"))
+		userAgent  = string(ctx.Request().Header.UserAgent())
+	)
+
 	// Работа с токенами
 	{
 		// Сессия
@@ -43,6 +47,58 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 				}
 				return
 			}
+
+			// Проверка что токен не спиздили
+			{
+				if (sessionToken != nil && sessionToken.Params != nil) && (remoteAddr != sessionToken.Params.RemoteAddr ||
+					userAgent != sessionToken.Params.UserAgent) {
+
+					if raw := ctx.Cookies(acc.conf.CookieKeyForSessionToken); raw != "" {
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForSessionToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
+
+					if raw := ctx.Cookies(acc.conf.CookieKeyForAccessToken); raw != "" {
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForAccessToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
+
+					if raw := ctx.Cookies(acc.conf.CookieKeyForRefreshToken); raw != "" {
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForRefreshToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
+				}
+			}
 		}
 
 		// Доступа
@@ -53,6 +109,59 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 				acc.components.Logger.Warn().
 					Format("Access token processing failed: '%s'. ", cErr).Write()
 			}
+
+			// Проверка что токен не спиздили
+			{
+				if (accessToken != nil && accessToken.Params != nil) && (remoteAddr != accessToken.Params.RemoteAddr ||
+					userAgent != accessToken.Params.UserAgent) {
+
+					if raw := ctx.Cookies(acc.conf.CookieKeyForSessionToken); raw != "" {
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForSessionToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
+
+					if raw := ctx.Cookies(acc.conf.CookieKeyForAccessToken); raw != "" {
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForAccessToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
+
+					if raw := ctx.Cookies(acc.conf.CookieKeyForRefreshToken); raw != "" {
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForRefreshToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
+				}
+			}
+
 		}
 
 		// Обновления (отрабатывает если нет токена доступа)
@@ -65,6 +174,58 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 					if refreshToken, cErr = acc.basicAuthenticationProcessingRefreshToken(ctx); cErr != nil {
 						acc.components.Logger.Warn().
 							Format("Refresh token processing failed: '%s'. ", cErr).Write()
+					}
+
+					// Проверка что токен не спиздили
+					{
+						if (refreshToken != nil && refreshToken.Params != nil) && (remoteAddr != refreshToken.Params.RemoteAddr ||
+							userAgent != refreshToken.Params.UserAgent) {
+
+							if raw := ctx.Cookies(acc.conf.CookieKeyForSessionToken); raw != "" {
+								ctx.Cookie(&fiber.Cookie{
+									Name:        acc.conf.CookieKeyForSessionToken,
+									Value:       "",
+									Path:        "/",
+									Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+									MaxAge:      0,
+									Expires:     time.Unix(0, 0),
+									Secure:      false,
+									HTTPOnly:    false,
+									SameSite:    fiber.CookieSameSiteNoneMode,
+									SessionOnly: false,
+								})
+							}
+
+							if raw := ctx.Cookies(acc.conf.CookieKeyForAccessToken); raw != "" {
+								ctx.Cookie(&fiber.Cookie{
+									Name:        acc.conf.CookieKeyForAccessToken,
+									Value:       "",
+									Path:        "/",
+									Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+									MaxAge:      0,
+									Expires:     time.Unix(0, 0),
+									Secure:      false,
+									HTTPOnly:    false,
+									SameSite:    fiber.CookieSameSiteNoneMode,
+									SessionOnly: false,
+								})
+							}
+
+							if raw := ctx.Cookies(acc.conf.CookieKeyForRefreshToken); raw != "" {
+								ctx.Cookie(&fiber.Cookie{
+									Name:        acc.conf.CookieKeyForRefreshToken,
+									Value:       "",
+									Path:        "/",
+									Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+									MaxAge:      0,
+									Expires:     time.Unix(0, 0),
+									Secure:      false,
+									HTTPOnly:    false,
+									SameSite:    fiber.CookieSameSiteNoneMode,
+									SessionOnly: false,
+								})
+							}
+						}
 					}
 				}
 
@@ -429,7 +590,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 			}
 		}
 
-		// Проверка доступа (при включенной авторизации
+		// Проверка доступа (при включенной авторизации)
 		{
 			if route.Authorize {
 				var allowed bool
@@ -558,7 +719,7 @@ func (acc *accessSystem) basicAuthenticationProcessingSessionToken(ctx fiber.Ctx
 					token = &entities.JwtSessionToken{
 						JwtToken: &entities.JwtToken{
 							Params: &entities.JwtTokenParams{
-								RemoteAddr: fmt.Sprintf("%s:%s", ctx.IP(), ctx.Port()),
+								RemoteAddr: string(ctx.Request().Header.Peek("X-Real-IP")),
 								UserAgent:  string(ctx.Request().Header.UserAgent()),
 							},
 						},

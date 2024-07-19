@@ -107,34 +107,43 @@ func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list entities.
 
 	var ids_ = make(pq.Int64Array, 0, len(ids))
 
-	for _, id := range ids {
-		ids_ = append(ids_, int64(id))
+	// Подготовка данных
+	{
+		for _, id := range ids {
+			ids_ = append(ids_, int64(id))
+		}
 	}
 
-	if rows, err = repo.connector.QueryxContext(ctx, query, ids_); err != nil {
-		repo.components.Logger.Error().
-			Format("Error when retrieving an items from the database: '%s'. ", err).Write()
-		return
-	}
-
-	list = make(entities.ProjectList, 0)
-
-	for rows.Next() {
-		var model = new(db_models.Project)
-
-		if err = rows.StructScan(model); err != nil {
+	// Выполнение запроса
+	{
+		if rows, err = repo.connector.QueryxContext(ctx, query, ids_); err != nil {
 			repo.components.Logger.Error().
-				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
 			return
 		}
+	}
 
-		list = append(list, &entities.Project{
-			ID: model.ID,
+	// Чтение данных
+	{
+		list = make(entities.ProjectList, 0)
 
-			Name:        model.Name,
-			Description: model.Description,
-			Version:     model.Version,
-		})
+		for rows.Next() {
+			var model = new(db_models.Project)
+
+			if err = rows.StructScan(model); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+
+			list = append(list, &entities.Project{
+				ID: model.ID,
+
+				Name:        model.Name,
+				Description: model.Description,
+				Version:     model.Version,
+			})
+		}
 	}
 
 	return

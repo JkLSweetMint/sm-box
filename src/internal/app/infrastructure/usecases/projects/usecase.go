@@ -104,7 +104,7 @@ func (usecase *UseCase) Get(ctx context.Context, ids ...types.ID) (list entities
 	}
 
 	usecase.components.Logger.Info().
-		Text("The process of obtaining information about projects has been launched.... ").
+		Text("The process of obtaining information about projects has been launched... ").
 		Field("ids", ids).Write()
 
 	// Получение данных пользователя
@@ -129,7 +129,7 @@ func (usecase *UseCase) Get(ctx context.Context, ids ...types.ID) (list entities
 	}
 
 	usecase.components.Logger.Info().
-		Text("Obtaining projectы information is completed. ").
+		Text("Obtaining projects information is completed. ").
 		Field("ids", ids).Write()
 
 	return
@@ -146,7 +146,7 @@ func (usecase *UseCase) GetOne(ctx context.Context, id types.ID) (project *entit
 	}
 
 	usecase.components.Logger.Info().
-		Text("The process of obtaining information about project has been launched.... ").
+		Text("The process of obtaining information about project has been launched... ").
 		Field("id", id).Write()
 
 	// Получение данных пользователя

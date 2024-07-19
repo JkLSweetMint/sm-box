@@ -107,17 +107,20 @@ func (controller *Controller) GetList(ctx context.Context) (list []*models.Langu
 
 	var languages []*entities.Language
 
-	if languages, cErr = controller.usecases.Languages.GetList(ctx); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if languages, cErr = controller.usecases.Languages.GetList(ctx); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
-
-	list = make([]*models.Language, 0, len(list))
 
 	// Преобразование в модели
 	{
+		list = make([]*models.Language, 0, len(list))
+
 		if languages != nil {
 			for _, lang := range languages {
 				list = append(list, lang.ToModel())
@@ -139,11 +142,14 @@ func (controller *Controller) Remove(ctx context.Context, code string) (cErr c_e
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
-	if cErr = controller.usecases.Languages.Remove(ctx, code); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if cErr = controller.usecases.Languages.Remove(ctx, code); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	return
@@ -159,11 +165,14 @@ func (controller *Controller) Update(ctx context.Context, code, name string) (cE
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
-	if cErr = controller.usecases.Languages.Update(ctx, code, name); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if cErr = controller.usecases.Languages.Update(ctx, code, name); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	return
@@ -179,11 +188,14 @@ func (controller *Controller) Create(ctx context.Context, code string, name stri
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
-	if cErr = controller.usecases.Languages.Create(ctx, code, name); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if cErr = controller.usecases.Languages.Create(ctx, code, name); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	return
@@ -199,11 +211,14 @@ func (controller *Controller) Activate(ctx context.Context, code string) (cErr c
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
-	if cErr = controller.usecases.Languages.Activate(ctx, code); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if cErr = controller.usecases.Languages.Activate(ctx, code); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	return
@@ -219,11 +234,14 @@ func (controller *Controller) Deactivate(ctx context.Context, code string) (cErr
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
-	if cErr = controller.usecases.Languages.Activate(ctx, code); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if cErr = controller.usecases.Languages.Activate(ctx, code); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	return

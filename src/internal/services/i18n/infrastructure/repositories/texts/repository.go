@@ -89,15 +89,13 @@ func (repo *Repository) AssembleDictionary(ctx context.Context, lang string, pat
 		defer func() { trc.Error(err).FunctionCallFinished(dictionary) }()
 	}
 
-	dictionary = make(entities.Dictionary, 0)
+	var (
+		rows  *sqlx.Rows
+		query = new(strings.Builder)
+	)
 
-	// Получение данных
+	// Подготовка запроса
 	{
-		var (
-			rows  *sqlx.Rows
-			query = new(strings.Builder)
-		)
-
 		for i, path := range paths {
 			if i > 0 {
 				query.WriteString("union all")
@@ -118,12 +116,20 @@ func (repo *Repository) AssembleDictionary(ctx context.Context, lang string, pat
 				
 				`, path))
 		}
+	}
 
+	// Выполнение запроса
+	{
 		if rows, err = repo.connector.QueryxContext(ctx, query.String(), lang); err != nil {
 			repo.components.Logger.Error().
 				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
 			return
 		}
+	}
+
+	// Чтение данных
+	{
+		dictionary = make(entities.Dictionary, 0)
 
 		for rows.Next() {
 			var model = new(db_models.Text)

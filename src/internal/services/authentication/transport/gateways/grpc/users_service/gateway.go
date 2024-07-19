@@ -39,7 +39,7 @@ type (
 func New(ctx context.Context) (gw *Gateway, err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelGateway)
+		var trc = tracer.New(tracer.LevelMain, tracer.LevelTransportGateway)
 
 		trc.FunctionCall(ctx)
 		defer func() { trc.Error(err).FunctionCallFinished(gw) }()
@@ -92,34 +92,41 @@ func New(ctx context.Context) (gw *Gateway, err error) {
 func (gw *Gateway) Get(ctx context.Context, ids ...types.ID) (list []*users_models.UserInfo, cErr c_errors.Error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelGateway)
+		var trc = tracer.New(tracer.LevelTransportGatewayGrpc)
 
 		trc.FunctionCall(ctx, ids)
 		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
 	}
 
-	var ids_ = make([]uint64, 0, len(ids))
-
-	for _, id := range ids {
-		ids_ = append(ids_, uint64(id))
-	}
-
 	var (
-		err      error
 		response *pb.UsersGetResponse
-		request  = &pb.UsersGetRequest{
-			IDs: ids_,
-		}
+		request  *pb.UsersGetRequest
 	)
 
-	if response, err = gw.client.Get(ctx, request); err != nil {
-		gw.components.Logger.Error().
-			Format("Failed to get the users: '%s'. ", err).
-			Field("ids", ids).Write()
+	// Подготовка запроса
+	{
+		request = new(pb.UsersGetRequest)
 
-		cErr = c_errors.ToError(c_errors.ParseGrpc(status.Convert(err)))
+		request.IDs = make([]uint64, 0, len(ids))
 
-		return
+		for _, id := range ids {
+			request.IDs = append(request.IDs, uint64(id))
+		}
+	}
+
+	// Выполнение запроса
+	{
+		var err error
+
+		if response, err = gw.client.Get(ctx, request); err != nil {
+			gw.components.Logger.Error().
+				Format("Failed to get the users: '%s'. ", err).
+				Field("ids", ids).Write()
+
+			cErr = c_errors.ToError(c_errors.ParseGrpc(status.Convert(err)))
+
+			return
+		}
 	}
 
 	// Проверки ответа
@@ -198,28 +205,32 @@ func (gw *Gateway) Get(ctx context.Context, ids ...types.ID) (list []*users_mode
 func (gw *Gateway) GetOne(ctx context.Context, id types.ID) (user *users_models.UserInfo, cErr c_errors.Error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelGateway)
+		var trc = tracer.New(tracer.LevelTransportGatewayGrpc)
 
 		trc.FunctionCall(ctx, id)
 		defer func() { trc.Error(cErr).FunctionCallFinished(user) }()
 	}
 
 	var (
-		err      error
 		response *pb.UsersGetOneResponse
 		request  = &pb.UsersGetOneRequest{
 			ID: uint64(id),
 		}
 	)
 
-	if response, err = gw.client.GetOne(ctx, request); err != nil {
-		gw.components.Logger.Error().
-			Format("Failed to get the project: '%s'. ", err).
-			Field("id", id).Write()
+	// Выполнение запроса
+	{
+		var err error
 
-		cErr = c_errors.ToError(c_errors.ParseGrpc(status.Convert(err)))
+		if response, err = gw.client.GetOne(ctx, request); err != nil {
+			gw.components.Logger.Error().
+				Format("Failed to get the project: '%s'. ", err).
+				Field("id", id).Write()
 
-		return
+			cErr = c_errors.ToError(c_errors.ParseGrpc(status.Convert(err)))
+
+			return
+		}
 	}
 
 	// Проверки ответа

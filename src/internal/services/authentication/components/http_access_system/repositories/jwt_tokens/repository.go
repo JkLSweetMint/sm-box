@@ -115,16 +115,19 @@ func (repo *Repository) GetJwtRefreshToken(ctx context.Context, id uuid.UUID) (t
 		result = repo.connector.Get(ctx, key)
 	)
 
-	if err = result.Err(); err != nil {
-		repo.components.Logger.Error().
-			Format("Error while reading item data from the database:: '%s'. ", err).Write()
-		return
-	}
+	// Выполнение запроса
+	{
+		if err = result.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
 
-	if err = result.Scan(value); err != nil {
-		repo.components.Logger.Error().
-			Format("Error while reading item data from the database:: '%s'. ", err).Write()
-		return
+		if err = result.Scan(value); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	// Преобразование в сущность
@@ -196,16 +199,19 @@ func (repo *Repository) GetJwtAccessToken(ctx context.Context, id uuid.UUID) (to
 		result = repo.connector.Get(ctx, key)
 	)
 
-	if err = result.Err(); err != nil {
-		repo.components.Logger.Error().
-			Format("Error while reading item data from the database:: '%s'. ", err).Write()
-		return
-	}
+	// Выполнение запроса
+	{
+		if err = result.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
 
-	if err = result.Scan(value); err != nil {
-		repo.components.Logger.Error().
-			Format("Error while reading item data from the database:: '%s'. ", err).Write()
-		return
+		if err = result.Scan(value); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	// Преобразование в сущность

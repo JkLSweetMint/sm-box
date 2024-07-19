@@ -8,7 +8,6 @@ import (
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/databases/connectors/redis"
-	"time"
 )
 
 const (
@@ -80,28 +79,36 @@ func (repo *Repository) Register(ctx context.Context, routes ...*entities.HttpRo
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	var expiration = 24 * time.Hour
+	var args []any
 
-	for _, route := range routes {
-		var (
-			key   string
-			value any = route
-		)
+	// Подготовка аргументов
+	{
+		for _, route := range routes {
+			var (
+				key   string
+				value any = route
+			)
 
-		for _, protocol := range route.Protocols {
-			if route.Path != "" {
-				key = fmt.Sprintf("http_route:%s:%s:%s", protocol, route.Method, route.Path)
-			} else if route.RegexpPath != "" {
-				key = fmt.Sprintf("http_route:%s:%s:%s", protocol, route.Method, route.RegexpPath)
+			for _, protocol := range route.Protocols {
+				if route.Path != "" {
+					key = fmt.Sprintf("http_route:%s:%s:%s", protocol, route.Method, route.Path)
+				} else if route.RegexpPath != "" {
+					key = fmt.Sprintf("http_route:%s:%s:%s", protocol, route.Method, route.RegexpPath)
+				}
+
+				args = append(args, key, value)
 			}
+		}
+	}
 
-			var result = repo.connector.Set(ctx, key, value, expiration)
+	// Выполнение запроса
+	{
+		var result = repo.connector.MSet(ctx, args...)
 
-			if err = result.Err(); err != nil {
-				repo.components.Logger.Error().
-					Format("Error inserting an item from the database: '%s'. ", err).Write()
-				return
-			}
+		if err = result.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error inserting an item from the database: '%s'. ", err).Write()
+			return
 		}
 	}
 
@@ -122,40 +129,48 @@ func (repo *Repository) Get(ctx context.Context, protocol, method, path string) 
 		prefix  = fmt.Sprintf("http_route:%s:%s:", protocol, method)
 		pattern = fmt.Sprintf("%s*", prefix)
 		key     = fmt.Sprintf("%s%s", prefix, path)
-		result  = repo.connector.Keys(ctx, pattern)
+		keys    []string
 	)
 
-	if err = result.Err(); err != nil {
-		repo.components.Logger.Error().
-			Format("Error while reading item data from the database:: '%s'. ", err).Write()
-		return
+	// Получение возможных ключей
+	{
+		var result = repo.connector.Keys(ctx, pattern)
+
+		if err = result.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
+
+		keys = result.Val()
 	}
 
-	var keys = result.Val()
+	// Нахождение нужного ключа и получение элемента
+	{
+		for _, k := range keys {
+			if ok, _ := regexp.MatchString(fmt.Sprintf("^%s$", k), key); ok {
+				var (
+					key    = k
+					value  = new(entities.HttpRoute)
+					result = repo.connector.Get(ctx, key)
+				)
 
-	for _, k := range keys {
-		if ok, _ := regexp.MatchString(fmt.Sprintf("^%s$", k), key); ok {
-			var (
-				key    = k
-				value  = new(entities.HttpRoute)
-				result = repo.connector.Get(ctx, key)
-			)
+				if err = result.Err(); err != nil {
+					repo.components.Logger.Error().
+						Format("Error while reading item data from the database:: '%s'. ", err).Write()
+					return
+				}
 
-			if err = result.Err(); err != nil {
-				repo.components.Logger.Error().
-					Format("Error while reading item data from the database:: '%s'. ", err).Write()
-				return
+				if err = result.Scan(value); err != nil {
+					repo.components.Logger.Error().
+						Format("Error while reading item data from the database:: '%s'. ", err).Write()
+					return
+				}
+
+				route = value
+
+				break
 			}
-
-			if err = result.Scan(value); err != nil {
-				repo.components.Logger.Error().
-					Format("Error while reading item data from the database:: '%s'. ", err).Write()
-				return
-			}
-
-			route = value
-
-			break
 		}
 	}
 
@@ -172,12 +187,15 @@ func (repo *Repository) Clear(ctx context.Context) (err error) {
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	var result = repo.connector.FlushDB(ctx)
+	// Выполнение запроса
+	{
+		var result = repo.connector.FlushDB(ctx)
 
-	if err = result.Err(); err != nil {
-		repo.components.Logger.Error().
-			Format("Error while reading item data from the database:: '%s'. ", err).Write()
-		return
+		if err = result.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	return

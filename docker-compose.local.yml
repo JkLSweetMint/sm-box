@@ -72,9 +72,9 @@ services:
       - ./var/test:/home/app/var/test
 
   authentication-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.authentication-service
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.authentication-service
     image: box/authentication-service:latest
     container_name: authentication-service
     restart: unless-stopped
@@ -144,9 +144,9 @@ services:
       - ./var/test:/home/app/var/test
 
   dashboard:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.dashboard
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
     image: box/dashboard:latest
     container_name: dashboard
     restart: unless-stopped

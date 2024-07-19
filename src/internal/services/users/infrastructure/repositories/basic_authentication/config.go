@@ -11,6 +11,37 @@ type Config struct {
 	Connector *postgresql.Config `json:"connector" yaml:"Connector" xml:"Connector"`
 }
 
+// Read - чтение конфигурации.
+func (conf *Config) Read() (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelConfig)
+
+		trc.FunctionCall()
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var (
+		c       configurator.Configurator[*Config]
+		profile = configurator.PrivateProfile{
+			Dir:      "/infrastructure/repositories/",
+			Filename: "authentication.xml",
+		}
+	)
+
+	if c, err = configurator.New[*Config](conf); err != nil {
+		return
+	} else if err = c.Private().Profile(profile).Init(); err != nil {
+		return
+	}
+
+	if err = conf.FillEmptyFields().Validate(); err != nil {
+		return
+	}
+
+	return
+}
+
 // FillEmptyFields - заполнение пустых полей конфигурации
 func (conf *Config) FillEmptyFields() *Config {
 	// tracer
@@ -64,37 +95,6 @@ func (conf *Config) Validate() (err error) {
 	}
 
 	if err = conf.Connector.Validate(); err != nil {
-		return
-	}
-
-	return
-}
-
-// Read - чтение конфигурации.
-func (conf *Config) Read() (err error) {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelConfig)
-
-		trc.FunctionCall()
-		defer func() { trc.Error(err).FunctionCallFinished() }()
-	}
-
-	var (
-		c       configurator.Configurator[*Config]
-		profile = configurator.PrivateProfile{
-			Dir:      "/infrastructure/repositories/",
-			Filename: "authentication.xml",
-		}
-	)
-
-	if c, err = configurator.New[*Config](conf); err != nil {
-		return
-	} else if err = c.Private().Profile(profile).Init(); err != nil {
-		return
-	}
-
-	if err = conf.FillEmptyFields().Validate(); err != nil {
 		return
 	}
 

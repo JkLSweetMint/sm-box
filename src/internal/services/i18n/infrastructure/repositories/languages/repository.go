@@ -100,28 +100,34 @@ func (repo *Repository) GetList(ctx context.Context) (list []*entities.Language,
 			`
 	)
 
-	if rows, err = repo.connector.QueryxContext(ctx, query); err != nil {
-		repo.components.Logger.Error().
-			Format("Error when retrieving an items from the database: '%s'. ", err).Write()
-		return
-	}
-
-	list = make([]*entities.Language, 0)
-
-	for rows.Next() {
-		var model = new(db_models.Language)
-
-		if err = rows.StructScan(model); err != nil {
+	// Выполнение запроса
+	{
+		if rows, err = repo.connector.QueryxContext(ctx, query); err != nil {
 			repo.components.Logger.Error().
-				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
 			return
 		}
+	}
 
-		list = append(list, &entities.Language{
-			Code:   model.Code,
-			Name:   model.Name,
-			Active: model.Active,
-		})
+	// Чтение данных
+	{
+		list = make([]*entities.Language, 0)
+
+		for rows.Next() {
+			var model = new(db_models.Language)
+
+			if err = rows.StructScan(model); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+
+			list = append(list, &entities.Language{
+				Code:   model.Code,
+				Name:   model.Name,
+				Active: model.Active,
+			})
+		}
 	}
 
 	return

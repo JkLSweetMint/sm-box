@@ -79,13 +79,9 @@ func (repo *Repository) GetAll(ctx context.Context) (list []*entities.HttpRoute,
 		defer func() { trc.Error(err).FunctionCallFinished(list) }()
 	}
 
-	list = make([]*entities.HttpRoute, 0)
-
-	// Получение данных
-	{
-		var (
-			rows  *sqlx.Rows
-			query = `
+	var (
+		rows  *sqlx.Rows
+		query = `
 				select
 					routes.id,
 					routes.system_name,
@@ -100,13 +96,20 @@ func (repo *Repository) GetAll(ctx context.Context) (list []*entities.HttpRoute,
 				from
 					transports.http_routes as routes
 			`
-		)
+	)
 
+	// Выполнение запроса
+	{
 		if rows, err = repo.connector.QueryxContext(ctx, query); err != nil {
 			repo.components.Logger.Error().
 				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
 			return
 		}
+	}
+
+	// Чтение данных
+	{
+		list = make([]*entities.HttpRoute, 0)
 
 		for rows.Next() {
 			var model = new(db_models.HttpRoute)

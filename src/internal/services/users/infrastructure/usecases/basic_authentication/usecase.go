@@ -108,7 +108,7 @@ func (usecase *UseCase) Auth(ctx context.Context, username, password string) (us
 	}
 
 	usecase.components.Logger.Info().
-		Text("The process of obtaining user information has been started using the basic authorization mechanism.... ").
+		Text("The process of obtaining user information has been started using the basic authorization mechanism... ").
 		Field("username", username).
 		Field("password", password).Write()
 

@@ -4,20 +4,32 @@ import (
 	"context"
 	"sm-box/internal/common/types"
 	"sm-box/internal/services/users/objects/models"
+	"sm-box/pkg/core/components/tracer"
 	pb "sm-box/transport/proto/pb/golang/users-service"
 )
 
 // GetOne - получение пользователя по ID.
 func (srv *server) GetOne(ctx context.Context, request *pb.UsersGetOneRequest) (response *pb.UsersGetOneResponse, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelTransportGrpc)
+
+		trc.FunctionCall(ctx, request)
+		defer func() { trc.Error(err).FunctionCallFinished(response) }()
+	}
+
 	response = new(pb.UsersGetOneResponse)
 
 	var user *models.UserInfo
 
-	if user, err = srv.controllers.Users.GetOne(ctx, types.ID(request.ID)); err != nil {
-		srv.components.Logger.Error().
-			Format("User data could not be retrieved: '%s'. ", err).Write()
+	// Получение данных
+	{
+		if user, err = srv.controllers.Users.GetOne(ctx, types.ID(request.ID)); err != nil {
+			srv.components.Logger.Error().
+				Format("User data could not be retrieved: '%s'. ", err).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование данных в структуры grpc
@@ -73,27 +85,37 @@ func (srv *server) GetOne(ctx context.Context, request *pb.UsersGetOneRequest) (
 
 // Get - получение пользователей по ID.
 func (srv *server) Get(ctx context.Context, request *pb.UsersGetRequest) (response *pb.UsersGetResponse, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelTransportGrpc)
+
+		trc.FunctionCall(ctx, request)
+		defer func() { trc.Error(err).FunctionCallFinished(response) }()
+	}
+
 	response = &pb.UsersGetResponse{
 		List: make([]*pb.User, 0),
 	}
 
-	var (
-		users []*models.UserInfo
-		ids   = make([]types.ID, 0, len(request.IDs))
-	)
+	var users []*models.UserInfo
 
-	// Сбор id
+	// Получение данных
 	{
-		for _, id := range request.IDs {
-			ids = append(ids, types.ID(id))
+		var ids = make([]types.ID, 0, len(request.IDs))
+
+		// Сбор id
+		{
+			for _, id := range request.IDs {
+				ids = append(ids, types.ID(id))
+			}
 		}
-	}
 
-	if users, err = srv.controllers.Users.Get(ctx, ids...); err != nil {
-		srv.components.Logger.Error().
-			Format("Users data could not be retrieved: '%s'. ", err).Write()
+		if users, err = srv.controllers.Users.Get(ctx, ids...); err != nil {
+			srv.components.Logger.Error().
+				Format("Users data could not be retrieved: '%s'. ", err).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование данных в структуры grpc

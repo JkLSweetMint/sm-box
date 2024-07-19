@@ -102,11 +102,14 @@ func (controller *Controller) Auth(ctx context.Context, username, password strin
 
 	var us *entities.User
 
-	if us, cErr = controller.usecases.BasicAuthentication.Auth(ctx, username, password); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if us, cErr = controller.usecases.BasicAuthentication.Auth(ctx, username, password); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование в модели

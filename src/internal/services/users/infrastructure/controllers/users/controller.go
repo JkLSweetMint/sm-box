@@ -103,11 +103,14 @@ func (controller *Controller) Get(ctx context.Context, ids ...types.ID) (list []
 
 	var users []*entities.User
 
-	if users, cErr = controller.usecases.Users.Get(ctx, ids...); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if users, cErr = controller.usecases.Users.Get(ctx, ids...); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование в модели
@@ -136,11 +139,14 @@ func (controller *Controller) GetOne(ctx context.Context, id types.ID) (user *mo
 
 	var us *entities.User
 
-	if us, cErr = controller.usecases.Users.GetOne(ctx, id); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if us, cErr = controller.usecases.Users.GetOne(ctx, id); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование в модель

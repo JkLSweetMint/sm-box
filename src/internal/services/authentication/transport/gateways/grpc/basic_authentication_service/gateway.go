@@ -39,7 +39,7 @@ type (
 func New(ctx context.Context) (gw *Gateway, err error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelGateway)
+		var trc = tracer.New(tracer.LevelMain, tracer.LevelTransportGateway)
 
 		trc.FunctionCall(ctx)
 		defer func() { trc.Error(err).FunctionCallFinished(gw) }()
@@ -93,14 +93,13 @@ func New(ctx context.Context) (gw *Gateway, err error) {
 func (gw *Gateway) Auth(ctx context.Context, username, password string) (user *users_models.UserInfo, cErr c_errors.Error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelGateway)
+		var trc = tracer.New(tracer.LevelTransportGatewayGrpc)
 
 		trc.FunctionCall(ctx, username, password)
 		defer func() { trc.Error(cErr).FunctionCallFinished(user) }()
 	}
 
 	var (
-		err      error
 		response *pb.BasicAuthenticationAuthResponse
 		request  = &pb.BasicAuthenticationAuthRequest{
 			Username: username,
@@ -108,13 +107,18 @@ func (gw *Gateway) Auth(ctx context.Context, username, password string) (user *u
 		}
 	)
 
-	if response, err = gw.client.Auth(ctx, request); err != nil {
-		gw.components.Logger.Error().
-			Format("Authorization failed on the remote service: '%s'. ", err).Write()
+	// Выполнение запроса
+	{
+		var err error
 
-		cErr = c_errors.ToError(c_errors.ParseGrpc(status.Convert(err)))
+		if response, err = gw.client.Auth(ctx, request); err != nil {
+			gw.components.Logger.Error().
+				Format("Authorization failed on the remote service: '%s'. ", err).Write()
 
-		return
+			cErr = c_errors.ToError(c_errors.ParseGrpc(status.Convert(err)))
+
+			return
+		}
 	}
 
 	// Проверки ответа

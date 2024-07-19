@@ -104,7 +104,7 @@ func (usecase *UseCase) Get(ctx context.Context, ids ...types.ID) (list []*entit
 	}
 
 	usecase.components.Logger.Info().
-		Text("The process of obtaining users information has been started.... ").
+		Text("The process of obtaining users information has been started... ").
 		Field("ids", ids).Write()
 
 	// Получение данных пользователя
@@ -146,7 +146,7 @@ func (usecase *UseCase) GetOne(ctx context.Context, id types.ID) (us *entities.U
 	}
 
 	usecase.components.Logger.Info().
-		Text("The process of obtaining user information has been started .... ").
+		Text("The process of obtaining user information has been started ... ").
 		Field("id", id).Write()
 
 	// Получение данных пользователя

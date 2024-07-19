@@ -101,11 +101,14 @@ func (controller *Controller) AssembleDictionary(ctx context.Context, lang strin
 
 	var dict entities.Dictionary
 
-	if dict, cErr = controller.usecases.Texts.AssembleDictionary(ctx, lang, paths); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if dict, cErr = controller.usecases.Texts.AssembleDictionary(ctx, lang, paths); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование в модели

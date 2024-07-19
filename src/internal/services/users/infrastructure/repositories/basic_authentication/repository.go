@@ -77,7 +77,7 @@ func New(ctx context.Context) (repo *Repository, err error) {
 	return
 }
 
-// GetByUsername - username пользователя по имени.
+// GetByUsername - получение пользователя по имени.
 func (repo *Repository) GetByUsername(ctx context.Context, username string) (us *entities.User, err error) {
 	// tracer
 	{
@@ -85,11 +85,6 @@ func (repo *Repository) GetByUsername(ctx context.Context, username string) (us 
 
 		trc.FunctionCall(ctx, username)
 		defer func() { trc.Error(err).FunctionCallFinished(us) }()
-	}
-
-	// Подготовка
-	{
-		us = new(entities.User).FillEmptyFields()
 	}
 
 	// Основные данные
@@ -127,6 +122,8 @@ func (repo *Repository) GetByUsername(ctx context.Context, username string) (us 
 
 		// Перенос в сущность
 		{
+			us = new(entities.User).FillEmptyFields()
+
 			us.ID = model.ID
 			us.Email = model.Email
 			us.Username = model.Username

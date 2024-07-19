@@ -103,11 +103,14 @@ func (controller *Controller) Get(ctx context.Context, ids ...types.ID) (list mo
 
 	var projects []*entities.Project
 
-	if projects, cErr = controller.usecases.Projects.Get(ctx, ids...); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнений инструкций
+	{
+		if projects, cErr = controller.usecases.Projects.Get(ctx, ids...); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование в модели
@@ -136,11 +139,14 @@ func (controller *Controller) GetOne(ctx context.Context, id types.ID) (project 
 
 	var proj *entities.Project
 
-	if proj, cErr = controller.usecases.Projects.GetOne(ctx, id); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнений инструкций
+	{
+		if proj, cErr = controller.usecases.Projects.GetOne(ctx, id); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование в модель

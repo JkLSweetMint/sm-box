@@ -113,11 +113,14 @@ func (controller *Controller) Auth(ctx context.Context, rawSessionToken, usernam
 
 	var sessionTok *entities.JwtSessionToken
 
-	if sessionTok, cErr = controller.usecases.BasicAuthentication.Auth(ctx, rawSessionToken, username, password); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if sessionTok, cErr = controller.usecases.BasicAuthentication.Auth(ctx, rawSessionToken, username, password); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование в модели
@@ -143,11 +146,14 @@ func (controller *Controller) GetUserProjectList(ctx context.Context, rawSession
 
 	var projects app_entities.ProjectList
 
-	if projects, cErr = controller.usecases.BasicAuthentication.GetUserProjectList(ctx, rawSessionToken); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if projects, cErr = controller.usecases.BasicAuthentication.GetUserProjectList(ctx, rawSessionToken); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование в модели
@@ -181,11 +187,14 @@ func (controller *Controller) SetTokenProject(ctx context.Context, rawSessionTok
 		refreshTok *entities.JwtRefreshToken
 	)
 
-	if sessionTok, accessTok, refreshTok, cErr = controller.usecases.BasicAuthentication.SetTokenProject(ctx, rawSessionToken, projectID); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if sessionTok, accessTok, refreshTok, cErr = controller.usecases.BasicAuthentication.SetTokenProject(ctx, rawSessionToken, projectID); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
 	}
 
 	// Преобразование в модели
@@ -216,11 +225,15 @@ func (controller *Controller) Logout(ctx context.Context, rawSessionToken, rawAc
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
-	if cErr = controller.usecases.BasicAuthentication.Logout(ctx, rawSessionToken, rawAccessToken, rawRefreshToken); cErr != nil {
-		controller.components.Logger.Error().
-			Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+	// Выполнения инструкций
+	{
+		if cErr = controller.usecases.BasicAuthentication.Logout(ctx, rawSessionToken, rawAccessToken, rawRefreshToken); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
-		return
+			return
+		}
+
 	}
 
 	return

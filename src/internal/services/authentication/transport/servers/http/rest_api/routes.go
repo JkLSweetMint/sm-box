@@ -474,9 +474,9 @@ func (srv *server) registerRoutes() error {
 				// Обработка
 				{
 					var (
-						rawSessionToken string
-						cErr            c_errors.RestAPI
-						sessionToken    *models.JwtTokenInfo
+						rawSessionToken                         string
+						cErr                                    c_errors.RestAPI
+						sessionToken, accessToken, refreshToken *models.JwtTokenInfo
 					)
 
 					// Получение токена сессии
@@ -484,14 +484,51 @@ func (srv *server) registerRoutes() error {
 						rawSessionToken = ctx.Cookies(srv.conf.Components.AccessSystem.CookieKeyForSessionToken)
 					}
 
-					if sessionToken, cErr = srv.controllers.BasicAuthentication.Auth(ctx.Context(),
-						rawSessionToken,
-						request.Username,
-						request.Password); cErr != nil {
-						srv.components.Logger.Error().
-							Format("User authorization failed: '%s'. ", cErr).Write()
+					// Авторизация
+					{
+						if sessionToken, cErr = srv.controllers.BasicAuthentication.Auth(ctx.Context(),
+							rawSessionToken,
+							request.Username,
+							request.Password); cErr != nil {
+							srv.components.Logger.Error().
+								Format("User authorization failed: '%s'. ", cErr).Write()
 
-						return http_rest_api_io.WriteError(ctx, cErr)
+							return http_rest_api_io.WriteError(ctx, cErr)
+						}
+					}
+
+					// Установка проекта если он у пользователя один
+					{
+						var projects app_models.ProjectList
+
+						if projects, cErr = srv.controllers.BasicAuthentication.GetUserProjectList(ctx.Context(), sessionToken.Raw); cErr != nil {
+							srv.components.Logger.Error().
+								Format("The list of user's projects could not be retrieved: '%s'. ", cErr).Write()
+
+							cErr = nil
+						}
+
+						if len(projects) == 1 {
+							var project = projects[0]
+
+							if project != nil {
+								var newSessionToken *models.JwtTokenInfo
+
+								if newSessionToken, accessToken, refreshToken, cErr = srv.controllers.BasicAuthentication.SetTokenProject(ctx.Context(), sessionToken.Raw, project.ID); cErr != nil {
+									srv.components.Logger.Error().
+										Format("The project value for the user token could not be set: '%s'. ", cErr).Write()
+
+									cErr = nil
+								} else {
+									sessionToken = newSessionToken
+									ctx.Response().Header.Set("X-Authorization-State", "done")
+
+									srv.components.Logger.Info().
+										Format("The user was automatically logged into the project. ").
+										Field("project", project).Write()
+								}
+							}
+						}
 					}
 
 					// Запись печенек
@@ -505,6 +542,40 @@ func (srv *server) registerRoutes() error {
 								MaxAge:      0,
 								Expires:     sessionToken.ExpiresAt,
 								Secure:      false,
+								HTTPOnly:    true,
+								SameSite:    fiber.CookieSameSiteLaxMode,
+								SessionOnly: false,
+							}
+
+							ctx.Cookie(cookie)
+						}
+
+						if accessToken != nil {
+							var cookie = &fiber.Cookie{
+								Name:        srv.conf.Components.AccessSystem.CookieKeyForAccessToken,
+								Value:       accessToken.Raw,
+								Path:        "/",
+								Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+								MaxAge:      0,
+								Expires:     accessToken.ExpiresAt,
+								Secure:      true,
+								HTTPOnly:    true,
+								SameSite:    fiber.CookieSameSiteLaxMode,
+								SessionOnly: false,
+							}
+
+							ctx.Cookie(cookie)
+						}
+
+						if refreshToken != nil {
+							var cookie = &fiber.Cookie{
+								Name:        srv.conf.Components.AccessSystem.CookieKeyForRefreshToken,
+								Value:       refreshToken.Raw,
+								Path:        "/",
+								Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+								MaxAge:      0,
+								Expires:     refreshToken.ExpiresAt,
+								Secure:      true,
 								HTTPOnly:    true,
 								SameSite:    fiber.CookieSameSiteLaxMode,
 								SessionOnly: false,
@@ -708,7 +779,7 @@ func (srv *server) registerRoutes() error {
 			var route = srv.app.GetRoute(id)
 
 			srv.postman.AddItem(&postman.Items{
-				Name: "Запрос для завершения работы пользователя. ",
+				Name: "Запрос для завершения сессии пользователя. ",
 				Request: &postman.Request{
 					URL: &postman.URL{
 						Protocol: srv.conf.Postman.Protocol,
@@ -727,7 +798,39 @@ func (srv *server) registerRoutes() error {
 						},
 					},
 				},
-				Responses: []*postman.Response{},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+					{
+						Name:   "Пример успешного ответа. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success"
+}
+`,
+					},
+				},
 			})
 		}
 	}

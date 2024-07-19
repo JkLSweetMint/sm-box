@@ -2,12 +2,15 @@ package http_rest_api
 
 import (
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 	error_list "sm-box/internal/common/errors"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/i18n/objects/models"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
+	"sm-box/pkg/http/postman"
 	"sm-box/pkg/http/rest_api/io"
+	"strings"
 )
 
 // registerRoutes - регистрация маршрутов сервера.
@@ -31,6 +34,8 @@ func (srv *server) registerRoutes() error {
 
 		// GET /list
 		{
+			var id = uuid.New().String()
+
 			router.Get("/list", func(ctx fiber.Ctx) (err error) {
 				type Response struct {
 					List []*models.Language `json:"list" xml:"List"`
@@ -62,11 +67,107 @@ func (srv *server) registerRoutes() error {
 					}
 					return
 				}
+			}).Name(id)
+
+			var route = srv.app.GetRoute(id)
+
+			srv.postman.AddItem(&postman.Items{
+				Name: "Получение списка языков локализации. ",
+				Description: `
+Используется для получение языков локализации.
+`,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: srv.conf.Postman.Protocol,
+						Host:     strings.Split(srv.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: ``,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw:  ``,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+					{
+						Name:   "Успешный ответ. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "list": [
+            {
+                "code": "en-US",
+                "name": "English",
+                "active": true
+            },
+            {
+                "code": "ru-RU",
+                "name": "Русский",
+                "active": true
+            },
+            {
+                "code": "zh-CN",
+                "name": "中文",
+                "active": true
+            }
+        ]
+    }
+}
+`,
+					},
+					{
+						Name:   "Языки локализации не найдены. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "list": []
+    }
+}
+`,
+					},
+				},
 			})
 		}
 
 		// DELETE /
 		{
+			var id = uuid.New().String()
+
 			router.Delete("/", func(ctx fiber.Ctx) (err error) {
 				type Request struct {
 					Code string `json:"code"`
@@ -120,11 +221,61 @@ func (srv *server) registerRoutes() error {
 					}
 					return
 				}
+			}).Name(id)
+
+			var route = srv.app.GetRoute(id)
+
+			srv.postman.AddItem(&postman.Items{
+				Name: "Удаление языка локализации. ",
+				Description: `
+Используется для удаления языка локализации.
+`,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: srv.conf.Postman.Protocol,
+						Host:     strings.Split(srv.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: ``,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw:  ``,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
 			})
 		}
 
 		// PUT /
 		{
+			var id = uuid.New().String()
+
 			router.Put("/", func(ctx fiber.Ctx) (err error) {
 				type Request struct {
 					Code string `json:"code"`
@@ -179,11 +330,61 @@ func (srv *server) registerRoutes() error {
 					}
 					return
 				}
+			}).Name(id)
+
+			var route = srv.app.GetRoute(id)
+
+			srv.postman.AddItem(&postman.Items{
+				Name: "Обновления данных язык локализации. ",
+				Description: `
+Используется для обновления данных языка локализации.
+`,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: srv.conf.Postman.Protocol,
+						Host:     strings.Split(srv.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: ``,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw:  ``,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
 			})
 		}
 
 		// POST /
 		{
+			var id = uuid.New().String()
+
 			router.Put("/", func(ctx fiber.Ctx) (err error) {
 				type Request struct {
 					Code string `json:"code"`
@@ -238,11 +439,61 @@ func (srv *server) registerRoutes() error {
 					}
 					return
 				}
+			}).Name(id)
+
+			var route = srv.app.GetRoute(id)
+
+			srv.postman.AddItem(&postman.Items{
+				Name: "Создание языка локализации. ",
+				Description: `
+Используется для создания языка локализации.
+`,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: srv.conf.Postman.Protocol,
+						Host:     strings.Split(srv.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: ``,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw:  ``,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
 			})
 		}
 
 		// POST /activate
 		{
+			var id = uuid.New().String()
+
 			router.Post("/activate", func(ctx fiber.Ctx) (err error) {
 				type Request struct {
 					Code string `json:"code"`
@@ -296,11 +547,61 @@ func (srv *server) registerRoutes() error {
 					}
 					return
 				}
+			}).Name(id)
+
+			var route = srv.app.GetRoute(id)
+
+			srv.postman.AddItem(&postman.Items{
+				Name: "Активация языка локализации. ",
+				Description: `
+Используется для активации языка локализации.
+`,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: srv.conf.Postman.Protocol,
+						Host:     strings.Split(srv.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: ``,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw:  ``,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
 			})
 		}
 
 		// POST /deactivate
 		{
+			var id = uuid.New().String()
+
 			router.Post("/deactivate", func(ctx fiber.Ctx) (err error) {
 				type Request struct {
 					Code string `json:"code"`
@@ -354,11 +655,61 @@ func (srv *server) registerRoutes() error {
 					}
 					return
 				}
+			}).Name(id)
+
+			var route = srv.app.GetRoute(id)
+
+			srv.postman.AddItem(&postman.Items{
+				Name: "Деактивация языка локализации. ",
+				Description: `
+Используется для деактивации языка локализации.
+`,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: srv.conf.Postman.Protocol,
+						Host:     strings.Split(srv.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: ``,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw:  ``,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
 			})
 		}
 
 		// POST /set
 		{
+			var id = uuid.New().String()
+
 			router.Post("/set", func(ctx fiber.Ctx) (err error) {
 				type Request struct {
 					Code string `json:"code"`
@@ -405,6 +756,54 @@ func (srv *server) registerRoutes() error {
 					}
 					return
 				}
+			}).Name(id)
+
+			var route = srv.app.GetRoute(id)
+
+			srv.postman.AddItem(&postman.Items{
+				Name: "Установить язык локализации пользователю. ",
+				Description: `
+Используется для установка языка локализации пользователю по токену.
+`,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: srv.conf.Postman.Protocol,
+						Host:     strings.Split(srv.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: ``,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw:  ``,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+				},
 			})
 		}
 	}
@@ -415,6 +814,8 @@ func (srv *server) registerRoutes() error {
 
 		// GET /dictionary
 		{
+			var id = uuid.New().String()
+
 			router.Get("/dictionary", func(ctx fiber.Ctx) (err error) {
 				type Response struct {
 					Dictionary models.Dictionary `json:"dictionary" xml:"Dictionary"`
@@ -495,6 +896,135 @@ func (srv *server) registerRoutes() error {
 					}
 					return
 				}
+			}).Name(id)
+
+			var route = srv.app.GetRoute(id)
+
+			srv.postman.AddItem(&postman.Items{
+				Name: "Получение текстов локализации на секции. ",
+				Description: `
+Используется для получение текстов локализации на секции, передается путь к секции родителя,
+запрос возвращает текста в том числе с дочерних секций.
+`,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: srv.conf.Postman.Protocol,
+						Host:     strings.Split(srv.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: ``,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw:  ``,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+					{
+						Name:   "Успешный ответ. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "dictionary": {
+            "auth": {
+                "form": {
+                    "buttons": {
+                        "log_in": {
+                            "text": "Войти"
+                        }
+                    },
+                    "description": "Пожалуйста, укажите свои учетные данные для авторизации, чтобы продолжить. ",
+                    "errors": {
+                        "field_is_required": "Это поле обязательное. ",
+                        "invalid_value": "Недопустимое значение. "
+                    },
+                    "inputs": {
+                        "password": {
+                            "name": "Пароль"
+                        },
+                        "username": {
+                            "name": "Имя пользователя"
+                        }
+                    },
+                    "title": "Добро пожаловать в SM-Box"
+                }
+            },
+            "toasts": {
+                "error": {
+                    "title": "Произошла ошибка"
+                }
+            }
+        }
+    }
+}
+`,
+					},
+					{
+						Name:   "Ошибка, не переданы пути текстов локализации. ",
+						Status: string(fiber.StatusBadRequest),
+						Code:   fiber.StatusBadRequest,
+						Body: `
+{
+    "code": 400,
+    "code_message": "Bad Request",
+    "status": "failed",
+    "error": {
+        "id": "E-000010",
+        "type": "system",
+        "status": "error",
+        "message": "Invalid value of text localization paths. ",
+        "details": {
+            "paths": "Invalid value. "
+        }
+    }
+}
+`,
+					},
+					{
+						Name:   "Текста локализации не найдены. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "dictionary": {}
+    }
+}
+`,
+					},
+				},
 			})
 		}
 	}
