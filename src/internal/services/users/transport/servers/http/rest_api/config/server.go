@@ -245,7 +245,7 @@ func (conf *Server) Default() *Server {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.ServerHeader = "I18n service"
+	conf.ServerHeader = "Users service"
 	conf.StrictRouting = true
 	conf.CaseSensitive = false
 	conf.Immutable = false
@@ -264,7 +264,7 @@ func (conf *Server) Default() *Server {
 	conf.DisableDefaultDate = false
 	conf.DisableDefaultContentType = false
 	conf.DisableHeaderNormalizing = false
-	conf.AppName = "I18n service"
+	conf.AppName = "Users service"
 	conf.DisablePreParseMultipartForm = false
 	conf.StreamRequestBody = false
 	conf.ReduceMemoryUsage = false

@@ -30,7 +30,10 @@ func (srv *server) registerRoutes() error {
 
 	// /languages
 	{
-		var router = router.Group("/languages")
+		var (
+			router       = router.Group("/languages")
+			postmanGroup = srv.postman.AddItemGroup("Языки. ")
+		)
 
 		// GET /list
 		{
@@ -71,7 +74,7 @@ func (srv *server) registerRoutes() error {
 
 			var route = srv.app.GetRoute(id)
 
-			srv.postman.AddItem(&postman.Items{
+			postmanGroup.AddItem(&postman.Items{
 				Name: "Получение списка языков локализации. ",
 				Description: `
 Используется для получение языков локализации.
@@ -225,7 +228,7 @@ func (srv *server) registerRoutes() error {
 
 			var route = srv.app.GetRoute(id)
 
-			srv.postman.AddItem(&postman.Items{
+			postmanGroup.AddItem(&postman.Items{
 				Name: "Удаление языка локализации. ",
 				Description: `
 Используется для удаления языка локализации.
@@ -334,7 +337,7 @@ func (srv *server) registerRoutes() error {
 
 			var route = srv.app.GetRoute(id)
 
-			srv.postman.AddItem(&postman.Items{
+			postmanGroup.AddItem(&postman.Items{
 				Name: "Обновления данных язык локализации. ",
 				Description: `
 Используется для обновления данных языка локализации.
@@ -443,7 +446,7 @@ func (srv *server) registerRoutes() error {
 
 			var route = srv.app.GetRoute(id)
 
-			srv.postman.AddItem(&postman.Items{
+			postmanGroup.AddItem(&postman.Items{
 				Name: "Создание языка локализации. ",
 				Description: `
 Используется для создания языка локализации.
@@ -551,7 +554,7 @@ func (srv *server) registerRoutes() error {
 
 			var route = srv.app.GetRoute(id)
 
-			srv.postman.AddItem(&postman.Items{
+			postmanGroup.AddItem(&postman.Items{
 				Name: "Активация языка локализации. ",
 				Description: `
 Используется для активации языка локализации.
@@ -659,7 +662,7 @@ func (srv *server) registerRoutes() error {
 
 			var route = srv.app.GetRoute(id)
 
-			srv.postman.AddItem(&postman.Items{
+			postmanGroup.AddItem(&postman.Items{
 				Name: "Деактивация языка локализации. ",
 				Description: `
 Используется для деактивации языка локализации.
@@ -760,7 +763,7 @@ func (srv *server) registerRoutes() error {
 
 			var route = srv.app.GetRoute(id)
 
-			srv.postman.AddItem(&postman.Items{
+			postmanGroup.AddItem(&postman.Items{
 				Name: "Установить язык локализации пользователю. ",
 				Description: `
 Используется для установка языка локализации пользователю по токену.
@@ -810,7 +813,10 @@ func (srv *server) registerRoutes() error {
 
 	// /texts
 	{
-		var router = router.Group("/texts")
+		var (
+			router       = router.Group("/texts")
+			postmanGroup = srv.postman.AddItemGroup("Текста. ")
+		)
 
 		// GET /dictionary
 		{
@@ -900,7 +906,7 @@ func (srv *server) registerRoutes() error {
 
 			var route = srv.app.GetRoute(id)
 
-			srv.postman.AddItem(&postman.Items{
+			postmanGroup.AddItem(&postman.Items{
 				Name: "Получение текстов локализации на секции. ",
 				Description: `
 Используется для получение текстов локализации на секции, передается путь к секции родителя,

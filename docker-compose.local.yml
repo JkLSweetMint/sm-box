@@ -23,30 +23,6 @@ services:
       timeout: 3s
       retries: 5
 
-  authentication-redis:
-    image: redis:7.2.5
-    container_name: authentication-redis
-    restart: unless-stopped
-    #    attach: false
-    environment:
-      REDIS_PASSWORD: "76&D&IEa&YL)284d"
-      REDIS_USER: "root"
-      REDIS_USER_PASSWORD: "T4b4g9)53(W)l(SM"
-    command: redis-server /usr/local/etc/redis/redis.conf
-    volumes:
-      - ./system/databases/authentication_redis/data:/var/lib/redis
-      - ./system/databases/authentication_redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./var/logs/databases/authentication_redis:/var/log/redis
-    ports:
-      - "8082:6379"
-    networks:
-      - system
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "76&D&IEa&YL)284d", "ping"]
-      interval: 3s
-      timeout: 3s
-      retries: 5
-
   app:
 #    build:
 #      context: .
@@ -94,6 +70,30 @@ services:
       - ./var/lib:/home/app/var/lib
       - ./var/logs:/home/app/var/logs
       - ./var/test:/home/app/var/test
+
+  authentication-redis:
+    image: redis:7.2.5
+    container_name: authentication-redis
+    restart: unless-stopped
+    #    attach: false
+    environment:
+      REDIS_PASSWORD: "76&D&IEa&YL)284d"
+      REDIS_USER: "root"
+      REDIS_USER_PASSWORD: "T4b4g9)53(W)l(SM"
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./system/databases/authentication-redis/data:/var/lib/redis
+      - ./system/databases/authentication-redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./var/logs/databases/authentication-redis:/var/log/redis
+    ports:
+      - "8082:6379"
+    networks:
+      - system
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "76&D&IEa&YL)284d", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
 
   i18n-service:
 #    build:
@@ -143,10 +143,84 @@ services:
       - ./var/logs:/home/app/var/logs
       - ./var/test:/home/app/var/test
 
-  dashboard:
+  url_shortner-service:
     build:
       context: .
-      dockerfile: Dockerfile.dashboard
+      dockerfile: Dockerfile.url_shortner-service
+    image: box/url_shortner-service:latest
+    container_name: url_shortner-service
+    restart: unless-stopped
+    #    attach: false
+    depends_on:
+      authentication-service:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      url_shortner-redis:
+        condition: service_healthy
+    networks:
+      - system
+    volumes:
+      - ./etc:/home/app/etc
+      - ./src:/home/app/src
+      - ./system:/home/app/system
+      - ./var/data:/home/app/var/data
+      - ./var/lib:/home/app/var/lib
+      - ./var/logs:/home/app/var/logs
+      - ./var/test:/home/app/var/test
+
+  url_shortner-redis:
+    image: redis:7.2.5
+    container_name: url_shortner-redis
+    restart: unless-stopped
+    #    attach: false
+    environment:
+      REDIS_PASSWORD: "&O0C(2(8PKwQl3C#"
+      REDIS_USER: "root"
+      REDIS_USER_PASSWORD: "00#Ab)#5V3#VI5pb"
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./system/databases/url_shortner-redis/data:/var/lib/redis
+      - ./system/databases/url_shortner-redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./var/logs/databases/url_shortner-redis:/var/log/redis
+    ports:
+      - "8083:6379"
+    networks:
+      - system
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "&O0C(2(8PKwQl3C#", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  resources-service:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.resources-service
+    image: box/resources-service:latest
+    container_name: resources-service
+    restart: unless-stopped
+    #    attach: false
+    depends_on:
+      authentication-service:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    networks:
+      - system
+    volumes:
+      - ./etc:/home/app/etc
+      - ./src:/home/app/src
+      - ./system:/home/app/system
+      - ./var/data:/home/app/var/data
+      - ./var/lib:/home/app/var/lib
+      - ./var/logs:/home/app/var/logs
+      - ./var/test:/home/app/var/test
+
+  dashboard:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.dashboard
     image: box/dashboard:latest
     container_name: dashboard
     restart: unless-stopped
@@ -163,7 +237,7 @@ services:
 
   nginx:
     image: nginx:1.27.0
-    container_name: proxy
+    container_name: nginx
     restart: unless-stopped
 #    attach: false
     depends_on:
@@ -172,6 +246,8 @@ services:
       - authentication-service
       - users-service
       - dashboard
+      - url_shortner-service
+      - resources-service
     networks:
       - system
     volumes:

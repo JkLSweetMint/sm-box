@@ -8,6 +8,12 @@
  
 ---
 
+### v24.0.44:
+- [x] Разработка [сервиса ресурсов](src/internal/services/resources/service.go);
+- [x] Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
+
+---
+
 ### v24.0.43:
 - [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
 - [x] Навести порядок в коде;

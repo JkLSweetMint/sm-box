@@ -130,6 +130,374 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "Языки. ",
+            "item": [
+                {
+                    "name": "Получение списка языков локализации. ",
+                    "description": "\nИспользуется для получение языков локализации.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "i18n",
+                                "api",
+                                "v1.0",
+                                "languages",
+                                "list"
+                            ]
+                        },
+                        "method": "GET",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"list\": [\n            {\n                \"code\": \"en-US\",\n                \"name\": \"English\",\n                \"active\": true\n            },\n            {\n                \"code\": \"ru-RU\",\n                \"name\": \"Русский\",\n                \"active\": true\n            },\n            {\n                \"code\": \"zh-CN\",\n                \"name\": \"中文\",\n                \"active\": true\n            }\n        ]\n    }\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"list\": []\n    }\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Языки локализации не найдены. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Удаление языка локализации. ",
+                    "description": "\nИспользуется для удаления языка локализации.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "i18n",
+                                "api",
+                                "v1.0",
+                                "languages",
+                                ""
+                            ]
+                        },
+                        "method": "DELETE",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Обновления данных язык локализации. ",
+                    "description": "\nИспользуется для обновления данных языка локализации.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "i18n",
+                                "api",
+                                "v1.0",
+                                "languages",
+                                ""
+                            ]
+                        },
+                        "method": "PUT",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Создание языка локализации. ",
+                    "description": "\nИспользуется для создания языка локализации.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "i18n",
+                                "api",
+                                "v1.0",
+                                "languages",
+                                ""
+                            ]
+                        },
+                        "method": "PUT",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Активация языка локализации. ",
+                    "description": "\nИспользуется для активации языка локализации.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "i18n",
+                                "api",
+                                "v1.0",
+                                "languages",
+                                "activate"
+                            ]
+                        },
+                        "method": "POST",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Деактивация языка локализации. ",
+                    "description": "\nИспользуется для деактивации языка локализации.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "i18n",
+                                "api",
+                                "v1.0",
+                                "languages",
+                                "deactivate"
+                            ]
+                        },
+                        "method": "POST",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Установить язык локализации пользователю. ",
+                    "description": "\nИспользуется для установка языка локализации пользователю по токену.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "i18n",
+                                "api",
+                                "v1.0",
+                                "languages",
+                                "set"
+                            ]
+                        },
+                        "method": "POST",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Текста. ",
+            "item": [
+                {
+                    "name": "Получение текстов локализации на секции. ",
+                    "description": "\nИспользуется для получение текстов локализации на секции, передается путь к секции родителя,\nзапрос возвращает текста в том числе с дочерних секций.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "i18n",
+                                "api",
+                                "v1.0",
+                                "texts",
+                                "dictionary"
+                            ]
+                        },
+                        "method": "GET",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"dictionary\": {\n            \"auth\": {\n                \"form\": {\n                    \"buttons\": {\n                        \"log_in\": {\n                            \"text\": \"Войти\"\n                        }\n                    },\n                    \"description\": \"Пожалуйста, укажите свои учетные данные для авторизации, чтобы продолжить. \",\n                    \"errors\": {\n                        \"field_is_required\": \"Это поле обязательное. \",\n                        \"invalid_value\": \"Недопустимое значение. \"\n                    },\n                    \"inputs\": {\n                        \"password\": {\n                            \"name\": \"Пароль\"\n                        },\n                        \"username\": {\n                            \"name\": \"Имя пользователя\"\n                        }\n                    },\n                    \"title\": \"Добро пожаловать в SM-Box\"\n                }\n            },\n            \"toasts\": {\n                \"error\": {\n                    \"title\": \"Произошла ошибка\"\n                }\n            }\n        }\n    }\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 400,\n    \"code_message\": \"Bad Request\",\n    \"status\": \"failed\",\n    \"error\": {\n        \"id\": \"E-000010\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Invalid value of text localization paths. \",\n        \"details\": {\n            \"paths\": \"Invalid value. \"\n        }\n    }\n}\n",
+                            "status": "Ɛ",
+                            "code": 400,
+                            "name": "Ошибка, не переданы пути текстов локализации. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"dictionary\": {}\n    }\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Текста локализации не найдены. "
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

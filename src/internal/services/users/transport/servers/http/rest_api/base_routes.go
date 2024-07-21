@@ -31,8 +31,10 @@ func (srv *server) registerBaseRoutes() error {
 
 	// /sys
 	{
-		router = router.Group("/sys")
-		postmanGroup := srv.postman.AddItemGroup("Системные запросы. ")
+		var (
+			router       = router.Group("/sys")
+			postmanGroup = srv.postman.AddItemGroup("Системные запросы. ")
+		)
 
 		// GET /ping
 		{

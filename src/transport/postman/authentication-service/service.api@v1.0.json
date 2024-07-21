@@ -317,7 +317,7 @@
             ]
         },
         {
-            "name": "Запрос для завершения работы пользователя. ",
+            "name": "Запрос для завершения сессии пользователя. ",
             "request": {
                 "url": {
                     "raw": "",
@@ -346,7 +346,21 @@
                         }
                     }
                 }
-            }
+            },
+            "response": [
+                {
+                    "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                    "status": "Ǵ",
+                    "code": 500,
+                    "name": "Произошла внутренняя ошибка сервера. "
+                },
+                {
+                    "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\"\n}\n",
+                    "status": "È",
+                    "code": 200,
+                    "name": "Пример успешного ответа. "
+                }
+            ]
         }
     ]
 }

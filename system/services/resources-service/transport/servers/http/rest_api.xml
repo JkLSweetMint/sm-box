@@ -1,0 +1,38 @@
+<Config>
+	<Server addr="0.0.0.0:8080" location="/resources" name="api" version="v1.0" domain="box.samgk.ru">
+		<ServerHeader>Resources service</ServerHeader>
+		<StrictRouting>true</StrictRouting>
+		<CaseSensitive>false</CaseSensitive>
+		<Immutable>false</Immutable>
+		<UnescapePath>false</UnescapePath>
+		<BodyLimit>4194304</BodyLimit>
+		<Concurrency>262144</Concurrency>
+		<ReadTimeout>0</ReadTimeout>
+		<WriteTimeout>0</WriteTimeout>
+		<IdleTimeout>0</IdleTimeout>
+		<ReadBufferSize>4096</ReadBufferSize>
+		<WriteBufferSize>4096</WriteBufferSize>
+		<CompressedFileSuffix>.service.gz</CompressedFileSuffix>
+		<ProxyHeader></ProxyHeader>
+		<GETOnly>false</GETOnly>
+		<DisableKeepalive>false</DisableKeepalive>
+		<DisableDefaultDate>false</DisableDefaultDate>
+		<DisableDefaultContentType>false</DisableDefaultContentType>
+		<DisableHeaderNormalizing>false</DisableHeaderNormalizing>
+		<AppName>Resources service</AppName>
+		<StreamRequestBody>false</StreamRequestBody>
+		<DisablePreParseMultipartForm>false</DisablePreParseMultipartForm>
+		<ReduceMemoryUsage>false</ReduceMemoryUsage>
+		<Network>tcp4</Network>
+		<EnableTrustedProxyCheck>false</EnableTrustedProxyCheck>
+		<EnableIPValidation>false</EnableIPValidation>
+		<EnableSplittingOnParsers>false</EnableSplittingOnParsers>
+	</Server>
+	<Components>
+		<AccessSystem cookie_key_for_session_token="st_box"></AccessSystem>
+	</Components>
+	<Postman>
+		<Protocol>https</Protocol>
+		<Host>box.samgk.ru</Host>
+	</Postman>
+</Config>
