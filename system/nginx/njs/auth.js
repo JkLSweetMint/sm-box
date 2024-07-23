@@ -3,10 +3,6 @@ export default {rewrite_auth_set_cookie_header}
 function rewrite_auth_set_cookie_header(r) {
     let rawCookies = r.variables['auth_cookie'];
 
-    r.error()
-    r.error(r.headersIn)
-    r.error()
-
     const regex = /(.*?); ((([eE][xX][pP][iI][rR][eE][sS])=([aA-zZ]{3}, [0-9]{2} [aA-zZ]{3} [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} [aA-zZ]{3})(; |,|$))|(([dD][oO][mM][aA][iI][nN])=(.*?)(; |,|$))|(([pP][aA][tT][hH])=(.*?)(; |,|$))|(([hH][tT][tT][pP][oO][nN][lL][yY])(; |,|$))|(([sS][eE][cC][uU][rR][eE])(; |,|$))|(([sS][aA][mM][eE][sS][iI][tT][eE])=(.*?)(; |,|$))){1,}/g;
 
     if (rawCookies != undefined) {

@@ -385,7 +385,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 		var trc = tracer.New(tracer.LevelController)
 
 		trc.FunctionCall(ctx, rawSessionToken)
-		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
 	}
 
 	var sessionToken *entities.JwtSessionToken
@@ -514,7 +514,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 				Format("The list of user's projects could not be retrieved: '%s'. ", cErr).
 				Field("user_id", sessionToken.UserID).Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = error_list.ListUserProjectsCouldNotBeRetrieved()
 			return
 		}
 

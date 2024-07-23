@@ -61,7 +61,14 @@ func (srv *server) registerRoutes() error {
 								srv.components.Logger.Error().
 									Format("The list of user's projects could not be retrieved: '%s'. ", cErr).Write()
 
-								return http_rest_api_io.WriteError(ctx, cErr)
+								if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+									srv.components.Logger.Error().
+										Format("The error response could not be recorded: '%s'. ", err).Write()
+
+									return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+								}
+
+								return
 							}
 						}
 					}
@@ -70,10 +77,11 @@ func (srv *server) registerRoutes() error {
 					{
 						if err = http_rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
 							srv.components.Logger.Error().
-								Format("The response could not be recorded: '%s'. ", err).Write()
+								Format("The error response could not be recorded: '%s'. ", err).Write()
 
 							return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 						}
+
 						return
 					}
 				}).Name(id)
@@ -225,7 +233,14 @@ func (srv *server) registerRoutes() error {
 								var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
 								cErr.SetError(err)
 
-								return http_rest_api_io.WriteError(ctx, cErr)
+								if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+									srv.components.Logger.Error().
+										Format("The error response could not be recorded: '%s'. ", err).Write()
+
+									return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+								}
+
+								return
 							}
 
 							return
@@ -244,7 +259,14 @@ func (srv *server) registerRoutes() error {
 							srv.components.Logger.Error().
 								Format("The project value for the user token could not be set: '%s'. ", cErr).Write()
 
-							return http_rest_api_io.WriteError(ctx, cErr)
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								srv.components.Logger.Error().
+									Format("The error response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+
+							return
 						}
 
 						// Запись печенек
@@ -306,10 +328,11 @@ func (srv *server) registerRoutes() error {
 					{
 						if err = http_rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
 							srv.components.Logger.Error().
-								Format("The response could not be recorded: '%s'. ", err).Write()
+								Format("The error response could not be recorded: '%s'. ", err).Write()
 
 							return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 						}
+
 						return
 					}
 				}).Name(id)
@@ -464,7 +487,14 @@ func (srv *server) registerRoutes() error {
 							var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
 							cErr.SetError(err)
 
-							return http_rest_api_io.WriteError(ctx, cErr)
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								srv.components.Logger.Error().
+									Format("The error response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+
+							return
 						}
 
 						return
@@ -493,7 +523,14 @@ func (srv *server) registerRoutes() error {
 							srv.components.Logger.Error().
 								Format("User authorization failed: '%s'. ", cErr).Write()
 
-							return http_rest_api_io.WriteError(ctx, cErr)
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								srv.components.Logger.Error().
+									Format("The error response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							}
+
+							return
 						}
 					}
 
@@ -590,10 +627,11 @@ func (srv *server) registerRoutes() error {
 				{
 					if err = http_rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
 						srv.components.Logger.Error().
-							Format("The response could not be recorded: '%s'. ", err).Write()
+							Format("The error response could not be recorded: '%s'. ", err).Write()
 
 						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 					}
+
 					return
 				}
 			}).Name(id)
@@ -718,7 +756,14 @@ func (srv *server) registerRoutes() error {
 						srv.components.Logger.Error().
 							Format("The user's session could not be terminated: '%s'. ", cErr).Write()
 
-						return http_rest_api_io.WriteError(ctx, cErr)
+						if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+							srv.components.Logger.Error().
+								Format("The error response could not be recorded: '%s'. ", err).Write()
+
+							return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+						}
+
+						return
 					}
 
 					// Очистка куков
@@ -768,10 +813,11 @@ func (srv *server) registerRoutes() error {
 				{
 					if err = http_rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
 						srv.components.Logger.Error().
-							Format("The response could not be recorded: '%s'. ", err).Write()
+							Format("The error response could not be recorded: '%s'. ", err).Write()
 
 						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 					}
+
 					return
 				}
 			}).Name(id)

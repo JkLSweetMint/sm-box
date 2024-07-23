@@ -2,6 +2,7 @@ package http_rest_api
 
 import (
 	"context"
+	urls_adapter "sm-box/internal/services/url_shortner/infrastructure/adapters/urls"
 	"sm-box/internal/services/url_shortner/transport/servers/http/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -56,6 +57,13 @@ func New(ctx context.Context) (srv Server, err error) {
 	// Контроллеры
 	{
 		ref.controllers = new(controllers)
+
+		// Urls
+		{
+			if ref.controllers.Urls, err = urls_adapter.New_RestAPI(ctx); err != nil {
+				return
+			}
+		}
 	}
 
 	// Postman

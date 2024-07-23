@@ -12,7 +12,7 @@ import (
 
 func init() {
 	env.Vars.SystemName = "box"
-	env.Version = "24.0.44"
+	env.Version = "24.0.45"
 
 	configurator.PbDir = path.Join(configurator.PbDir, env.Vars.SystemName)
 	configurator.PrtDir = path.Join(configurator.PrtDir, env.Vars.SystemName)

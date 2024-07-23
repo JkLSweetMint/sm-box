@@ -6,7 +6,7 @@ import (
 )
 
 type (
-	// Language - язык.
+	// Language - язык локализации.
 	Language struct {
 		Name   string
 		Code   string
@@ -14,7 +14,7 @@ type (
 	}
 )
 
-// ToModel - получение модели.
+// ToModel - получение внешней модели.
 func (entity *Language) ToModel() (model *models.Language) {
 	// tracer
 	{

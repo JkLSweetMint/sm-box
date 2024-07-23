@@ -6,7 +6,7 @@ import (
 )
 
 type (
-	// HttpRoute - модель http маршрута система для базы данных.
+	// HttpRoute - модель базы данных http маршрута
 	HttpRoute struct {
 		ID types.ID `db:"id"`
 
@@ -23,7 +23,7 @@ type (
 		Authorize bool `db:"authorize"`
 	}
 
-	// HttpRouteAccess - модель доступа http маршрута система для базы данных.
+	// HttpRouteAccess - модель базы данных доступа http маршрута.
 	HttpRouteAccess struct {
 		RouteID types.ID `db:"route_id"`
 		RoleID  types.ID `db:"role_id"`

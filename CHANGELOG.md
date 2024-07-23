@@ -1,5 +1,12 @@
 # ChangeLog:
 
+### v24.0.45:
+- Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
+- Доработки [сервиса i18n](src/internal/services/i18n/service.go);
+- Проектирование базы данных для dashboard;
+
+---
+
 ### v24.0.44:
 - Разработка [сервиса ресурсов](src/internal/services/resources/service.go);
 - Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);

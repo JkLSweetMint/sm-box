@@ -9,6 +9,11 @@ docker-compose.local.yml
 docker-compose.yml
 Dockerfile.app
 Dockerfile.authentication-service
+Dockerfile.dashboard
+Dockerfile.i18n-service
+Dockerfile.resources-service
+Dockerfile.url_shortner-service
+Dockerfile.users-service
 
 CHANGELOG.md
 README.md
@@ -17,6 +22,7 @@ TODO.md
 var/cache
 var/run
 var/temp
+var/logs
 
 system/nginx
 system/databases/database

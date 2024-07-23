@@ -90,7 +90,7 @@ services:
     networks:
       - system
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "76&D&IEa&YL)284d", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 3s
       timeout: 3s
       retries: 5
@@ -145,19 +145,19 @@ services:
 
   url_shortner-service:
     build:
-      context: .
-      dockerfile: Dockerfile.url_shortner-service
+        context: .
+        dockerfile: Dockerfile.url_shortner-service
     image: box/url_shortner-service:latest
     container_name: url_shortner-service
     restart: unless-stopped
     #    attach: false
     depends_on:
-      authentication-service:
-        condition: service_started
       postgres:
         condition: service_healthy
       url_shortner-redis:
         condition: service_healthy
+      authentication-service:
+        condition: service_started
     networks:
       - system
     volumes:
@@ -175,9 +175,9 @@ services:
     restart: unless-stopped
     #    attach: false
     environment:
-      REDIS_PASSWORD: "&O0C(2(8PKwQl3C#"
+      REDIS_PASSWORD: "4ZTrZ7YDDh5E6s36"
       REDIS_USER: "root"
-      REDIS_USER_PASSWORD: "00#Ab)#5V3#VI5pb"
+      REDIS_USER_PASSWORD: "d36fcp8J9T51hyPY"
     command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
       - ./system/databases/url_shortner-redis/data:/var/lib/redis
@@ -188,7 +188,7 @@ services:
     networks:
       - system
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "&O0C(2(8PKwQl3C#", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 3s
       timeout: 3s
       retries: 5

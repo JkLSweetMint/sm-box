@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	// Dictionary - словарь локализации.
+	// Dictionary - внешняя модель словаря локализации.
 	Dictionary map[string]any
 )
 

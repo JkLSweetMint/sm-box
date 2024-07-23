@@ -44,7 +44,7 @@ func (entity *Role) FillEmptyFields() *Role {
 	return entity
 }
 
-// ToModel - получение модели.
+// ToModel - получение внешней модели.
 func (entity *Role) ToModel() (model *models.RoleInfo) {
 	// tracer
 	{
@@ -68,7 +68,7 @@ func (entity *Role) ToModel() (model *models.RoleInfo) {
 	return
 }
 
-// ToModel - получение модели.
+// ToModel - получение внешней модели.
 func (entity *RoleInheritance) ToModel() (model *models.RoleInfoInheritance) {
 	// tracer
 	{

@@ -5,9 +5,9 @@ import (
 )
 
 type (
-	// UserInfo - пользователь системы.
+	// UserInfo - внешняя модель пользователя системы.
 	UserInfo struct {
-		ID types.ID `json:"id"         xml:"id,attr"`
+		ID types.ID `json:"id" xml:"id,attr"`
 
 		Email    string `json:"email"    xml:"Email"`
 		Username string `json:"username" xml:"Username"`
@@ -15,10 +15,10 @@ type (
 		Accesses UserInfoAccesses `json:"accesses" xml:"Accesses>Access"`
 	}
 
-	// UserInfoAccesses - информация о доступах пользователя.
+	// UserInfoAccesses - внешняя модель с информацией о доступах пользователя.
 	UserInfoAccesses []*UserInfoAccess
 
-	// UserInfoAccess - информация о доступе пользователя.
+	// UserInfoAccess - внешняя модель с информацией о доступе пользователя.
 	UserInfoAccess struct {
 		*RoleInfo
 	}

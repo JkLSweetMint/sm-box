@@ -45,7 +45,7 @@ func (entity *User) FillEmptyFields() *User {
 	return entity
 }
 
-// ToModel - получение модели.
+// ToModel - получение внешней модели.
 func (entity *User) ToModel() (model *models.UserInfo) {
 	// tracer
 	{
@@ -71,7 +71,7 @@ func (entity *User) ToModel() (model *models.UserInfo) {
 	return
 }
 
-// ToModel - получение модели.
+// ToModel - получение внешней модели.
 func (entity *UserAccess) ToModel() (model *models.UserInfoAccess) {
 	// tracer
 	{

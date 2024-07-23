@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	// JwtToken - модель jwt токена системы доступа для базы данных.
+	// JwtToken - модель базы данных jwt токена системы доступа.
 	JwtToken struct {
 		ID       uuid.UUID `json:"id"`
 		ParentID uuid.UUID `json:"parent_id"`
@@ -22,7 +22,7 @@ type (
 		IssuedAt  time.Time `json:"issued_at"`
 	}
 
-	// JwtTokenParams - модель с параметрами jwt токена системы доступа для базы данных.
+	// JwtTokenParams - модель базы данных с параметрами jwt токена системы доступа.
 	JwtTokenParams struct {
 		RemoteAddr string `json:"remote_addr"`
 		UserAgent  string `json:"user_agent"`

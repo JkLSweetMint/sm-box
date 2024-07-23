@@ -3,7 +3,7 @@ package db_models
 import "encoding/json"
 
 type (
-	// JwtRefreshToken - jwt токен обновления.
+	// JwtRefreshToken - модель база данных jwt токена обновления.
 	JwtRefreshToken struct {
 		*JwtToken
 	}

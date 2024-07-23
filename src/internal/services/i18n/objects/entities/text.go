@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	// Text - текст.
+	// Text - текст локализации.
 	Text struct {
 		ID       uuid.UUID
 		Language string
@@ -21,7 +21,7 @@ type (
 	Dictionary []*Text
 )
 
-// ToModel - получение модели.
+// ToModel - получение внешней модели.
 func (entity Dictionary) ToModel() (model models.Dictionary) {
 	// tracer
 	{

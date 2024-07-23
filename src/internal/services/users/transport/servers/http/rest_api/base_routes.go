@@ -63,7 +63,14 @@ func (srv *server) registerBaseRoutes() error {
 						var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
 						cErr.SetError(err)
 
-						return http_rest_api_io.WriteError(ctx, cErr)
+						if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+							srv.components.Logger.Error().
+								Format("The error response could not be recorded: '%s'. ", err).Write()
+
+							return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+						}
+
+						return
 					}
 
 					return
@@ -162,7 +169,14 @@ func (srv *server) registerBaseRoutes() error {
 						var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
 						cErr.SetError(err)
 
-						return http_rest_api_io.WriteError(ctx, cErr)
+						if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+							srv.components.Logger.Error().
+								Format("The error response could not be recorded: '%s'. ", err).Write()
+
+							return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+						}
+
+						return
 					}
 
 					return
@@ -252,7 +266,14 @@ func (srv *server) registerBaseRoutes() error {
 						var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
 						cErr.SetError(err)
 
-						return http_rest_api_io.WriteError(ctx, cErr)
+						if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+							srv.components.Logger.Error().
+								Format("The error response could not be recorded: '%s'. ", err).Write()
+
+							return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+						}
+
+						return
 					}
 
 					return

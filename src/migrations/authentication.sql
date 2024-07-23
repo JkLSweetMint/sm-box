@@ -33,49 +33,6 @@ end;
 $$;
 
 create schema
-    if not exists tokens;
-
-create table
-    if not exists tokens.jwt
-(
-    id         uuid     not null
-        constraint jwt_tokens_pk
-            primary key,
-    parent_id  uuid,
-
-    user_id    bigint,
-    project_id bigint,
-
-    type       varchar(128)  not null,
-    raw        varchar(4096) not null,
-
-    issued_at  timestamptz   not null,
-    not_before timestamptz   not null,
-    expires_at timestamptz   not null,
-
-    disabled   boolean       not null default false
-
-    constraint check_type
-        check (type = 'session' or type = 'access' or type = 'refresh')
-);
-
-create table
-    if not exists tokens.jwt_params
-(
-    token_id    uuid        not null
-        references tokens.jwt(id)
-            on delete cascade
-                constraint jwt_token_params_uq
-                    unique,
-
-    remote_addr varchar(1024) not null,
-    user_agent  varchar(4096) not null,
-
-    constraint check_remote_addr
-        check (remote_addr ~ '^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5})$')
-);
-
-create schema
     if not exists transports;
 
 create table

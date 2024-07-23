@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	// JwtTokenInfo - информация о jwt токене системы доступа.
+	// JwtTokenInfo - внешняя модель с информацией о jwt токене системы доступа.
 	JwtTokenInfo struct {
 		ID       uuid.UUID `json:"id"        xml:"id,attr"`
 		ParentID uuid.UUID `json:"parent_id" xml:"parent_id,attr"`
@@ -23,7 +23,7 @@ type (
 		IssuedAt  time.Time `json:"issued_at"  xml:"issued_at,attr"`
 	}
 
-	// JwtTokenInfoParams - информация о параметрах jwt токена системы доступа.
+	// JwtTokenInfoParams - внешняя модель с информацией о параметрах jwt токена системы доступа.
 	JwtTokenInfoParams struct {
 		Language   string `json:"language"    xml:"language,attr"`
 		RemoteAddr string `json:"remote_addr" xml:"remote_addr,attr"`

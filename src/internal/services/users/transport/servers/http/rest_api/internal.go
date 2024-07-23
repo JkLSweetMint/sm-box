@@ -32,10 +32,11 @@ func (srv *server) initFiberServer() (err error) {
 			if err.Error() == fmt.Sprintf("Cannot %s %s", ctx.Method(), ctx.Path()) {
 				if err = http_rest_api_io.WriteError(ctx, error_list.RouteNotFound_RestAPI()); err != nil {
 					srv.components.Logger.Error().
-						Format("The response could not be recorded: '%s'. ", err).Write()
+						Format("The error response could not be recorded: '%s'. ", err).Write()
 
 					return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 				}
+
 				return nil
 			}
 		}
@@ -44,10 +45,11 @@ func (srv *server) initFiberServer() (err error) {
 		{
 			if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
 				srv.components.Logger.Error().
-					Format("The response could not be recorded: '%s'. ", err).Write()
+					Format("The error response could not be recorded: '%s'. ", err).Write()
 
 				return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 			}
+
 			return nil
 		}
 	}

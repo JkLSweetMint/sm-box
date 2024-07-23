@@ -43,7 +43,14 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 					var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
 					cErr.SetError(err)
 
-					return http_rest_api_io.WriteError(ctx, cErr)
+					if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+						acc.components.Logger.Error().
+							Format("The error response could not be recorded: '%s'. ", err).Write()
+
+						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+					}
+
+					return
 				}
 				return
 			}
@@ -252,10 +259,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
 								acc.components.Logger.Error().
-									Format("The response could not be recorded: '%s'. ", err).Write()
+									Format("The error response could not be recorded: '%s'. ", err).Write()
 
 								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 							}
+
 							return
 						}
 
@@ -281,10 +289,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
 								acc.components.Logger.Error().
-									Format("The response could not be recorded: '%s'. ", err).Write()
+									Format("The error response could not be recorded: '%s'. ", err).Write()
 
 								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 							}
+
 							return
 						}
 
@@ -327,10 +336,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccessToProject())); err != nil {
 								acc.components.Logger.Error().
-									Format("The response could not be recorded: '%s'. ", err).Write()
+									Format("The error response could not be recorded: '%s'. ", err).Write()
 
 								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 							}
+
 							return
 						}
 					}
@@ -355,10 +365,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 								if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
 									acc.components.Logger.Error().
-										Format("The response could not be recorded: '%s'. ", err).Write()
+										Format("The error response could not be recorded: '%s'. ", err).Write()
 
 									return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 								}
+
 								return
 							}
 
@@ -370,10 +381,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 									if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
 										acc.components.Logger.Error().
-											Format("The response could not be recorded: '%s'. ", err).Write()
+											Format("The error response could not be recorded: '%s'. ", err).Write()
 
 										return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 									}
+
 									return
 								}
 							}
@@ -404,10 +416,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 								if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
 									acc.components.Logger.Error().
-										Format("The response could not be recorded: '%s'. ", err).Write()
+										Format("The error response could not be recorded: '%s'. ", err).Write()
 
 									return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 								}
+
 								return
 							}
 
@@ -419,10 +432,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 									if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
 										acc.components.Logger.Error().
-											Format("The response could not be recorded: '%s'. ", err).Write()
+											Format("The error response could not be recorded: '%s'. ", err).Write()
 
 										return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 									}
+
 									return
 								}
 							}
@@ -487,7 +501,14 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 									var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
 									cErr.SetError(err)
 
-									return http_rest_api_io.WriteError(ctx, cErr)
+									if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+										acc.components.Logger.Error().
+											Format("The error response could not be recorded: '%s'. ", err).Write()
+
+										return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+									}
+
+									return
 								}
 								return
 							}
@@ -570,10 +591,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 			if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
 				acc.components.Logger.Error().
-					Format("The response could not be recorded: '%s'. ", err).Write()
+					Format("The error response could not be recorded: '%s'. ", err).Write()
 
 				return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
 			}
+
 			return
 		}
 
@@ -643,7 +665,14 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 			var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
 			cErr.SetError(err)
 
-			return http_rest_api_io.WriteError(ctx, cErr)
+			if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+				acc.components.Logger.Error().
+					Format("The error response could not be recorded: '%s'. ", err).Write()
+
+				return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+			}
+
+			return
 		}
 
 		return

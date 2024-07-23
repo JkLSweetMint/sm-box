@@ -77,7 +77,7 @@ func (entity *JwtToken) FillEmptyFields() *JwtToken {
 	return entity
 }
 
-// ToModel - получение модели.
+// ToModel - получение внешней модели.
 func (entity *JwtToken) ToModel() (model *models.JwtTokenInfo) {
 	// tracer
 	{

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	urls_controller "sm-box/internal/services/url_shortner/infrastructure/controllers/urls"
 	http_rest_api "sm-box/internal/services/url_shortner/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
@@ -67,6 +68,13 @@ func New() (srv_ Service, err error) {
 	// Контроллеры
 	{
 		ref.controllers = new(controllers)
+
+		// Urls
+		{
+			if ref.controllers.urls, err = urls_controller.New(ref.Ctx()); err != nil {
+				return
+			}
+		}
 	}
 
 	// Транспортная часть
@@ -116,6 +124,22 @@ func New() (srv_ Service, err error) {
 				Name:  "Completion of server maintenance. ",
 				Event: task_scheduler.EventShutdown,
 				Func:  ref.shutdown,
+			}); err != nil {
+				ref.Components().Logger().Error().
+					Format("Failed to register a task in task scheduler: '%s'. ", err).Write()
+			}
+
+			if err = ref.core.Tools().TaskScheduler().Register(&task_scheduler.ImmediateTask{
+				Name:  "Registration of short url. ",
+				Event: task_scheduler.EventAfterServe,
+				Func: func(ctx context.Context) (err error) {
+					if err = ref.Controllers().Urls().RegisterToRedisDB(ctx); err != nil {
+						ref.Components().Logger().Error().
+							Format("Failed to register short urls in the redis database: '%s'. ", err).Write()
+					}
+
+					return
+				},
 			}); err != nil {
 				ref.Components().Logger().Error().
 					Format("Failed to register a task in task scheduler: '%s'. ", err).Write()

@@ -23,6 +23,9 @@ RUN --mount=type=cache,target="/root/.cache/go-build" go build -o /home/app/sbin
 
 FROM ubuntu:24.10
 
+RUN apt-get update
+RUN apt-get install -y ca-certificates
+
 RUN mkdir /home/app
 
 WORKDIR /home/app

@@ -550,85 +550,243 @@ values
     ('zh-CN', '中文', true);
 
 select
-    public.write_text('en-US', 'dashboard.toasts.error.title', 'An error occured');
-
-select
-    public.write_text('ru-RU', 'dashboard.toasts.error.title', 'Произошла ошибка');
-
-select
+    public.write_text('en-US', 'dashboard.toasts.error.title', 'An error occured'),
+    public.write_text('ru-RU', 'dashboard.toasts.error.title', 'Произошла ошибка'),
     public.write_text('zh-CN', 'dashboard.toasts.error.title', '发生错误');
+
 
 select
     public.write_text('en-US', 'dashboard.pages.auth.title', 'Welcome to SM-Box'),
-    public.write_text('en-US', 'dashboard.pages.auth.form.title', 'Welcome to SM-Box'),
-    public.write_text('en-US', 'dashboard.pages.auth.form.description', 'Please, provide your authorization credentials to proceed. '),
-    public.write_text('en-US', 'dashboard.pages.auth.form.inputs.username.label', 'Username'),
-    public.write_text('en-US', 'dashboard.pages.auth.form.inputs.password.label', 'Password'),
-    public.write_text('en-US', 'dashboard.pages.auth.form.buttons.log_in.text', 'Log in'),
-    public.write_text('en-US', 'dashboard.pages.auth.form.errors.field_is_required', 'Field is required. '),
-    public.write_text('en-US', 'dashboard.pages.auth.form.errors.invalid_value', 'Invalid value. ');
-
-select
     public.write_text('ru-RU', 'dashboard.pages.auth.title', 'Добро пожаловать в SM-Box'),
-    public.write_text('ru-RU', 'dashboard.pages.auth.form.title', 'Добро пожаловать в SM-Box'),
-    public.write_text('ru-RU', 'dashboard.pages.auth.form.description', 'Пожалуйста, укажите свои учетные данные для авторизации, чтобы продолжить. '),
-    public.write_text('ru-RU', 'dashboard.pages.auth.form.inputs.username.label', 'Имя пользователя'),
-    public.write_text('ru-RU', 'dashboard.pages.auth.form.inputs.password.label', 'Пароль'),
-    public.write_text('ru-RU', 'dashboard.pages.auth.form.buttons.log_in.text', 'Войти'),
-    public.write_text('ru-RU', 'dashboard.pages.auth.form.errors.field_is_required', 'Это поле обязательное. '),
-    public.write_text('ru-RU', 'dashboard.pages.auth.form.errors.invalid_value', 'Недопустимое значение. ');
+    public.write_text('zh-CN', 'dashboard.pages.auth.title', '欢迎来到SM-Box');
+
 
 select
-    public.write_text('zh-CN', 'dashboard.pages.auth.title', '欢迎来到SM-Box'),
-    public.write_text('zh-CN', 'dashboard.pages.auth.form.title', '欢迎来到SM-Box'),
-    public.write_text('zh-CN', 'dashboard.pages.auth.form.description', '请提供您的登录凭据继续。'),
-    public.write_text('zh-CN', 'dashboard.pages.auth.form.inputs.username.label', '用户名称'),
-    public.write_text('zh-CN', 'dashboard.pages.auth.form.inputs.password.label', '密码'),
-    public.write_text('zh-CN', 'dashboard.pages.auth.form.buttons.log_in.text', '进入'),
-    public.write_text('zh-CN', 'dashboard.pages.auth.form.errors.field_is_required', '这个字段是必需的。'),
+    public.write_text('en-US', 'dashboard.pages.auth.form.title', 'Welcome to SM-Box'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.title', 'Добро пожаловать в SM-Box'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.title', '欢迎来到SM-Box');
+
+
+select
+    public.write_text('en-US', 'dashboard.pages.auth.form.description', 'Please, provide your authorization credentials to proceed. '),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.description', 'Пожалуйста, укажите свои учетные данные для авторизации, чтобы продолжить. '),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.description', '请提供您的登录凭据继续。');
+
+select
+    public.write_text('en-US', 'dashboard.pages.auth.form.inputs.username.label', 'Username'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.inputs.username.label', 'Имя пользователя'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.inputs.username.label', '用户名称');
+
+select
+    public.write_text('en-US', 'dashboard.pages.auth.form.inputs.password.label', 'Password'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.inputs.password.label', 'Пароль'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.inputs.password.label', '密码');
+
+select
+    public.write_text('en-US', 'dashboard.pages.auth.form.buttons.log_in.text', 'Log in'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.buttons.log_in.text', 'Войти'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.buttons.log_in.text', '进入');
+
+select
+    public.write_text('en-US', 'dashboard.pages.auth.form.errors.field_is_required', 'Field is required. '),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.errors.field_is_required', 'Это поле обязательное. '),
+    public.write_text('zh-CN', 'dashboard.pages.auth.form.errors.field_is_required', '这个字段是必需的。');
+
+select
+    public.write_text('en-US', 'dashboard.pages.auth.form.errors.invalid_value', 'Invalid value. '),
+    public.write_text('ru-RU', 'dashboard.pages.auth.form.errors.invalid_value', 'Недопустимое значение. '),
     public.write_text('zh-CN', 'dashboard.pages.auth.form.errors.invalid_value', '无效值。');
+
+
 
 select
     public.write_text('en-US', 'dashboard.pages.auth.project-select.title', 'Select a project'),
-    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.title', 'Select a project'),
-    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.errors.field_is_required', 'Field is required. '),
-    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.inputs.select.label', 'Search options...'),
-    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.inputs.select.not_found', 'No result found.'),
-    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.buttons.confirm.text', 'Confirm'),
-    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.buttons.logout.text', 'Logout');
-
-select
     public.write_text('ru-RU', 'dashboard.pages.auth.project-select.title', 'Выберите проект'),
-    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.title', 'Выберите проект'),
-    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.errors.field_is_required', 'Это поле обязательное. '),
-    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.inputs.select.label', 'Параметры поиска...'),
-    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.inputs.select.not_found', 'Ничего не найдено.'),
-    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.buttons.confirm.text', 'Подтвердить'),
-    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.buttons.logout.text', 'Выйти');
+    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.title', '选择项目');
 
 select
-    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.title', '选择项目'),
-    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.title', '选择项目'),
-    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.errors.field_is_required', '这个字段是必需的 '),
-    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.inputs.select.label', '搜索选项。'),
-    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.inputs.select.not_found', '什么也没找到。'),
-    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.buttons.confirm.text', '确认'),
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.title', 'Select a project'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.title', 'Выберите проект'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.title', '选择项目');
+
+select
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.errors.field_is_required', 'Field is required. '),
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.errors.field_is_required', 'Это поле обязательное. '),
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.errors.field_is_required', '这个字段是必需的 ');
+
+select
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.inputs.select.label', 'Search options...'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.inputs.select.label', 'Параметры поиска...'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.inputs.select.label', '搜索选项。');
+
+select
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.inputs.select.not_found', 'No result found.'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.inputs.select.not_found', 'Ничего не найдено.'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.inputs.select.not_found', '什么也没找到。');
+
+select
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.buttons.confirm.text', 'Confirm'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.buttons.confirm.text', 'Подтвердить'),
+    public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.buttons.confirm.text', '确认');
+
+select
+    public.write_text('en-US', 'dashboard.pages.auth.project-select.form.buttons.logout.text', 'Logout'),
+    public.write_text('ru-RU', 'dashboard.pages.auth.project-select.form.buttons.logout.text', 'Выйти'),
     public.write_text('zh-CN', 'dashboard.pages.auth.project-select.form.buttons.logout.text', '登出');
+
 
 select
     public.write_text('en-US', 'dashboard.pages.errors.403.title', 'Forbidden!'),
-    public.write_text('en-US', 'dashboard.pages.errors.403.description', 'Access to the requested resource is prohibited!'),
-    public.write_text('en-US', 'dashboard.pages.errors.50x.title', 'Something went wrong!'),
-    public.write_text('en-US', 'dashboard.pages.errors.50x.description', 'Please referesh the page or try again later!');
-
-select
     public.write_text('ru-RU', 'dashboard.pages.errors.403.title', 'Нет доступа!'),
-    public.write_text('ru-RU', 'dashboard.pages.errors.403.description', 'Доступ к запрашиваемому ресурсу запрещен!'),
-    public.write_text('ru-RU', 'dashboard.pages.errors.50x.title', 'Что-то пошло не так!'),
-    public.write_text('ru-RU', 'dashboard.pages.errors.50x.description', 'Пожалуйста, обновите страницу или повторите попытку позже!');
+    public.write_text('zh-CN', 'dashboard.pages.errors.403.title', '禁止！');
 
 select
-    public.write_text('zh-CN', 'dashboard.pages.errors.403.title', '禁止！'),
-    public.write_text('zh-CN', 'dashboard.pages.errors.403.description', '禁止访问请求的资源！'),
-    public.write_text('zh-CN', 'dashboard.pages.errors.50x.title', '出了点问题！'),
+    public.write_text('en-US', 'dashboard.pages.errors.403.description', 'Access to the requested resource is prohibited!'),
+    public.write_text('ru-RU', 'dashboard.pages.errors.403.description', 'Доступ к запрашиваемому ресурсу запрещен!'),
+    public.write_text('zh-CN', 'dashboard.pages.errors.403.description', '禁止访问请求的资源！');
+
+select
+    public.write_text('en-US', 'dashboard.pages.errors.50x.title', 'Something went wrong!'),
+    public.write_text('ru-RU', 'dashboard.pages.errors.50x.title', 'Что-то пошло не так!'),
+    public.write_text('zh-CN', 'dashboard.pages.errors.50x.title', '出了点问题！');
+
+select
+    public.write_text('en-US', 'dashboard.pages.errors.50x.description', 'Please referesh the page or try again later!'),
+    public.write_text('ru-RU', 'dashboard.pages.errors.50x.description', 'Пожалуйста, обновите страницу или повторите попытку позже!'),
     public.write_text('zh-CN', 'dashboard.pages.errors.50x.description', '请刷新页面或稍后重试!');
+
+select
+    public.write_text('en-US', 'dashboard.sidebar.title', 'SM-Box'),
+    public.write_text('ru-RU', 'dashboard.sidebar.title', 'SM-Box'),
+    public.write_text('zh-CN', 'dashboard.sidebar.title', 'SM-Box');
+
+select
+    public.write_text('en-US', 'dashboard.navbar.search.input.placeholder', 'Type something to search...'),
+    public.write_text('ru-RU', 'dashboard.navbar.search.input.placeholder', 'Введите что-нибудь для поиска...'),
+    public.write_text('zh-CN', 'dashboard.navbar.search.input.placeholder', '键入要搜索的内容。');
+
+select
+    public.write_text('en-US', 'dashboard.navbar.search.no_results_found', 'No results found.'),
+    public.write_text('ru-RU', 'dashboard.navbar.search.no_results_found', 'Результатов не найдено.'),
+    public.write_text('zh-CN', 'dashboard.navbar.search.no_results_found', '没有结果。');
+
+
+select
+    public.write_text('en-US', 'dashboard.navbar.shortcuts.title', 'Shortcuts'),
+    public.write_text('ru-RU', 'dashboard.navbar.shortcuts.title', 'Ярлыки'),
+    public.write_text('zh-CN', 'dashboard.navbar.shortcuts.title', '标签');
+
+select
+    public.write_text('en-US', 'dashboard.navbar.notifications.title', 'Notifications'),
+    public.write_text('ru-RU', 'dashboard.navbar.notifications.title', 'Уведомления'),
+    public.write_text('zh-CN', 'dashboard.navbar.notifications.title', '通知书');
+
+select
+    public.write_text('en-US', 'dashboard.navbar.notifications.tabs.all', 'All'),
+    public.write_text('ru-RU', 'dashboard.navbar.notifications.tabs.all', 'Все'),
+    public.write_text('zh-CN', 'dashboard.navbar.notifications.tabs.all', '全部');
+
+select
+    public.write_text('en-US', 'dashboard.navbar.notifications.tabs.alerts', 'Alerts'),
+    public.write_text('ru-RU', 'dashboard.navbar.notifications.tabs.alerts', 'Оповещения'),
+    public.write_text('zh-CN', 'dashboard.navbar.notifications.tabs.alerts', '警报');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.title', 'Theme customizer'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.title', 'Настройка темы'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.title', '主题定制器');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.theme.title', 'Theme'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.theme.title', 'Тема'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.theme.title', '主题');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.theme.description', 'Choose your suitable theme'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.theme.description', 'Выберите подходящую вам тему'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.theme.description', '选择合适的主题');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.sidebar_images.title', 'Sidebar images'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.sidebar_images.title', 'Изображения боковой панели'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.sidebar_images.title', '侧边栏图像');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.sidebar_images.description', 'Choose your suitable component style'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.sidebar_images.description', 'Выберите подходящий вам стиль компонента'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.sidebar_images.description', '选择合适的组件样式');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.components.title', 'Components'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.components.title', 'Компоненты'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.components.title', '组件');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.components.description', 'Choose your suitable component style'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.components.description', 'Выберите подходящий вам стиль компонента'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.components.description', '选择合适的组件样式');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.components.select.default.title', 'Default'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.components.select.default.title', 'По умолчанию'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.components.select.default.title', '违约情况');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.components.select.bordered.title', 'Bordered'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.components.select.bordered.title', 'С границами'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.components.select.bordered.title', '边界,边界');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.navbar_type.title', 'Navbar Type'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.navbar_type.title', 'Тип навигационной панели'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.navbar_type.title', '导航栏类型');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.navbar_type.description', 'Choose preferred navbar apperance'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.navbar_type.description', 'Выберите предпочтительный внешний вид навигационной панели'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.navbar_type.description', '选择首选导航栏外观');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.navbar_type.select.sticky.title', 'Sticky'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.navbar_type.select.sticky.title', 'Липкий'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.navbar_type.select.sticky.title', '粘粘的');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.navbar_type.select.static.title', 'Static'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.navbar_type.select.static.title', 'Статичный'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.navbar_type.select.static.title', '静态');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.navbar_type.select.hidden.title', 'Hidden'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.navbar_type.select.hidden.title', 'Скрытый'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.navbar_type.select.hidden.title', '隐藏的');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.navbar_type.select.attached.title', 'Attached'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.navbar_type.select.attached.title', 'Прикрепленный'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.navbar_type.select.attached.title', '附后');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.navbar_type.select.separated.title', 'Separated'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.navbar_type.select.separated.title', 'Отделенный'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.navbar_type.select.separated.title', '分离的');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.direction.title', 'Direction'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.direction.title', 'Направление'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.direction.title', '方向感');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.direction.description', 'Choose preferred direction'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.direction.description', 'Выберите предпочтительное направление'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.direction.description', '选择首选方向');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.direction.select.ltr.title', 'Left to Right'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.direction.select.ltr.title', 'Слева направо'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.direction.select.ltr.title', '从左到右');
+
+select
+    public.write_text('en-US', 'dashboard.theme_customizer.settings.direction.select.rtl.title', 'Right to Left'),
+    public.write_text('ru-RU', 'dashboard.theme_customizer.settings.direction.select.rtl.title', 'Справа налево'),
+    public.write_text('zh-CN', 'dashboard.theme_customizer.settings.direction.select.rtl.title', '从右到左');

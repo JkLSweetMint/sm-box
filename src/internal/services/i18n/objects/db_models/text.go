@@ -3,7 +3,7 @@ package db_models
 import "github.com/google/uuid"
 
 type (
-	// Text - текст.
+	// Text - модель базы данных языка локализации.
 	Text struct {
 		ID       uuid.UUID `db:"id"`
 		Language string    `db:"language"`
@@ -12,6 +12,6 @@ type (
 		Value    string    `db:"value"`
 	}
 
-	// Dictionary - словарь локализации.
+	// Dictionary - модель базы данных словаря локализации.
 	Dictionary []*Text
 )

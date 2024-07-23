@@ -33,7 +33,7 @@ func (entity *Project) FillEmptyFields() *Project {
 	return entity
 }
 
-// ToModel - получение модели.
+// ToModel - получение внешней модели.
 func (entity ProjectList) ToModel() (list models.ProjectList) {
 	// tracer
 	{
@@ -52,7 +52,7 @@ func (entity ProjectList) ToModel() (list models.ProjectList) {
 	return
 }
 
-// ToModel - получение модели.
+// ToModel - получение внешней модели.
 func (entity *Project) ToModel() (model *models.ProjectInfo) {
 	// tracer
 	{

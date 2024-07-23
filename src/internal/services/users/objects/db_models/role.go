@@ -3,7 +3,7 @@ package db_models
 import "sm-box/internal/common/types"
 
 type (
-	// Role - модель роли пользователя для базы данных.
+	// Role - модель базы данных роли пользователя.
 	Role struct {
 		ID        types.ID `db:"id"`
 		ProjectID types.ID `db:"project_id"`
@@ -12,7 +12,7 @@ type (
 		IsSystem bool   `db:"is_system"`
 	}
 
-	// RoleInheritance - модель наследования роли для базы данных.
+	// RoleInheritance - модель базы данных наследования роли.
 	RoleInheritance struct {
 		Parent types.ID `db:"parent"`
 		Heir   types.ID `db:"heir"`

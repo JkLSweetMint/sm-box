@@ -1,0 +1,5 @@
+<Config>
+	<Connector db="0" host="url_shortner-redis" port="6379">
+		<Auth user="root" password="d36fcp8J9T51hyPY"></Auth>
+	</Connector>
+</Config>

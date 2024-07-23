@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	// HttpRouteInfo - модель с информацией о http маршруте системы.
+	// HttpRouteInfo - внешняя модель с информацией о http маршруте системы.
 	HttpRouteInfo struct {
 		ID types.ID `json:"id" xml:"id,attr"`
 
@@ -24,10 +24,10 @@ type (
 		Accesses HttpRouteInfoAccesses `json:"accesses,omitempty" xml:"Accesses,omitempty>Access"`
 	}
 
-	// HttpRouteInfoAccesses - модель с информацией о доступах к маршруту.
+	// HttpRouteInfoAccesses - внешняя модель с информацией о доступах к маршруту.
 	HttpRouteInfoAccesses []*HttpRouteInfoAccess
 
-	// HttpRouteInfoAccess - модель с информацией о доступе к маршруту.
+	// HttpRouteInfoAccess - внешняя модель с информацией о доступе к маршруту.
 	HttpRouteInfoAccess struct {
 		RouteID types.ID `json:"route_id" xml:"route_id,attr"`
 		RoleID  types.ID `json:"role_id"  xml:"role_id,attr"`

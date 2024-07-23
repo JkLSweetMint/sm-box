@@ -6,14 +6,14 @@ import (
 )
 
 type (
-	// JwtAccessToken - jwt токен доступа.
+	// JwtAccessToken - модель база данных jwt токена доступа.
 	JwtAccessToken struct {
 		*JwtToken
 
 		UserInfo *JwtAccessTokenUserInfo `json:"user_info"`
 	}
 
-	// JwtAccessTokenUserInfo - информация о пользователя для jwt токена доступа.
+	// JwtAccessTokenUserInfo - модель база данных с информацией о пользователя для jwt токена доступа.
 	JwtAccessTokenUserInfo struct {
 		Accesses []types.ID `json:"accesses"`
 	}
