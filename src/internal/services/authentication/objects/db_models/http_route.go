@@ -2,13 +2,13 @@ package db_models
 
 import (
 	"github.com/lib/pq"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 )
 
 type (
 	// HttpRoute - модель базы данных http маршрута
 	HttpRoute struct {
-		ID types.ID `db:"id"`
+		ID common_types.ID `db:"id"`
 
 		SystemName  string `db:"system_name"`
 		Name        string `db:"name"`
@@ -25,7 +25,8 @@ type (
 
 	// HttpRouteAccess - модель базы данных доступа http маршрута.
 	HttpRouteAccess struct {
-		RouteID types.ID `db:"route_id"`
-		RoleID  types.ID `db:"role_id"`
+		RouteID      common_types.ID `db:"route_id"`
+		RoleID       common_types.ID `db:"role_id"`
+		PermissionID common_types.ID `db:"permission_id"`
 	}
 )

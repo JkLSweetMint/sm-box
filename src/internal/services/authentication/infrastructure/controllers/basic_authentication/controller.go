@@ -4,7 +4,7 @@ import (
 	"context"
 	app_entities "sm-box/internal/app/objects/entities"
 	app_models "sm-box/internal/app/objects/models"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	basic_authentication_usecase "sm-box/internal/services/authentication/infrastructure/usecases/basic_authentication"
 	"sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/authentication/objects/models"
@@ -31,7 +31,7 @@ type usecases struct {
 	BasicAuthentication interface {
 		Auth(ctx context.Context, rawSessionToken, username, password string) (sessionToken *entities.JwtSessionToken, cErr c_errors.Error)
 		GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_entities.ProjectList, cErr c_errors.Error)
-		SetTokenProject(ctx context.Context, rawSessionToken string, projectID types.ID) (
+		SetTokenProject(ctx context.Context, rawSessionToken string, projectID common_types.ID) (
 			sessionToken *entities.JwtSessionToken,
 			accessToken *entities.JwtAccessToken,
 			refreshToken *entities.JwtRefreshToken,
@@ -171,7 +171,7 @@ func (controller *Controller) GetUserProjectList(ctx context.Context, rawSession
 }
 
 // SetTokenProject - установить проект для токена.
-func (controller *Controller) SetTokenProject(ctx context.Context, rawSessionToken string, projectID types.ID) (
+func (controller *Controller) SetTokenProject(ctx context.Context, rawSessionToken string, projectID common_types.ID) (
 	sessionToken, accessToken, refreshToken *models.JwtTokenInfo, cErr c_errors.Error) {
 	// tracer
 	{

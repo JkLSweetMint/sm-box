@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/google/uuid"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"time"
 )
 
@@ -12,8 +12,8 @@ type (
 		ID       uuid.UUID `json:"id"        xml:"id,attr"`
 		ParentID uuid.UUID `json:"parent_id" xml:"parent_id,attr"`
 
-		UserID    types.ID `json:"user_id"    xml:"user_id,attr"`
-		ProjectID types.ID `json:"project_id" xml:"project_id,attr"`
+		UserID    common_types.ID `json:"user_id"    xml:"user_id,attr"`
+		ProjectID common_types.ID `json:"project_id" xml:"project_id,attr"`
 
 		Type string `json:"type" xml:"type,attr"`
 		Raw  string `json:"raw"  xml:"Raw"`

@@ -3,7 +3,7 @@ package grpc_projects_srv
 import (
 	"context"
 	"sm-box/internal/app/objects/models"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 	pb "sm-box/transport/proto/pb/golang/app"
 )
@@ -24,7 +24,7 @@ func (srv *server) GetOne(ctx context.Context, request *pb.ProjectsGetOneRequest
 
 	// Получение данных
 	{
-		if project, err = srv.controllers.Projects.GetOne(ctx, types.ID(request.ID)); err != nil {
+		if project, err = srv.controllers.Projects.GetOne(ctx, common_types.ID(request.ID)); err != nil {
 			srv.components.Logger.Error().
 				Format("Project data could not be retrieved: '%s'. ", err).Write()
 
@@ -64,12 +64,12 @@ func (srv *server) Get(ctx context.Context, request *pb.ProjectsGetRequest) (res
 
 	// Получение данных
 	{
-		var ids = make([]types.ID, 0, len(request.IDs))
+		var ids = make([]common_types.ID, 0, len(request.IDs))
 
 		// Сбор id
 		{
 			for _, id := range request.IDs {
-				ids = append(ids, types.ID(id))
+				ids = append(ids, common_types.ID(id))
 			}
 		}
 

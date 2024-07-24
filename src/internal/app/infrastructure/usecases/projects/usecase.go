@@ -7,7 +7,7 @@ import (
 	projects_repository "sm-box/internal/app/infrastructure/repositories/projects"
 	"sm-box/internal/app/objects/entities"
 	error_list "sm-box/internal/common/errors"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -29,8 +29,8 @@ type UseCase struct {
 // repositories - репозитории логики.
 type repositories struct {
 	Projects interface {
-		Get(ctx context.Context, ids []types.ID) (list entities.ProjectList, err error)
-		GetOne(ctx context.Context, id types.ID) (project *entities.Project, err error)
+		Get(ctx context.Context, ids []common_types.ID) (list entities.ProjectList, err error)
+		GetOne(ctx context.Context, id common_types.ID) (project *entities.Project, err error)
 	}
 }
 
@@ -94,7 +94,7 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 }
 
 // Get - получение проектов по ID.
-func (usecase *UseCase) Get(ctx context.Context, ids ...types.ID) (list entities.ProjectList, cErr c_errors.Error) {
+func (usecase *UseCase) Get(ctx context.Context, ids ...common_types.ID) (list entities.ProjectList, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
@@ -136,7 +136,7 @@ func (usecase *UseCase) Get(ctx context.Context, ids ...types.ID) (list entities
 }
 
 // GetOne - получение проекта по ID.
-func (usecase *UseCase) GetOne(ctx context.Context, id types.ID) (project *entities.Project, cErr c_errors.Error) {
+func (usecase *UseCase) GetOne(ctx context.Context, id common_types.ID) (project *entities.Project, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)

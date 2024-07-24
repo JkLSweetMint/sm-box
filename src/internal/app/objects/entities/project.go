@@ -2,14 +2,14 @@ package entities
 
 import (
 	"sm-box/internal/app/objects/models"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/pkg/core/components/tracer"
 )
 
 type (
 	// Project - проект.
 	Project struct {
-		ID types.ID
+		ID common_types.ID
 
 		Name        string
 		Description string
@@ -61,6 +61,8 @@ func (entity *Project) ToModel() (model *models.ProjectInfo) {
 		trc.FunctionCall()
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
+
+	entity.FillEmptyFields()
 
 	model = &models.ProjectInfo{
 		ID: entity.ID,

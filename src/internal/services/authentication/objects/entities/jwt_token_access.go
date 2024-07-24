@@ -3,8 +3,8 @@ package entities
 import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/db_models"
+	users_models "sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	"time"
@@ -20,7 +20,7 @@ type (
 
 	// JwtAccessTokenUserInfo - информация о пользователя для jwt токена доступа.
 	JwtAccessTokenUserInfo struct {
-		Accesses []types.ID
+		Accesses *users_models.UserInfoAccesses
 	}
 
 	// JwtAccessTokenClaims - данные для подписи jwt токена доступа.
@@ -97,7 +97,10 @@ func (entity *JwtAccessTokenUserInfo) FillEmptyFields() *JwtAccessTokenUserInfo 
 	}
 
 	if entity.Accesses == nil {
-		entity.Accesses = make([]types.ID, 0)
+		entity.Accesses = &users_models.UserInfoAccesses{
+			Roles:       make([]*users_models.RoleInfo, 0),
+			Permissions: make([]*users_models.PermissionInfo, 0),
+		}
 	}
 
 	return entity

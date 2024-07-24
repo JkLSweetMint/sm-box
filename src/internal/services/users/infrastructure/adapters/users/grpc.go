@@ -2,7 +2,7 @@ package users_adapter
 
 import (
 	"context"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/users/infrastructure/controllers/users"
 	"sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/logger"
@@ -19,8 +19,8 @@ type Adapter_Grpc struct {
 	components *components
 
 	controller interface {
-		Get(ctx context.Context, ids ...types.ID) (list []*models.UserInfo, cErr c_errors.Error)
-		GetOne(ctx context.Context, id types.ID) (user *models.UserInfo, cErr c_errors.Error)
+		Get(ctx context.Context, ids ...common_types.ID) (list []*models.UserInfo, cErr c_errors.Error)
+		GetOne(ctx context.Context, id common_types.ID) (user *models.UserInfo, cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -71,7 +71,7 @@ func New_Grpc(ctx context.Context) (adapter *Adapter_Grpc, err error) {
 }
 
 // Get - получение пользователей по ID.
-func (adapter *Adapter_Grpc) Get(ctx context.Context, ids ...types.ID) (list []*models.UserInfo, cErr c_errors.Grpc) {
+func (adapter *Adapter_Grpc) Get(ctx context.Context, ids ...common_types.ID) (list []*models.UserInfo, cErr c_errors.Grpc) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
@@ -94,7 +94,7 @@ func (adapter *Adapter_Grpc) Get(ctx context.Context, ids ...types.ID) (list []*
 }
 
 // GetOne - получение пользователя по ID.
-func (adapter *Adapter_Grpc) GetOne(ctx context.Context, id types.ID) (user *models.UserInfo, cErr c_errors.Grpc) {
+func (adapter *Adapter_Grpc) GetOne(ctx context.Context, id common_types.ID) (user *models.UserInfo, cErr c_errors.Grpc) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)

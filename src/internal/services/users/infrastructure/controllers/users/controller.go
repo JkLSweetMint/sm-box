@@ -2,7 +2,7 @@ package users_controller
 
 import (
 	"context"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/users/infrastructure/usecases/users"
 	"sm-box/internal/services/users/objects/entities"
 	"sm-box/internal/services/users/objects/models"
@@ -27,8 +27,8 @@ type Controller struct {
 // usecases - логика контроллера.
 type usecases struct {
 	Users interface {
-		Get(ctx context.Context, ids ...types.ID) (list []*entities.User, cErr c_errors.Error)
-		GetOne(ctx context.Context, id types.ID) (us *entities.User, cErr c_errors.Error)
+		Get(ctx context.Context, ids ...common_types.ID) (list []*entities.User, cErr c_errors.Error)
+		GetOne(ctx context.Context, id common_types.ID) (us *entities.User, cErr c_errors.Error)
 	}
 }
 
@@ -92,7 +92,7 @@ func New(ctx context.Context) (controller *Controller, err error) {
 }
 
 // Get - получение пользователей по ID.
-func (controller *Controller) Get(ctx context.Context, ids ...types.ID) (list []*models.UserInfo, cErr c_errors.Error) {
+func (controller *Controller) Get(ctx context.Context, ids ...common_types.ID) (list []*models.UserInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
@@ -128,7 +128,7 @@ func (controller *Controller) Get(ctx context.Context, ids ...types.ID) (list []
 }
 
 // GetOne - получение пользователя по ID.
-func (controller *Controller) GetOne(ctx context.Context, id types.ID) (user *models.UserInfo, cErr c_errors.Error) {
+func (controller *Controller) GetOne(ctx context.Context, id common_types.ID) (user *models.UserInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)

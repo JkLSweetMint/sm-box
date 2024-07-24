@@ -1,9 +1,10 @@
 package entities
 
 import (
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/url_shortner/objects/db_models"
 	"sm-box/internal/services/url_shortner/objects/models"
+	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/tracer"
 	"time"
 )
@@ -11,17 +12,24 @@ import (
 type (
 	// ShortUrl - короткая ссылка.
 	ShortUrl struct {
-		ID        types.ID
+		ID        common_types.ID
 		Source    string
 		Reduction string
 
+		Accesses   *ShortUrlAccesses
 		Properties *ShortUrlProperties
+	}
+
+	// ShortUrlAccesses - информация по доступам к короткому url.
+	ShortUrlAccesses struct {
+		Roles       []common_types.ID
+		Permissions []common_types.ID
 	}
 
 	// ShortUrlProperties - свойства короткой ссылке.
 	ShortUrlProperties struct {
-		Type         string
-		NumberOfUses uint16
+		Type         types.ShortUrlType
+		NumberOfUses int64
 		StartActive  time.Time
 		EndActive    time.Time
 	}
@@ -55,6 +63,8 @@ func (entity *ShortUrl) ToModel() (model *models.ShortUrlInfo) {
 		trc.FunctionCall()
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
+
+	entity.FillEmptyFields()
 
 	model = &models.ShortUrlInfo{
 		ID:        entity.ID,

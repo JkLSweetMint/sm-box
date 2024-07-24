@@ -2,9 +2,12 @@ package urls_controller
 
 import (
 	"context"
+	common_types "sm-box/internal/common/types"
+	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	urls_usecase "sm-box/internal/services/url_shortner/infrastructure/usecases/urls"
 	"sm-box/internal/services/url_shortner/objects/entities"
 	"sm-box/internal/services/url_shortner/objects/models"
+	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -30,6 +33,8 @@ type usecases struct {
 		GetByReduceFromRedisDB(ctx context.Context, reduce string) (url *entities.ShortUrl, cErr c_errors.Error)
 		UpdateInRedisDB(ctx context.Context, url *entities.ShortUrl) (cErr c_errors.Error)
 		RemoveByReduceFromRedisDB(ctx context.Context, reduce string) (cErr c_errors.Error)
+
+		WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.Error)
 	}
 }
 
@@ -199,6 +204,29 @@ func (controller *Controller) RemoveByReduceFromRedisDB(ctx context.Context, red
 	// Выполнения инструкций
 	{
 		if cErr = controller.usecases.Urls.RemoveByReduceFromRedisDB(ctx, reduce); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+
+			return
+		}
+	}
+
+	return
+}
+
+// WriteCallToHistory - записать обращение по короткой ссылке в историю.
+func (controller *Controller) WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, id, status, token)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	// Выполнения инструкций
+	{
+		if cErr = controller.usecases.Urls.WriteCallToHistory(ctx, id, status, token); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 

@@ -6,7 +6,10 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"os"
 	"path"
+	common_types "sm-box/internal/common/types"
+	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/url_shortner/objects/models"
+	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/internal/services/url_shortner/transport/servers/http/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -39,6 +42,8 @@ type controllers struct {
 		GetByReduceFromRedisDB(ctx context.Context, reduce string) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
 		UpdateInRedisDB(ctx context.Context, url *models.ShortUrlInfo) (cErr c_errors.RestAPI)
 		RemoveByReduceFromRedisDB(ctx context.Context, reduce string) (cErr c_errors.RestAPI)
+
+		WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.RestAPI)
 	}
 }
 

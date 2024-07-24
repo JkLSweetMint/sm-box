@@ -35,6 +35,10 @@ $$;
 create schema
     if not exists transports;
 
+create type transports.http_method as enum ('GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH');
+
+create type transports.http_protocol as enum ('http', 'https', 'ws', 'wss');
+
 create table
     if not exists transports.http_routes
 (
@@ -43,35 +47,13 @@ create table
             primary key,
     system_name   varchar(1024)              not null,
     name          varchar(1024)              not null,
-    description   varchar(4096) default ''   not null,
-    protocols     varchar(10)[] default '{}' not null,
-    method        varchar(10)                not null,
+    description   varchar(4096)              not null default '',
+    protocols     transports.http_protocol[] not null default '{}',
+    method        transports.http_method     not null,
     path          varchar(4096),
     regexp_path   varchar(4096),
-    active        boolean       default false not null,
-    authorize     boolean       default false not null
-
-    constraint check_active
-        check (active is true or active is false),
-
-    constraint check_authorize
-        check (authorize is true or authorize is false),
-
-    constraint check_protocols
-        check (protocols <@ ARRAY['http'::varchar(1024), 'https'::varchar(1024), 'ws'::varchar(1024), 'wss'::varchar(1024)]),
-
-    constraint check_method
-        check (
-            method = 'GET'
-                or method = 'HEAD'
-                or method = 'POST'
-                or method = 'PUT'
-                or method = 'DELETE'
-                or method = 'CONNECT'
-                or method = 'OPTIONS'
-                or method = 'TRACE'
-                or method = 'PATCH'
-            ),
+    active        boolean                    not null default false,
+    authorize     boolean                    not null default false
 
     constraint check_path
         check (((path is not null and path ~ '^(?:[-a-zA-Z0-9()*@:%_\+.~#?&\/=]*)$') or regexp_path is not null)),
@@ -82,12 +64,16 @@ create table
 create table
     if not exists transports.http_route_accesses
 (
-    route_id bigint not null
-        references transports.http_routes (id)
-            on delete cascade ,
-    role_id  bigint not null,
+    route_id       bigint not null
+            references transports.http_routes (id)
+                on delete cascade ,
+    role_id        bigint,
+    permission_id  bigint,
 
-    unique (route_id, role_id)
+    constraint check_http_route_accesses
+        check ((role_id is not null and permission_id is null) or (role_id is null and permission_id is not null)),
+
+    unique (route_id, role_id, permission_id)
 );
 
 create or replace function transports.create_http_route_accesses_for_root_fn()

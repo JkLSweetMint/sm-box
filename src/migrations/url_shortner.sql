@@ -88,12 +88,29 @@ begin
 end;
 $$;
 
+create type public.usage_history_status as enum ('success', 'failed', 'forbidden');
+
 create table
     if not exists public.usage_history
 (
-
-    url            bigint      not null
+    url            bigint                      not null
         references public.urls(id)
             on delete cascade,
-    timestamp      timestamptz not null default now()
+    status         public.usage_history_status not null,
+    timestamp      timestamptz                 not null default now(),
+    token_info     jsonb                       not null
+);
+
+create table
+    if not exists public.accesses
+(
+
+    url           bigint not null
+        references public.urls(id)
+            on delete cascade,
+    role_id       bigint,
+    permission_id bigint,
+
+    constraint check_accesses
+        check (role_id is not null or permission_id is not null)
 );

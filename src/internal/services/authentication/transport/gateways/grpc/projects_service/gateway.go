@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 	app_models "sm-box/internal/app/objects/models"
 	error_list "sm-box/internal/common/errors"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -89,7 +89,7 @@ func New(ctx context.Context) (gw *Gateway, err error) {
 }
 
 // Get - получение проектов по ID.
-func (gw *Gateway) Get(ctx context.Context, ids ...types.ID) (list app_models.ProjectList, cErr c_errors.Error) {
+func (gw *Gateway) Get(ctx context.Context, ids ...common_types.ID) (list app_models.ProjectList, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelTransportGatewayGrpc)
@@ -148,7 +148,7 @@ func (gw *Gateway) Get(ctx context.Context, ids ...types.ID) (list app_models.Pr
 
 		for _, project := range response.List {
 			list = append(list, &app_models.ProjectInfo{
-				ID: types.ID(project.ID),
+				ID: common_types.ID(project.ID),
 
 				Name:        project.Name,
 				Description: project.Description,
@@ -161,7 +161,7 @@ func (gw *Gateway) Get(ctx context.Context, ids ...types.ID) (list app_models.Pr
 }
 
 // GetOne - получение проекта по ID.
-func (gw *Gateway) GetOne(ctx context.Context, id types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error) {
+func (gw *Gateway) GetOne(ctx context.Context, id common_types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelTransportGatewayGrpc)
@@ -208,7 +208,7 @@ func (gw *Gateway) GetOne(ctx context.Context, id types.ID) (project *app_models
 	// Преобразование в модель
 	{
 		project = &app_models.ProjectInfo{
-			ID: types.ID(response.Project.ID),
+			ID: common_types.ID(response.Project.ID),
 
 			Name:        response.Project.Name,
 			Description: response.Project.Description,

@@ -3,6 +3,7 @@ package http_routes_repository
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/db_models"
 	"sm-box/internal/services/authentication/objects/entities"
 	"sm-box/pkg/core/components/logger"
@@ -79,9 +80,11 @@ func (repo *Repository) GetAll(ctx context.Context) (list []*entities.HttpRoute,
 		defer func() { trc.Error(err).FunctionCallFinished(list) }()
 	}
 
-	var (
-		rows  *sqlx.Rows
-		query = `
+	// Основные данные
+	{
+		var (
+			rows  *sqlx.Rows
+			query = `
 				select
 					routes.id,
 					routes.system_name,
@@ -96,95 +99,153 @@ func (repo *Repository) GetAll(ctx context.Context) (list []*entities.HttpRoute,
 				from
 					transports.http_routes as routes
 			`
-	)
+		)
 
-	// Выполнение запроса
-	{
-		if rows, err = repo.connector.QueryxContext(ctx, query); err != nil {
-			repo.components.Logger.Error().
-				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
-			return
+		// Выполнение запроса
+		{
+			if rows, err = repo.connector.QueryxContext(ctx, query); err != nil {
+				repo.components.Logger.Error().
+					Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+				return
+			}
+		}
+
+		// Чтение данных
+		{
+			list = make([]*entities.HttpRoute, 0)
+
+			for rows.Next() {
+				var model = new(db_models.HttpRoute)
+
+				if err = rows.StructScan(model); err != nil {
+					repo.components.Logger.Error().
+						Format("Error while reading item data from the database:: '%s'. ", err).Write()
+					return
+				}
+
+				var route = &entities.HttpRoute{
+					ID: model.ID,
+
+					SystemName:  model.SystemName,
+					Name:        model.Name,
+					Description: model.Description,
+
+					Protocols:  model.Protocols,
+					Method:     model.Method,
+					Path:       model.Path,
+					RegexpPath: model.RegexpPath,
+
+					Active:    model.Active,
+					Authorize: model.Authorize,
+				}
+
+				route.FillEmptyFields()
+
+				list = append(list, route)
+			}
 		}
 	}
 
-	// Чтение данных
+	// Доступы
 	{
-		list = make([]*entities.HttpRoute, 0)
-
-		for rows.Next() {
-			var model = new(db_models.HttpRoute)
-
-			if err = rows.StructScan(model); err != nil {
-				repo.components.Logger.Error().
-					Format("Error while reading item data from the database:: '%s'. ", err).Write()
-				return
+		// Роли
+		{
+			type Model struct {
+				RouteID common_types.ID `db:"route_id"`
+				RoleID  common_types.ID `db:"role_id"`
 			}
 
-			var route = new(entities.HttpRoute)
+			var (
+				rows  *sqlx.Rows
+				query = `
+						select
+						    route_id,
+							role_id
+						from
+							transports.http_route_accesses
+						where
+							role_id is not null
+			`
+			)
 
-			// Преобразование в сущность
+			// Выполнение запроса
 			{
-				route.ID = model.ID
-
-				route.SystemName = model.SystemName
-				route.Name = model.Name
-				route.Description = model.Description
-
-				route.Protocols = model.Protocols
-				route.Method = model.Method
-				route.Path = model.Path
-				route.RegexpPath = model.RegexpPath
-
-				route.Active = model.Active
-				route.Authorize = model.Authorize
+				if rows, err = repo.connector.QueryxContext(ctx, query); err != nil {
+					repo.components.Logger.Error().
+						Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+					return
+				}
 			}
 
-			// Доступы
+			// Чтение данных
 			{
-				var models = make([]entities.HttpRouteAccess, 0, 10)
+				for rows.Next() {
+					var model = new(Model)
 
-				// Получение
-				{
-					var (
-						rows  *sqlx.Rows
-						query = `
-							select
-								accesses.role_id
-							from
-								transports.http_route_accesses as accesses
-							where
-								accesses.route_id = $1
-						`
-					)
-
-					if rows, err = repo.connector.QueryxContext(ctx, query, route.ID); err != nil {
+					if err = rows.StructScan(&model); err != nil {
 						repo.components.Logger.Error().
-							Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+							Format("Error while reading item data from the database:: '%s'. ", err).Write()
 						return
 					}
 
-					for rows.Next() {
-						var model entities.HttpRouteAccess
-
-						if err = rows.Scan(&model); err != nil {
-							repo.components.Logger.Error().
-								Format("Error while reading item data from the database:: '%s'. ", err).Write()
-							return
+					for _, route := range list {
+						if route.ID == model.RouteID {
+							route.Accesses.Roles = append(route.Accesses.Roles, model.RoleID)
+							break
 						}
-
-						models = append(models, model)
-					}
-				}
-
-				// Преобразование в сущность
-				{
-					for _, model := range models {
-						route.Accesses = append(route.Accesses, model)
 					}
 				}
 			}
+		}
 
-			list = append(list, route)
+		// Права
+		{
+			type Model struct {
+				RouteID      common_types.ID `db:"route_id"`
+				PermissionID common_types.ID `db:"permission_id"`
+			}
+
+			var (
+				rows  *sqlx.Rows
+				query = `
+						select
+						    route_id,
+							permission_id
+						from
+							transports.http_route_accesses
+						where
+							permission_id is not null
+			`
+			)
+
+			// Выполнение запроса
+			{
+				if rows, err = repo.connector.QueryxContext(ctx, query); err != nil {
+					repo.components.Logger.Error().
+						Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+					return
+				}
+			}
+
+			// Чтение данных
+			{
+				for rows.Next() {
+					var model = new(Model)
+
+					if err = rows.StructScan(&model); err != nil {
+						repo.components.Logger.Error().
+							Format("Error while reading item data from the database:: '%s'. ", err).Write()
+						return
+					}
+
+					for _, route := range list {
+						if route.ID == model.RouteID {
+							route.Accesses.Permissions = append(route.Accesses.Permissions, model.PermissionID)
+							break
+						}
+					}
+				}
+			}
 		}
 	}
 

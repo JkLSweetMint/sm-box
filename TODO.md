@@ -8,6 +8,15 @@
  
 ---
 
+### v24.0.46:
+- [x] Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
+- [x] Доработки [сервиса i18n](src/internal/services/i18n/service.go);
+- [x] Проектирование базы данных для dashboard;
+- [x] Переработка системы доступа;
+- [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
+
+---
+
 ### v24.0.45:
 - [x] Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
 - [x] Доработки [сервиса i18n](src/internal/services/i18n/service.go);

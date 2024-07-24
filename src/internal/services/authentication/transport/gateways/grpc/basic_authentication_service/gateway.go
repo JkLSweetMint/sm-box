@@ -3,11 +3,12 @@ package basic_authentication_service_gateway
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	error_list "sm-box/internal/common/errors"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	users_models "sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -137,12 +138,15 @@ func (gw *Gateway) Auth(ctx context.Context, username, password string) (user *u
 	// Преобразование в модель
 	{
 		user = &users_models.UserInfo{
-			ID: types.ID(response.User.ID),
+			ID: common_types.ID(response.User.ID),
 
 			Email:    response.User.Email,
 			Username: response.User.Username,
 
-			Accesses: make(users_models.UserInfoAccesses, 0),
+			Accesses: &users_models.UserInfoAccesses{
+				Roles:       make([]*users_models.RoleInfo, 0),
+				Permissions: make([]*users_models.PermissionInfo, 0),
+			},
 		}
 
 		var writeInheritance func(parent *users_models.RoleInfo, inheritances []*pb.Role)
@@ -150,8 +154,8 @@ func (gw *Gateway) Auth(ctx context.Context, username, password string) (user *u
 		writeInheritance = func(parent *users_models.RoleInfo, inheritances []*pb.Role) {
 			for _, rl := range inheritances {
 				var child = &users_models.RoleInfo{
-					ID:        types.ID(rl.ID),
-					ProjectID: types.ID(rl.ProjectID),
+					ID:        common_types.ID(rl.ID),
+					ProjectID: common_types.ID(rl.ProjectID),
 
 					Name:     rl.Name,
 					IsSystem: rl.IsSystem,
@@ -167,22 +171,74 @@ func (gw *Gateway) Auth(ctx context.Context, username, password string) (user *u
 			}
 		}
 
-		for _, rl := range response.User.Accesses {
-			var parent = &users_models.RoleInfo{
-				ID:        types.ID(rl.ID),
-				ProjectID: types.ID(rl.ProjectID),
+		// Права
+		{
+			if response.User.Accesses != nil && response.User.Accesses.Permissions != nil {
+				for _, perm := range response.User.Accesses.Permissions {
+					var permission = &users_models.PermissionInfo{
+						ID:        common_types.ID(perm.ID),
+						ProjectID: common_types.ID(perm.ProjectID),
 
-				Name:     rl.Name,
-				IsSystem: rl.IsSystem,
+						Name:            perm.Name,
+						NameI18n:        uuid.UUID{},
+						Description:     perm.Description,
+						DescriptionI18n: uuid.UUID{},
 
-				Inheritances: make(users_models.RoleInfoInheritances, 0),
+						IsSystem: perm.IsSystem,
+					}
+
+					permission.NameI18n, _ = uuid.Parse(perm.NameI18N)
+					permission.DescriptionI18n, _ = uuid.Parse(perm.DescriptionI18N)
+
+					user.Accesses.Permissions = append(user.Accesses.Permissions, permission)
+				}
 			}
+		}
 
-			user.Accesses = append(user.Accesses, &users_models.UserInfoAccess{
-				RoleInfo: parent,
-			})
+		// Роли
+		{
+			if response.User.Accesses != nil && response.User.Accesses.Roles != nil {
+				for _, rl := range response.User.Accesses.Roles {
+					var parent = &users_models.RoleInfo{
+						ID:        common_types.ID(rl.ID),
+						ProjectID: common_types.ID(rl.ProjectID),
 
-			writeInheritance(parent, rl.Inheritances)
+						Name:            rl.Name,
+						NameI18n:        uuid.UUID{},
+						Description:     rl.Description,
+						DescriptionI18n: uuid.UUID{},
+
+						IsSystem: rl.IsSystem,
+
+						Permissions:  make([]*users_models.PermissionInfo, 0),
+						Inheritances: make(users_models.RoleInfoInheritances, 0),
+					}
+
+					parent.NameI18n, _ = uuid.Parse(rl.NameI18N)
+					parent.DescriptionI18n, _ = uuid.Parse(rl.DescriptionI18N)
+
+					for _, permission := range rl.Permissions {
+						parent.Permissions = append(parent.Permissions, &users_models.PermissionInfo{
+							ID:        common_types.ID(permission.ID),
+							ProjectID: common_types.ID(permission.ProjectID),
+
+							Name:            permission.Name,
+							NameI18n:        uuid.UUID{},
+							Description:     permission.Description,
+							DescriptionI18n: uuid.UUID{},
+
+							IsSystem: permission.IsSystem,
+						})
+
+						parent.NameI18n, _ = uuid.Parse(permission.NameI18N)
+						parent.DescriptionI18n, _ = uuid.Parse(permission.DescriptionI18N)
+					}
+
+					user.Accesses.Roles = append(user.Accesses.Roles, parent)
+
+					writeInheritance(parent, rl.Inheritances)
+				}
+			}
 		}
 	}
 

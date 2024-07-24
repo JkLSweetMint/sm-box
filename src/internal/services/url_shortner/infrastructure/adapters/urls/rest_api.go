@@ -2,8 +2,11 @@ package urls_adapter
 
 import (
 	"context"
+	common_types "sm-box/internal/common/types"
+	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	urls_controller "sm-box/internal/services/url_shortner/infrastructure/controllers/urls"
 	"sm-box/internal/services/url_shortner/objects/models"
+	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -21,6 +24,8 @@ type Adapter_RestAPI struct {
 		GetByReduceFromRedisDB(ctx context.Context, reduce string) (url *models.ShortUrlInfo, cErr c_errors.Error)
 		UpdateInRedisDB(ctx context.Context, url *models.ShortUrlInfo) (cErr c_errors.Error)
 		RemoveByReduceFromRedisDB(ctx context.Context, reduce string) (cErr c_errors.Error)
+
+		WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -129,6 +134,29 @@ func (adapter *Adapter_RestAPI) RemoveByReduceFromRedisDB(ctx context.Context, r
 	var proxyErr c_errors.Error
 
 	if proxyErr = adapter.controller.RemoveByReduceFromRedisDB(ctx, reduce); proxyErr != nil {
+		cErr = c_errors.ToRestAPI(proxyErr)
+
+		adapter.components.Logger.Error().
+			Format("The controller method was executed with an error: '%s'. ", cErr).Write()
+		return
+	}
+
+	return
+}
+
+// WriteCallToHistory - записать обращение по короткой ссылке в историю.
+func (adapter *Adapter_RestAPI) WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.RestAPI) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelAdapter)
+
+		trc.FunctionCall(ctx, id, status, token)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	var proxyErr c_errors.Error
+
+	if proxyErr = adapter.controller.WriteCallToHistory(ctx, id, status, token); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().

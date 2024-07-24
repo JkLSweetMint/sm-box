@@ -4,7 +4,7 @@ import (
 	"context"
 	"google.golang.org/grpc"
 	"net"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -30,8 +30,8 @@ type server struct {
 // controllers - контроллеры сервера.
 type controllers struct {
 	Users interface {
-		Get(ctx context.Context, ids ...types.ID) (list []*models.UserInfo, cErr c_errors.Grpc)
-		GetOne(ctx context.Context, id types.ID) (user *models.UserInfo, cErr c_errors.Grpc)
+		Get(ctx context.Context, ids ...common_types.ID) (list []*models.UserInfo, cErr c_errors.Grpc)
+		GetOne(ctx context.Context, id common_types.ID) (user *models.UserInfo, cErr c_errors.Grpc)
 	}
 }
 

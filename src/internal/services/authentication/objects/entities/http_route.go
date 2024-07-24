@@ -2,7 +2,7 @@ package entities
 
 import (
 	"encoding/json"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/db_models"
 	"sm-box/pkg/core/components/tracer"
 	"strings"
@@ -11,7 +11,7 @@ import (
 type (
 	// HttpRoute - http маршрут системы.
 	HttpRoute struct {
-		ID types.ID `json:"id"`
+		ID common_types.ID `json:"id"`
 
 		SystemName  string `json:"system_name"`
 		Name        string `json:"name"`
@@ -25,14 +25,14 @@ type (
 		Active    bool `json:"active"`
 		Authorize bool `json:"authorize"`
 
-		Accesses HttpRouteAccesses `json:"accesses"`
+		Accesses *HttpRouteAccesses `json:"accesses"`
 	}
 
 	// HttpRouteAccesses - доступы к http маршруту системы.
-	HttpRouteAccesses []HttpRouteAccess
-
-	// HttpRouteAccess - доступ к http маршруту системы.
-	HttpRouteAccess types.ID
+	HttpRouteAccesses struct {
+		Roles       []common_types.ID `json:"roles"`
+		Permissions []common_types.ID `json:"permissions"`
+	}
 )
 
 // FillEmptyFields - заполнение пустых полей сущности.
@@ -46,8 +46,10 @@ func (entity *HttpRoute) FillEmptyFields() *HttpRoute {
 	}
 
 	if entity.Accesses == nil {
-		entity.Accesses = make(HttpRouteAccesses, 0)
+		entity.Accesses = new(HttpRouteAccesses)
 	}
+
+	entity.Accesses.FillEmptyFields()
 
 	return entity
 }
@@ -89,4 +91,25 @@ func (entity *HttpRoute) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary - распаковка структуры из бинарного формата.
 func (entity *HttpRoute) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, &entity)
+}
+
+// FillEmptyFields - заполнение пустых полей сущности.
+func (entity *HttpRouteAccesses) FillEmptyFields() *HttpRouteAccesses {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(entity) }()
+	}
+
+	if entity.Roles == nil {
+		entity.Roles = make([]common_types.ID, 0)
+	}
+
+	if entity.Permissions == nil {
+		entity.Permissions = make([]common_types.ID, 0)
+	}
+
+	return entity
 }

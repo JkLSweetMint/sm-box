@@ -5,9 +5,12 @@ import (
 	"errors"
 	"github.com/redis/go-redis/v9"
 	error_list "sm-box/internal/common/errors"
+	common_types "sm-box/internal/common/types"
+	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	urls_repository "sm-box/internal/services/url_shortner/infrastructure/repositories/urls"
 	urls_redis_repository "sm-box/internal/services/url_shortner/infrastructure/repositories/urls_redis"
 	"sm-box/internal/services/url_shortner/objects/entities"
+	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -30,6 +33,7 @@ type UseCase struct {
 type repositories struct {
 	Urls interface {
 		GetActive(ctx context.Context) (list []*entities.ShortUrl, err error)
+		WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (err error)
 	}
 	UrlsRedis interface {
 		Set(ctx context.Context, list ...*entities.ShortUrl) (err error)
@@ -214,7 +218,7 @@ func (usecase *UseCase) UpdateInRedisDB(ctx context.Context, url *entities.Short
 		Text("The process of updating the short url has been started... ").
 		Field("url", url).Write()
 
-	// Получение
+	// Обновление
 	{
 		var err error
 
@@ -248,7 +252,7 @@ func (usecase *UseCase) RemoveByReduceFromRedisDB(ctx context.Context, reduce st
 		Text("The process of deleting a short url has been started... ").
 		Field("reduce", reduce).Write()
 
-	// Получение
+	// Удаление
 	{
 		var err error
 
@@ -264,6 +268,44 @@ func (usecase *UseCase) RemoveByReduceFromRedisDB(ctx context.Context, reduce st
 	usecase.components.Logger.Info().
 		Text("The process of deleting the short url is completed. ").
 		Field("reduce", reduce).Write()
+
+	return
+}
+
+// WriteCallToHistory - записать обращение по короткой ссылке в историю.
+func (usecase *UseCase) WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, id, status, token)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	usecase.components.Logger.Info().
+		Text("The process of recording a short route call in the history has been started... ").
+		Field("id", id).
+		Field("status", status).
+		Field("token", token).Write()
+
+	// Запись в историю
+	{
+		var err error
+
+		if err = usecase.repositories.Urls.WriteCallToHistory(ctx, id, status, token); err != nil {
+			usecase.components.Logger.Error().
+				Format("The call data could not be recorded in the history: '%s'. ", err).Write()
+
+			cErr = error_list.InternalServerError()
+			return
+		}
+	}
+
+	usecase.components.Logger.Info().
+		Text("The process of recording a short route call in the history is completed. ").
+		Field("id", id).
+		Field("status", status).
+		Field("token", token).Write()
 
 	return
 }

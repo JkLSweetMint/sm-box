@@ -2,7 +2,7 @@ package entities
 
 import (
 	"github.com/google/uuid"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/models"
 	"sm-box/pkg/core/components/tracer"
 	"time"
@@ -20,8 +20,8 @@ type (
 		ID       uuid.UUID
 		ParentID uuid.UUID
 
-		UserID    types.ID
-		ProjectID types.ID
+		UserID    common_types.ID
+		ProjectID common_types.ID
 
 		Type JwtTokenType
 		Raw  string
@@ -47,8 +47,8 @@ type (
 		ID       uuid.UUID
 		ParentID uuid.UUID
 
-		UserID    types.ID
-		ProjectID types.ID
+		UserID    common_types.ID
+		ProjectID common_types.ID
 
 		Params *JwtTokenParams
 	}
@@ -86,6 +86,8 @@ func (entity *JwtToken) ToModel() (model *models.JwtTokenInfo) {
 		trc.FunctionCall()
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
+
+	entity.FillEmptyFields()
 
 	model = &models.JwtTokenInfo{
 		ID:       entity.ID,

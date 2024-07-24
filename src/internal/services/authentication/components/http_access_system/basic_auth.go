@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	app_models "sm-box/internal/app/objects/models"
 	error_list "sm-box/internal/common/errors"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/entities"
 	users_models "sm-box/internal/services/users/objects/models"
 	c_errors "sm-box/pkg/errors"
@@ -305,7 +305,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 					// Проверка доступа
 					{
 						var (
-							ids  = make(map[types.ID]struct{})
+							ids  = make(map[common_types.ID]struct{})
 							cErr c_errors.Error
 						)
 
@@ -323,8 +323,8 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 								}
 							}
 
-							for _, rl := range user.Accesses {
-								writeInheritance(rl.RoleInfo)
+							for _, rl := range user.Accesses.Roles {
+								writeInheritance(rl)
 							}
 						}
 
@@ -406,7 +406,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							// Запись доступов пользователя
 							{
 								accessToken.UserInfo = &entities.JwtAccessTokenUserInfo{
-									Accesses: user.Accesses.ListIDs(),
+									Accesses: user.Accesses,
 								}
 							}
 
@@ -622,9 +622,9 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 				}
 
 			CheckAccessForRoute:
-				for _, userRoleID := range accessToken.UserInfo.Accesses {
-					for _, routeRoleID := range route.Accesses {
-						if userRoleID == types.ID(routeRoleID) {
+				for _, userRole := range accessToken.UserInfo.Accesses.Roles {
+					for _, routeRoleID := range route.Accesses.Roles {
+						if userRole.ID == routeRoleID {
 							allowed = true
 							break CheckAccessForRoute
 						}

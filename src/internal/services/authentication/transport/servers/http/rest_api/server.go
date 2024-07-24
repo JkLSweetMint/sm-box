@@ -7,7 +7,7 @@ import (
 	"os"
 	"path"
 	app_models "sm-box/internal/app/objects/models"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/components/http_access_system"
 	"sm-box/internal/services/authentication/objects/models"
 	"sm-box/internal/services/authentication/transport/servers/http/rest_api/config"
@@ -41,7 +41,7 @@ type controllers struct {
 	BasicAuthentication interface {
 		Auth(ctx context.Context, rawSessionToken, username, password string) (sessionToken *models.JwtTokenInfo, cErr c_errors.RestAPI)
 		GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_models.ProjectList, cErr c_errors.RestAPI)
-		SetTokenProject(ctx context.Context, rawSessionToken string, projectID types.ID) (
+		SetTokenProject(ctx context.Context, rawSessionToken string, projectID common_types.ID) (
 			sessionToken, accessToken, refreshToken *models.JwtTokenInfo, cErr c_errors.RestAPI)
 		Logout(ctx context.Context, rawSessionToken, rawAccessToken, rawRefreshToken string) (cErr c_errors.RestAPI)
 	}

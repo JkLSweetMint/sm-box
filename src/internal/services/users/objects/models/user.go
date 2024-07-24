@@ -1,31 +1,27 @@
 package models
 
-import (
-	"sm-box/internal/common/types"
-)
+import common_types "sm-box/internal/common/types"
 
 type (
 	// UserInfo - внешняя модель пользователя системы.
 	UserInfo struct {
-		ID types.ID `json:"id" xml:"id,attr"`
+		ID common_types.ID `json:"id" xml:"id,attr"`
 
 		Email    string `json:"email"    xml:"Email"`
 		Username string `json:"username" xml:"Username"`
 
-		Accesses UserInfoAccesses `json:"accesses" xml:"Accesses>Access"`
+		Accesses *UserInfoAccesses `json:"accesses" xml:"Accesses>Access"`
 	}
 
 	// UserInfoAccesses - внешняя модель с информацией о доступах пользователя.
-	UserInfoAccesses []*UserInfoAccess
-
-	// UserInfoAccess - внешняя модель с информацией о доступе пользователя.
-	UserInfoAccess struct {
-		*RoleInfo
+	UserInfoAccesses struct {
+		Roles       []*RoleInfo       `json:"roles"       xml:"Roles"`
+		Permissions []*PermissionInfo `json:"permissions" xml:"Permissions"`
 	}
 )
 
-// ListIDs - получение списка ID доступов.
-func (accesses UserInfoAccesses) ListIDs() (list []types.ID) {
+// RolesIDs - получение списка ID ролей.
+func (accesses UserInfoAccesses) RolesIDs() (list []common_types.ID) {
 	var writeInheritance func(rl *RoleInfo)
 
 	writeInheritance = func(rl *RoleInfo) {
@@ -36,8 +32,33 @@ func (accesses UserInfoAccesses) ListIDs() (list []types.ID) {
 		}
 	}
 
-	for _, rl := range accesses {
-		writeInheritance(rl.RoleInfo)
+	list = make([]common_types.ID, 0)
+
+	for _, rl := range accesses.Roles {
+		writeInheritance(rl)
+	}
+
+	return
+}
+
+// PermissionsIDs - получение списка ID прав.
+func (accesses UserInfoAccesses) PermissionsIDs() (list []common_types.ID) {
+	var writeInheritance func(rl *RoleInfo)
+
+	writeInheritance = func(rl *RoleInfo) {
+		for _, permission := range rl.Permissions {
+			list = append(list, permission.ID)
+		}
+
+		for _, inheritRl := range rl.Inheritances {
+			writeInheritance(inheritRl.RoleInfo)
+		}
+	}
+
+	list = make([]common_types.ID, 0)
+
+	for _, rl := range accesses.Roles {
+		writeInheritance(rl)
 	}
 
 	return

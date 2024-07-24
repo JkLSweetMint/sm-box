@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/users/objects/db_models"
 	"sm-box/internal/services/users/objects/entities"
 	"sm-box/pkg/core/components/logger"
@@ -80,7 +80,7 @@ func New(ctx context.Context) (repo *Repository, err error) {
 }
 
 // Get - получение пользователей по ID.
-func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list []*entities.User, err error) {
+func (repo *Repository) Get(ctx context.Context, ids []common_types.ID) (list []*entities.User, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -89,9 +89,11 @@ func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list []*entiti
 		defer func() { trc.Error(err).FunctionCallFinished(list) }()
 	}
 
-	var (
-		rows  *sqlx.Rows
-		query = `
+	// Основные данные
+	{
+		var (
+			rows  *sqlx.Rows
+			query = `
 			select
 				users.id,
 				coalesce(users.email, '') as email,
@@ -102,78 +104,159 @@ func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list []*entiti
 				users.id = any($1)
 			order by users.id
 			`
-	)
+		)
 
-	var ids_ = make(pq.Int64Array, 0, len(ids))
+		var ids_ = make(pq.Int64Array, 0, len(ids))
 
-	// Подготовка данных
-	{
-		for _, id := range ids {
-			ids_ = append(ids_, int64(id))
+		// Подготовка данных
+		{
+			for _, id := range ids {
+				ids_ = append(ids_, int64(id))
+			}
 		}
-	}
 
-	// Выполнение запроса
-	{
-		if rows, err = repo.connector.QueryxContext(ctx, query, ids_); err != nil {
-			repo.components.Logger.Error().
-				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
-			return
-		}
-	}
-
-	// Чтение данных
-	{
-		list = make([]*entities.User, 0)
-
-		for rows.Next() {
-			var model = new(db_models.User)
-
-			if err = rows.StructScan(model); err != nil {
+		// Выполнение запроса
+		{
+			if rows, err = repo.connector.QueryxContext(ctx, query, ids_); err != nil {
 				repo.components.Logger.Error().
-					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+					Format("Error when retrieving an items from the database: '%s'. ", err).Write()
 				return
 			}
+		}
 
-			var us = &entities.User{
-				ID: model.ID,
+		// Чтение данных
+		{
+			list = make([]*entities.User, 0)
 
-				Email:    model.Email,
-				Username: model.Username,
-			}
+			for rows.Next() {
+				var model = new(db_models.User)
 
-			// Доступы
-			{
-				type Model struct {
-					*db_models.Role
-					*db_models.RoleInheritance
+				if err = rows.StructScan(model); err != nil {
+					repo.components.Logger.Error().
+						Format("Error while reading item data from the database:: '%s'. ", err).Write()
+					return
 				}
 
-				var models = make([]*Model, 0, 10)
+				var us = &entities.User{
+					ID: model.ID,
 
-				// Получение
+					Email:    model.Email,
+					Username: model.Username,
+				}
+
+				list = append(list, us.FillEmptyFields())
+			}
+		}
+	}
+
+	// Доступы
+	{
+		type RoleModel struct {
+			*db_models.Role
+			*db_models.RoleInheritance
+		}
+
+		type PermissionModel struct {
+			*db_models.Permission
+
+			RoleID common_types.ID `db:"role_id"`
+		}
+
+		var (
+			writeRoleInheritance func(parent *entities.Role, models []*RoleModel)
+			writePermission      func(role *entities.Role, models []*PermissionModel)
+		)
+
+		// writeRoleInheritance
+		{
+			writeRoleInheritance = func(parent *entities.Role, models []*RoleModel) {
+				for _, model := range models {
+					if model.ParentID == parent.ID {
+						var (
+							role = &entities.Role{
+								ID:        model.ID,
+								ProjectID: model.ProjectID,
+								Name:      model.Name,
+
+								Inheritances: make(entities.RoleInheritances, 0),
+							}
+						)
+						role.FillEmptyFields()
+
+						parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
+							Role: role,
+						})
+
+						writeRoleInheritance(role, models)
+					}
+				}
+			}
+
+			writePermission = func(role *entities.Role, models []*PermissionModel) {
+				for _, model := range models {
+					if model.RoleID == role.ID {
+						role.Permissions = append(role.Permissions, &entities.Permission{
+							ID:        model.ID,
+							ProjectID: model.ProjectID,
+
+							Name:            model.Name,
+							NameI18n:        model.NameI18n,
+							Description:     model.Description,
+							DescriptionI18n: model.DescriptionI18n,
+
+							IsSystem: model.IsSystem,
+						})
+					}
+				}
+
+				for _, child := range role.Inheritances {
+					writePermission(child.Role, models)
+				}
+			}
+		}
+
+		for _, us := range list {
+			// Роли
+			{
+				var (
+					models = make([]*RoleModel, 0, 10)
+					rows   *sqlx.Rows
+					query  = `
+							select
+								distinct id,
+										 coalesce(project_id, 0) as project_id,
+										 coalesce(parent_id, 0) as parent_id,
+										 coalesce(name, '') as name,
+										 coalesce(name_i18n, '00000000-0000-0000-0000-000000000000') as name_i18n,
+										 coalesce(description, '') as description,
+										 coalesce(description_i18n, '00000000-0000-0000-0000-000000000000') as description_i18n,
+										 is_system
+							from
+								access_system.get_user_roles($1) as (
+									id bigint, 
+									project_id bigint,
+									parent_id bigint,
+									name varchar,
+									name_i18n uuid,
+									description varchar,
+									description_i18n uuid,
+									is_system boolean);
+					`
+				)
+
+				// Выполнение запроса
 				{
-					var (
-						rows  *sqlx.Rows
-						query = `
-				select
-					distinct id,
-					coalesce(project_id, 0) as project_id,
-					name,
-					coalesce(parent, 0) as parent
-				from
-					access_system.get_user_access($1) as (id bigint, project_id bigint, name varchar, parent bigint);
-			`
-					)
-
 					if rows, err = repo.connector.QueryxContext(ctx, query, us.ID); err != nil {
 						repo.components.Logger.Error().
 							Format("Error when retrieving an items from the database: '%s'. ", err).Write()
 						return
 					}
+				}
 
+				// Чтение данных
+				{
 					for rows.Next() {
-						var model = new(Model)
+						var model = new(RoleModel)
 
 						if err = rows.StructScan(model); err != nil {
 							repo.components.Logger.Error().
@@ -187,35 +270,8 @@ func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list []*entiti
 
 				// Перенос в сущность
 				{
-					var writeInheritance func(parent *entities.UserAccess)
-
-					writeInheritance = func(parent *entities.UserAccess) {
-						for _, model := range models {
-							if model.Parent == parent.ID {
-								var (
-									role = &entities.Role{
-										ID:        model.ID,
-										ProjectID: model.ProjectID,
-										Name:      model.Name,
-
-										Inheritances: make(entities.RoleInheritances, 0),
-									}
-								)
-								role.FillEmptyFields()
-
-								parent.Inheritances = append(parent.Inheritances, &entities.RoleInheritance{
-									Role: role,
-								})
-
-								writeInheritance(&entities.UserAccess{
-									Role: role,
-								})
-							}
-						}
-					}
-
 					for _, model := range models {
-						if model.Parent == 0 {
+						if model.ParentID == 0 {
 							var (
 								role = &entities.Role{
 									ID:        model.ID,
@@ -224,19 +280,93 @@ func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list []*entiti
 
 									Inheritances: make(entities.RoleInheritances, 0),
 								}
-								acc = &entities.UserAccess{
-									Role: role.FillEmptyFields(),
-								}
+								acc = role.FillEmptyFields()
 							)
 
-							writeInheritance(acc)
-							us.Accesses = append(us.Accesses, acc)
+							writeRoleInheritance(acc, models)
+							us.Accesses.Roles = append(us.Accesses.Roles, acc)
 						}
 					}
 				}
 			}
 
-			list = append(list, us)
+			// Права
+			{
+				var (
+					models = make([]*PermissionModel, 0, 10)
+					rows   *sqlx.Rows
+					query  = `
+						select
+							distinct id,
+									 coalesce(project_id, 0) as project_id,
+									 coalesce(role_id, 0) as role_id,
+									 coalesce(name, '') as name,
+									 coalesce(name_i18n, '00000000-0000-0000-0000-000000000000') as name_i18n,
+									 coalesce(description, '') as description,
+									 coalesce(description_i18n, '00000000-0000-0000-0000-000000000000') as description_i18n,
+									 is_system
+						from
+							access_system.get_user_permissions($1) as (
+								id bigint,
+								project_id bigint,
+								role_id bigint,
+								name varchar,
+								name_i18n uuid,
+								description varchar,
+								description_i18n uuid,
+								is_system boolean);
+					`
+				)
+
+				// Выполнение запроса
+				{
+					if rows, err = repo.connector.QueryxContext(ctx, query, us.ID); err != nil {
+						repo.components.Logger.Error().
+							Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+						return
+					}
+				}
+
+				// Чтение данных
+				{
+					for rows.Next() {
+						var model = new(PermissionModel)
+
+						if err = rows.StructScan(model); err != nil {
+							repo.components.Logger.Error().
+								Format("Error while reading item data from the database:: '%s'. ", err).Write()
+							return
+						}
+
+						models = append(models, model)
+					}
+				}
+
+				// Перенос в сущность
+				{
+					for _, model := range models {
+						if model.RoleID == 0 {
+							us.Accesses.Permissions = append(us.Accesses.Permissions, &entities.Permission{
+								ID:        model.ID,
+								ProjectID: model.ProjectID,
+
+								Name:            model.Name,
+								NameI18n:        model.NameI18n,
+								Description:     model.Description,
+								DescriptionI18n: model.DescriptionI18n,
+
+								IsSystem: model.IsSystem,
+							})
+
+							continue
+						}
+					}
+
+					for _, role := range us.Accesses.Roles {
+						writePermission(role, models)
+					}
+				}
+			}
 		}
 	}
 
@@ -244,7 +374,7 @@ func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list []*entiti
 }
 
 // GetOne - получение пользователя по ID.
-func (repo *Repository) GetOne(ctx context.Context, id types.ID) (us *entities.User, err error) {
+func (repo *Repository) GetOne(ctx context.Context, id common_types.ID) (us *entities.User, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -297,55 +427,27 @@ func (repo *Repository) GetOne(ctx context.Context, id types.ID) (us *entities.U
 
 	// Доступы
 	{
-		type Model struct {
+		type RoleModel struct {
 			*db_models.Role
 			*db_models.RoleInheritance
 		}
 
-		var models = make([]*Model, 0, 10)
+		type PermissionModel struct {
+			*db_models.Permission
 
-		// Получение
-		{
-
-			var (
-				rows  *sqlx.Rows
-				query = `
-				select
-					distinct id,
-					coalesce(project_id, 0) as project_id,
-					name,
-					coalesce(parent, 0) as parent
-				from
-					access_system.get_user_access($1) as (id bigint, project_id bigint, name varchar, parent bigint);
-			`
-			)
-
-			if rows, err = repo.connector.QueryxContext(ctx, query, us.ID); err != nil {
-				repo.components.Logger.Error().
-					Format("Error when retrieving an items from the database: '%s'. ", err).Write()
-				return
-			}
-
-			for rows.Next() {
-				var model = new(Model)
-
-				if err = rows.StructScan(model); err != nil {
-					repo.components.Logger.Error().
-						Format("Error while reading item data from the database:: '%s'. ", err).Write()
-					return
-				}
-
-				models = append(models, model)
-			}
+			RoleID common_types.ID `db:"role_id"`
 		}
 
-		// Перенос в сущность
-		{
-			var writeInheritance func(parent *entities.UserAccess)
+		var (
+			writeRoleInheritance func(parent *entities.Role, models []*RoleModel)
+			writePermission      func(role *entities.Role, models []*PermissionModel)
+		)
 
-			writeInheritance = func(parent *entities.UserAccess) {
+		// writeRoleInheritance
+		{
+			writeRoleInheritance = func(parent *entities.Role, models []*RoleModel) {
 				for _, model := range models {
-					if model.Parent == parent.ID {
+					if model.ParentID == parent.ID {
 						var (
 							role = &entities.Role{
 								ID:        model.ID,
@@ -361,30 +463,182 @@ func (repo *Repository) GetOne(ctx context.Context, id types.ID) (us *entities.U
 							Role: role,
 						})
 
-						writeInheritance(&entities.UserAccess{
-							Role: role,
-						})
+						writeRoleInheritance(role, models)
 					}
 				}
 			}
 
-			for _, model := range models {
-				if model.Parent == 0 {
-					var (
-						role = &entities.Role{
+			writePermission = func(role *entities.Role, models []*PermissionModel) {
+				for _, model := range models {
+					if model.RoleID == role.ID {
+						role.Permissions = append(role.Permissions, &entities.Permission{
 							ID:        model.ID,
 							ProjectID: model.ProjectID,
-							Name:      model.Name,
 
-							Inheritances: make(entities.RoleInheritances, 0),
-						}
-						acc = &entities.UserAccess{
-							Role: role.FillEmptyFields(),
-						}
-					)
+							Name:            model.Name,
+							NameI18n:        model.NameI18n,
+							Description:     model.Description,
+							DescriptionI18n: model.DescriptionI18n,
 
-					writeInheritance(acc)
-					us.Accesses = append(us.Accesses, acc)
+							IsSystem: model.IsSystem,
+						})
+					}
+				}
+
+				for _, child := range role.Inheritances {
+					writePermission(child.Role, models)
+				}
+			}
+		}
+
+		// Роли
+		{
+			var (
+				models = make([]*RoleModel, 0, 10)
+				rows   *sqlx.Rows
+				query  = `
+						select
+							distinct id,
+									 coalesce(project_id, 0) as project_id,
+									 coalesce(parent_id, 0) as parent_id,
+									 coalesce(name, '') as name,
+									 coalesce(name_i18n, '00000000-0000-0000-0000-000000000000') as name_i18n,
+									 coalesce(description, '') as description,
+									 coalesce(description_i18n, '00000000-0000-0000-0000-000000000000') as description_i18n,
+									 is_system
+						from
+							access_system.get_user_roles($1) as (
+								id bigint, 
+								project_id bigint,
+								parent_id bigint,
+								name varchar,
+								name_i18n uuid,
+								description varchar,
+								description_i18n uuid,
+								is_system boolean);
+				`
+			)
+
+			// Выполнение запроса
+			{
+				if rows, err = repo.connector.QueryxContext(ctx, query, us.ID); err != nil {
+					repo.components.Logger.Error().
+						Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+					return
+				}
+			}
+
+			// Чтение данных
+			{
+				for rows.Next() {
+					var model = new(RoleModel)
+
+					if err = rows.StructScan(model); err != nil {
+						repo.components.Logger.Error().
+							Format("Error while reading item data from the database:: '%s'. ", err).Write()
+						return
+					}
+
+					models = append(models, model)
+				}
+			}
+
+			// Перенос в сущность
+			{
+				for _, model := range models {
+					if model.ParentID == 0 {
+						var (
+							role = &entities.Role{
+								ID:        model.ID,
+								ProjectID: model.ProjectID,
+								Name:      model.Name,
+
+								Inheritances: make(entities.RoleInheritances, 0),
+							}
+							acc = role.FillEmptyFields()
+						)
+
+						writeRoleInheritance(acc, models)
+						us.Accesses.Roles = append(us.Accesses.Roles, acc)
+					}
+				}
+			}
+		}
+
+		// Права
+		{
+			var (
+				models = make([]*PermissionModel, 0, 10)
+				rows   *sqlx.Rows
+				query  = `
+					select
+						distinct id,
+								 coalesce(project_id, 0) as project_id,
+								 coalesce(role_id, 0) as role_id,
+								 coalesce(name, '') as name,
+								 coalesce(name_i18n, '00000000-0000-0000-0000-000000000000') as name_i18n,
+								 coalesce(description, '') as description,
+								 coalesce(description_i18n, '00000000-0000-0000-0000-000000000000') as description_i18n,
+								 is_system
+					from
+						access_system.get_user_permissions($1) as (
+							id bigint,
+							project_id bigint,
+							role_id bigint,
+							name varchar,
+							name_i18n uuid,
+							description varchar,
+							description_i18n uuid,
+							is_system boolean);
+					`
+			)
+
+			// Выполнение запроса
+			{
+				if rows, err = repo.connector.QueryxContext(ctx, query, us.ID); err != nil {
+					repo.components.Logger.Error().
+						Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+					return
+				}
+			}
+
+			// Чтение данных
+			{
+				for rows.Next() {
+					var model = new(PermissionModel)
+
+					if err = rows.StructScan(model); err != nil {
+						repo.components.Logger.Error().
+							Format("Error while reading item data from the database:: '%s'. ", err).Write()
+						return
+					}
+
+					models = append(models, model)
+				}
+			}
+
+			// Перенос в сущность
+			{
+				for _, model := range models {
+					if model.RoleID == 0 {
+						us.Accesses.Permissions = append(us.Accesses.Permissions, &entities.Permission{
+							ID:        model.ID,
+							ProjectID: model.ProjectID,
+
+							Name:            model.Name,
+							NameI18n:        model.NameI18n,
+							Description:     model.Description,
+							DescriptionI18n: model.DescriptionI18n,
+
+							IsSystem: model.IsSystem,
+						})
+
+						continue
+					}
+				}
+
+				for _, role := range us.Accesses.Roles {
+					writePermission(role, models)
 				}
 			}
 		}

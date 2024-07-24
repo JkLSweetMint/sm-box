@@ -40,43 +40,112 @@ func (srv *server) Auth(ctx context.Context, request *pb.BasicAuthenticationAuth
 			Email:    user.Email,
 			Username: user.Username,
 
-			Accesses: make([]*pb.Role, 0),
+			Accesses: &pb.UserAccesses{
+				Permissions: make([]*pb.Permission, 0),
+				Roles:       make([]*pb.Role, 0),
+			},
 		}
 
-		var writeInheritance func(parent *pb.Role, inheritances models.RoleInfoInheritances)
+		// Доступы
+		{
+			if user.Accesses != nil {
+				// Права
+				{
+					for _, permission := range user.Accesses.Permissions {
+						response.User.Accesses.Permissions = append(response.User.Accesses.Permissions, &pb.Permission{
+							ID:        uint64(permission.ID),
+							ProjectID: uint64(permission.ProjectID),
 
-		writeInheritance = func(parent *pb.Role, inheritances models.RoleInfoInheritances) {
-			for _, rl := range inheritances {
-				var child = &pb.Role{
-					ID:        uint64(rl.ID),
-					ProjectID: uint64(rl.ProjectID),
+							Name:            permission.Name,
+							NameI18N:        permission.NameI18n.String(),
+							Description:     permission.Description,
+							DescriptionI18N: permission.DescriptionI18n.String(),
 
-					Name:     rl.Name,
-					IsSystem: rl.IsSystem,
-
-					Inheritances: make([]*pb.Role, 0),
+							IsSystem: permission.IsSystem,
+						})
+					}
 				}
 
-				parent.Inheritances = append(parent.Inheritances, child)
+				// Роли
+				{
+					var writeInheritance func(parent *pb.Role, inheritances models.RoleInfoInheritances)
 
-				writeInheritance(child, rl.Inheritances)
+					writeInheritance = func(parent *pb.Role, inheritances models.RoleInfoInheritances) {
+						for _, rl := range inheritances {
+							var child = &pb.Role{
+								ID:        uint64(rl.ID),
+								ProjectID: uint64(rl.ProjectID),
+
+								Name:            rl.Name,
+								NameI18N:        rl.NameI18n.String(),
+								Description:     rl.Description,
+								DescriptionI18N: rl.DescriptionI18n.String(),
+
+								IsSystem: rl.IsSystem,
+
+								Permissions:  make([]*pb.Permission, 0),
+								Inheritances: make([]*pb.Role, 0),
+							}
+
+							for _, permission := range rl.Permissions {
+								child.Permissions = append(child.Permissions, &pb.Permission{
+									ID:        uint64(permission.ID),
+									ProjectID: uint64(permission.ProjectID),
+
+									Name:            permission.Name,
+									NameI18N:        permission.NameI18n.String(),
+									Description:     permission.Description,
+									DescriptionI18N: permission.DescriptionI18n.String(),
+
+									IsSystem: permission.IsSystem,
+								})
+							}
+
+							parent.Inheritances = append(parent.Inheritances, child)
+
+							writeInheritance(child, rl.Inheritances)
+						}
+					}
+
+					for _, rl := range user.Accesses.Roles {
+						var parent = &pb.Role{
+							ID:        uint64(rl.ID),
+							ProjectID: uint64(rl.ProjectID),
+
+							Name:            rl.Name,
+							NameI18N:        rl.NameI18n.String(),
+							Description:     rl.Description,
+							DescriptionI18N: rl.DescriptionI18n.String(),
+
+							IsSystem: rl.IsSystem,
+
+							Permissions:  make([]*pb.Permission, 0),
+							Inheritances: make([]*pb.Role, 0),
+						}
+
+						// Права
+						{
+							for _, permission := range rl.Permissions {
+								parent.Permissions = append(parent.Permissions, &pb.Permission{
+									ID:        uint64(permission.ID),
+									ProjectID: uint64(permission.ProjectID),
+
+									Name:            permission.Name,
+									NameI18N:        permission.NameI18n.String(),
+									Description:     permission.Description,
+									DescriptionI18N: permission.DescriptionI18n.String(),
+
+									IsSystem: permission.IsSystem,
+								})
+							}
+						}
+
+						response.User.Accesses.Roles = append(response.User.Accesses.Roles, parent)
+
+						writeInheritance(parent, rl.Inheritances)
+					}
+				}
 			}
-		}
-
-		for _, rl := range user.Accesses {
-			var parent = &pb.Role{
-				ID:        uint64(rl.ID),
-				ProjectID: uint64(rl.ProjectID),
-
-				Name:     rl.Name,
-				IsSystem: rl.IsSystem,
-
-				Inheritances: make([]*pb.Role, 0),
-			}
-
-			response.User.Accesses = append(response.User.Accesses, parent)
-
-			writeInheritance(parent, rl.Inheritances)
 		}
 	}
 

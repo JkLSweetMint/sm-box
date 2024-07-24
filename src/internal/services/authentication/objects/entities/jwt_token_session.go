@@ -1,6 +1,9 @@
 package entities
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -165,4 +168,19 @@ func (entity *JwtSessionToken) Generate() (err error) {
 	}
 
 	return
+}
+
+// Value - метод для реализации интерфейса что бы хранить данные в postgresql.
+func (entity JwtSessionToken) Value() (driver.Value, error) {
+	return json.Marshal(entity)
+}
+
+// Scan - метод для реализации интерфейса что бы хранить данные в postgresql.
+func (entity *JwtSessionToken) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(b, &entity)
 }

@@ -2,7 +2,7 @@ package grpc_users_srv
 
 import (
 	"context"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/tracer"
 	pb "sm-box/transport/proto/pb/golang/users-service"
@@ -24,7 +24,7 @@ func (srv *server) GetOne(ctx context.Context, request *pb.UsersGetOneRequest) (
 
 	// Получение данных
 	{
-		if user, err = srv.controllers.Users.GetOne(ctx, types.ID(request.ID)); err != nil {
+		if user, err = srv.controllers.Users.GetOne(ctx, common_types.ID(request.ID)); err != nil {
 			srv.components.Logger.Error().
 				Format("User data could not be retrieved: '%s'. ", err).Write()
 
@@ -40,43 +40,112 @@ func (srv *server) GetOne(ctx context.Context, request *pb.UsersGetOneRequest) (
 			Email:    user.Email,
 			Username: user.Username,
 
-			Accesses: make([]*pb.Role, 0),
+			Accesses: &pb.UserAccesses{
+				Permissions: make([]*pb.Permission, 0),
+				Roles:       make([]*pb.Role, 0),
+			},
 		}
 
-		var writeInheritance func(parent *pb.Role, inheritances models.RoleInfoInheritances)
+		// Доступы
+		{
+			if user.Accesses != nil {
+				// Права
+				{
+					for _, permission := range user.Accesses.Permissions {
+						response.User.Accesses.Permissions = append(response.User.Accesses.Permissions, &pb.Permission{
+							ID:        uint64(permission.ID),
+							ProjectID: uint64(permission.ProjectID),
 
-		writeInheritance = func(parent *pb.Role, inheritances models.RoleInfoInheritances) {
-			for _, rl := range inheritances {
-				var child = &pb.Role{
-					ID:        uint64(rl.ID),
-					ProjectID: uint64(rl.ProjectID),
+							Name:            permission.Name,
+							NameI18N:        permission.NameI18n.String(),
+							Description:     permission.Description,
+							DescriptionI18N: permission.DescriptionI18n.String(),
 
-					Name:     rl.Name,
-					IsSystem: rl.IsSystem,
-
-					Inheritances: make([]*pb.Role, 0),
+							IsSystem: permission.IsSystem,
+						})
+					}
 				}
 
-				parent.Inheritances = append(parent.Inheritances, child)
+				// Роли
+				{
+					var writeInheritance func(parent *pb.Role, inheritances models.RoleInfoInheritances)
 
-				writeInheritance(child, rl.Inheritances)
+					writeInheritance = func(parent *pb.Role, inheritances models.RoleInfoInheritances) {
+						for _, rl := range inheritances {
+							var child = &pb.Role{
+								ID:        uint64(rl.ID),
+								ProjectID: uint64(rl.ProjectID),
+
+								Name:            rl.Name,
+								NameI18N:        rl.NameI18n.String(),
+								Description:     rl.Description,
+								DescriptionI18N: rl.DescriptionI18n.String(),
+
+								IsSystem: rl.IsSystem,
+
+								Permissions:  make([]*pb.Permission, 0),
+								Inheritances: make([]*pb.Role, 0),
+							}
+
+							for _, permission := range rl.Permissions {
+								child.Permissions = append(child.Permissions, &pb.Permission{
+									ID:        uint64(permission.ID),
+									ProjectID: uint64(permission.ProjectID),
+
+									Name:            permission.Name,
+									NameI18N:        permission.NameI18n.String(),
+									Description:     permission.Description,
+									DescriptionI18N: permission.DescriptionI18n.String(),
+
+									IsSystem: permission.IsSystem,
+								})
+							}
+
+							parent.Inheritances = append(parent.Inheritances, child)
+
+							writeInheritance(child, rl.Inheritances)
+						}
+					}
+
+					for _, rl := range user.Accesses.Roles {
+						var parent = &pb.Role{
+							ID:        uint64(rl.ID),
+							ProjectID: uint64(rl.ProjectID),
+
+							Name:            rl.Name,
+							NameI18N:        rl.NameI18n.String(),
+							Description:     rl.Description,
+							DescriptionI18N: rl.DescriptionI18n.String(),
+
+							IsSystem: rl.IsSystem,
+
+							Permissions:  make([]*pb.Permission, 0),
+							Inheritances: make([]*pb.Role, 0),
+						}
+
+						// Права
+						{
+							for _, permission := range rl.Permissions {
+								parent.Permissions = append(parent.Permissions, &pb.Permission{
+									ID:        uint64(permission.ID),
+									ProjectID: uint64(permission.ProjectID),
+
+									Name:            permission.Name,
+									NameI18N:        permission.NameI18n.String(),
+									Description:     permission.Description,
+									DescriptionI18N: permission.DescriptionI18n.String(),
+
+									IsSystem: permission.IsSystem,
+								})
+							}
+						}
+
+						response.User.Accesses.Roles = append(response.User.Accesses.Roles, parent)
+
+						writeInheritance(parent, rl.Inheritances)
+					}
+				}
 			}
-		}
-
-		for _, rl := range user.Accesses {
-			var parent = &pb.Role{
-				ID:        uint64(rl.ID),
-				ProjectID: uint64(rl.ProjectID),
-
-				Name:     rl.Name,
-				IsSystem: rl.IsSystem,
-
-				Inheritances: make([]*pb.Role, 0),
-			}
-
-			response.User.Accesses = append(response.User.Accesses, parent)
-
-			writeInheritance(parent, rl.Inheritances)
 		}
 	}
 
@@ -101,12 +170,12 @@ func (srv *server) Get(ctx context.Context, request *pb.UsersGetRequest) (respon
 
 	// Получение данных
 	{
-		var ids = make([]types.ID, 0, len(request.IDs))
+		var ids = make([]common_types.ID, 0, len(request.IDs))
 
 		// Сбор id
 		{
 			for _, id := range request.IDs {
-				ids = append(ids, types.ID(id))
+				ids = append(ids, common_types.ID(id))
 			}
 		}
 
@@ -127,43 +196,112 @@ func (srv *server) Get(ctx context.Context, request *pb.UsersGetRequest) (respon
 				Email:    user.Email,
 				Username: user.Username,
 
-				Accesses: make([]*pb.Role, 0),
+				Accesses: &pb.UserAccesses{
+					Permissions: make([]*pb.Permission, 0),
+					Roles:       make([]*pb.Role, 0),
+				},
 			}
 
-			var writeInheritance func(parent *pb.Role, inheritances models.RoleInfoInheritances)
+			// Доступы
+			{
+				if user.Accesses != nil {
+					// Права
+					{
+						for _, permission := range user.Accesses.Permissions {
+							us.Accesses.Permissions = append(us.Accesses.Permissions, &pb.Permission{
+								ID:        uint64(permission.ID),
+								ProjectID: uint64(permission.ProjectID),
 
-			writeInheritance = func(parent *pb.Role, inheritances models.RoleInfoInheritances) {
-				for _, rl := range inheritances {
-					var child = &pb.Role{
-						ID:        uint64(rl.ID),
-						ProjectID: uint64(rl.ProjectID),
+								Name:            permission.Name,
+								NameI18N:        permission.NameI18n.String(),
+								Description:     permission.Description,
+								DescriptionI18N: permission.DescriptionI18n.String(),
 
-						Name:     rl.Name,
-						IsSystem: rl.IsSystem,
-
-						Inheritances: make([]*pb.Role, 0),
+								IsSystem: permission.IsSystem,
+							})
+						}
 					}
 
-					parent.Inheritances = append(parent.Inheritances, child)
+					// Роли
+					{
+						var writeInheritance func(parent *pb.Role, inheritances models.RoleInfoInheritances)
 
-					writeInheritance(child, rl.Inheritances)
+						writeInheritance = func(parent *pb.Role, inheritances models.RoleInfoInheritances) {
+							for _, rl := range inheritances {
+								var child = &pb.Role{
+									ID:        uint64(rl.ID),
+									ProjectID: uint64(rl.ProjectID),
+
+									Name:            rl.Name,
+									NameI18N:        rl.NameI18n.String(),
+									Description:     rl.Description,
+									DescriptionI18N: rl.DescriptionI18n.String(),
+
+									IsSystem: rl.IsSystem,
+
+									Permissions:  make([]*pb.Permission, 0),
+									Inheritances: make([]*pb.Role, 0),
+								}
+
+								for _, permission := range rl.Permissions {
+									child.Permissions = append(child.Permissions, &pb.Permission{
+										ID:        uint64(permission.ID),
+										ProjectID: uint64(permission.ProjectID),
+
+										Name:            permission.Name,
+										NameI18N:        permission.NameI18n.String(),
+										Description:     permission.Description,
+										DescriptionI18N: permission.DescriptionI18n.String(),
+
+										IsSystem: permission.IsSystem,
+									})
+								}
+
+								parent.Inheritances = append(parent.Inheritances, child)
+
+								writeInheritance(child, rl.Inheritances)
+							}
+						}
+
+						for _, rl := range user.Accesses.Roles {
+							var parent = &pb.Role{
+								ID:        uint64(rl.ID),
+								ProjectID: uint64(rl.ProjectID),
+
+								Name:            rl.Name,
+								NameI18N:        rl.NameI18n.String(),
+								Description:     rl.Description,
+								DescriptionI18N: rl.DescriptionI18n.String(),
+
+								IsSystem: rl.IsSystem,
+
+								Permissions:  make([]*pb.Permission, 0),
+								Inheritances: make([]*pb.Role, 0),
+							}
+
+							// Права
+							{
+								for _, permission := range rl.Permissions {
+									parent.Permissions = append(parent.Permissions, &pb.Permission{
+										ID:        uint64(permission.ID),
+										ProjectID: uint64(permission.ProjectID),
+
+										Name:            permission.Name,
+										NameI18N:        permission.NameI18n.String(),
+										Description:     permission.Description,
+										DescriptionI18N: permission.DescriptionI18n.String(),
+
+										IsSystem: permission.IsSystem,
+									})
+								}
+							}
+
+							us.Accesses.Roles = append(us.Accesses.Roles, parent)
+
+							writeInheritance(parent, rl.Inheritances)
+						}
+					}
 				}
-			}
-
-			for _, rl := range user.Accesses {
-				var parent = &pb.Role{
-					ID:        uint64(rl.ID),
-					ProjectID: uint64(rl.ProjectID),
-
-					Name:     rl.Name,
-					IsSystem: rl.IsSystem,
-
-					Inheritances: make([]*pb.Role, 0),
-				}
-
-				us.Accesses = append(us.Accesses, parent)
-
-				writeInheritance(parent, rl.Inheritances)
 			}
 
 			response.List = append(response.List, us)

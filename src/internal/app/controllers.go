@@ -4,15 +4,15 @@ import (
 	"context"
 	projects_controller "sm-box/internal/app/infrastructure/controllers/projects"
 	"sm-box/internal/app/objects/models"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	c_errors "sm-box/pkg/errors"
 )
 
 // Controllers - описание контроллеров приложения.
 type Controllers interface {
 	Projects() interface {
-		Get(ctx context.Context, ids ...types.ID) (list models.ProjectList, cErr c_errors.Error)
-		GetOne(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Error)
+		Get(ctx context.Context, ids ...common_types.ID) (list models.ProjectList, cErr c_errors.Error)
+		GetOne(ctx context.Context, id common_types.ID) (project *models.ProjectInfo, cErr c_errors.Error)
 	}
 }
 
@@ -23,8 +23,8 @@ type controllers struct {
 
 // Projects - получение контроллера сервиса.
 func (controllers *controllers) Projects() interface {
-	Get(ctx context.Context, ids ...types.ID) (list models.ProjectList, cErr c_errors.Error)
-	GetOne(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Error)
+	Get(ctx context.Context, ids ...common_types.ID) (list models.ProjectList, cErr c_errors.Error)
+	GetOne(ctx context.Context, id common_types.ID) (project *models.ProjectInfo, cErr c_errors.Error)
 } {
 	return controllers.projects
 }

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	app_models "sm-box/internal/app/objects/models"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	basic_authentication_controller "sm-box/internal/services/authentication/infrastructure/controllers/basic_authentication"
 	"sm-box/internal/services/authentication/objects/models"
 	c_errors "sm-box/pkg/errors"
@@ -14,7 +14,7 @@ type Controllers interface {
 	BasicAuthentication() interface {
 		Auth(ctx context.Context, rawSessionToken, username, password string) (sessionToken *models.JwtTokenInfo, cErr c_errors.Error)
 		GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_models.ProjectList, cErr c_errors.Error)
-		SetTokenProject(ctx context.Context, rawSessionToken string, projectID types.ID) (
+		SetTokenProject(ctx context.Context, rawSessionToken string, projectID common_types.ID) (
 			sessionToken, accessToken, refreshToken *models.JwtTokenInfo, cErr c_errors.Error)
 		Logout(ctx context.Context, rawSessionToken, rawAccessToken, rawRefreshToken string) (cErr c_errors.Error)
 	}
@@ -29,7 +29,7 @@ type controllers struct {
 func (controllers *controllers) BasicAuthentication() interface {
 	Auth(ctx context.Context, rawSessionToken, username, password string) (sessionToken *models.JwtTokenInfo, cErr c_errors.Error)
 	GetUserProjectList(ctx context.Context, rawSessionToken string) (list app_models.ProjectList, cErr c_errors.Error)
-	SetTokenProject(ctx context.Context, rawSessionToken string, projectID types.ID) (
+	SetTokenProject(ctx context.Context, rawSessionToken string, projectID common_types.ID) (
 		sessionToken, accessToken, refreshToken *models.JwtTokenInfo, cErr c_errors.Error)
 	Logout(ctx context.Context, rawSessionToken, rawAccessToken, rawRefreshToken string) (cErr c_errors.Error)
 } {

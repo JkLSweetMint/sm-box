@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	error_list "sm-box/internal/common/errors"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/users/infrastructure/repositories/users"
 	"sm-box/internal/services/users/objects/entities"
 	"sm-box/pkg/core/components/logger"
@@ -29,8 +29,8 @@ type UseCase struct {
 // repositories - репозитории логики.
 type repositories struct {
 	Users interface {
-		Get(ctx context.Context, ids []types.ID) (list []*entities.User, err error)
-		GetOne(ctx context.Context, id types.ID) (us *entities.User, err error)
+		Get(ctx context.Context, ids []common_types.ID) (list []*entities.User, err error)
+		GetOne(ctx context.Context, id common_types.ID) (us *entities.User, err error)
 	}
 }
 
@@ -94,7 +94,7 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 }
 
 // Get - получение пользователей по ID.
-func (usecase *UseCase) Get(ctx context.Context, ids ...types.ID) (list []*entities.User, cErr c_errors.Error) {
+func (usecase *UseCase) Get(ctx context.Context, ids ...common_types.ID) (list []*entities.User, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
@@ -136,7 +136,7 @@ func (usecase *UseCase) Get(ctx context.Context, ids ...types.ID) (list []*entit
 }
 
 // GetOne - получение пользователя по ID.
-func (usecase *UseCase) GetOne(ctx context.Context, id types.ID) (us *entities.User, cErr c_errors.Error) {
+func (usecase *UseCase) GetOne(ctx context.Context, id common_types.ID) (us *entities.User, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)

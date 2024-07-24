@@ -1,13 +1,11 @@
 package models
 
-import (
-	"sm-box/internal/common/types"
-)
+import common_types "sm-box/internal/common/types"
 
 type (
 	// HttpRouteInfo - внешняя модель с информацией о http маршруте системы.
 	HttpRouteInfo struct {
-		ID types.ID `json:"id" xml:"id,attr"`
+		ID common_types.ID `json:"id" xml:"id,attr"`
 
 		SystemName  string `json:"system_name" xml:"SystemName"`
 		Name        string `json:"name"        xml:"Name"`
@@ -21,15 +19,12 @@ type (
 		Active    bool `json:"active"    xml:"active,attr"`
 		Authorize bool `json:"authorize" xml:"authorize,attr"`
 
-		Accesses HttpRouteInfoAccesses `json:"accesses,omitempty" xml:"Accesses,omitempty>Access"`
+		Accesses *HttpRouteInfoAccesses `json:"accesses,omitempty" xml:"Accesses>Access,omitempty"`
 	}
 
 	// HttpRouteInfoAccesses - внешняя модель с информацией о доступах к маршруту.
-	HttpRouteInfoAccesses []*HttpRouteInfoAccess
-
-	// HttpRouteInfoAccess - внешняя модель с информацией о доступе к маршруту.
-	HttpRouteInfoAccess struct {
-		RouteID types.ID `json:"route_id" xml:"route_id,attr"`
-		RoleID  types.ID `json:"role_id"  xml:"role_id,attr"`
+	HttpRouteInfoAccesses struct {
+		Roles       []common_types.ID `json:"roles"       xml:"Roles>Role"`
+		Permissions []common_types.ID `json:"permissions" xml:"Permissions>Permission"`
 	}
 )

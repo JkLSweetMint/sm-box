@@ -3,8 +3,11 @@ package urls_repository
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
+	common_types "sm-box/internal/common/types"
+	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/url_shortner/objects/db_models"
 	"sm-box/internal/services/url_shortner/objects/entities"
+	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/databases/connectors/postgresql"
@@ -148,6 +151,39 @@ func (repo *Repository) GetActive(ctx context.Context) (list []*entities.ShortUr
 				},
 			})
 		}
+	}
+
+	return
+}
+
+// WriteCallToHistory - записать обращение по короткой ссылке в историю.
+func (repo *Repository) WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, id, status, token)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var query = `
+			insert into
+				usage_history(
+					url,
+					status,
+					token_info
+				) 
+			values (
+					$1,
+					$2,
+					$3
+			)
+		`
+
+	if _, err = repo.connector.Exec(query, id, status, token); err != nil {
+		repo.components.Logger.Error().
+			Format("Error inserting an item from the database: '%s'. ", err).Write()
+		return
 	}
 
 	return

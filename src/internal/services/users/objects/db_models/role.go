@@ -1,20 +1,28 @@
 package db_models
 
-import "sm-box/internal/common/types"
+import (
+	"github.com/google/uuid"
+	common_types "sm-box/internal/common/types"
+)
 
 type (
 	// Role - модель базы данных роли пользователя.
 	Role struct {
-		ID        types.ID `db:"id"`
-		ProjectID types.ID `db:"project_id"`
+		ID        common_types.ID `db:"id"`
+		ProjectID common_types.ID `db:"project_id"`
 
-		Name     string `db:"name"`
-		IsSystem bool   `db:"is_system"`
+		Name     string    `db:"name"`
+		NameI18n uuid.UUID `db:"name_i18n"`
+
+		Description     string    `db:"description"`
+		DescriptionI18n uuid.UUID `db:"description_i18n"`
+
+		IsSystem bool `db:"is_system"`
 	}
 
 	// RoleInheritance - модель базы данных наследования роли.
 	RoleInheritance struct {
-		Parent types.ID `db:"parent"`
-		Heir   types.ID `db:"heir"`
+		ParentID common_types.ID `db:"parent_id"`
+		HeirID   common_types.ID `db:"heir_id"`
 	}
 )

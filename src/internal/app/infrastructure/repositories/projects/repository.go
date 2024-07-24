@@ -6,7 +6,7 @@ import (
 	"github.com/lib/pq"
 	"sm-box/internal/app/objects/db_models"
 	"sm-box/internal/app/objects/entities"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/databases/connectors/postgresql"
@@ -80,7 +80,7 @@ func New(ctx context.Context) (repo *Repository, err error) {
 }
 
 // Get - получение проектов по ID.
-func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list entities.ProjectList, err error) {
+func (repo *Repository) Get(ctx context.Context, ids []common_types.ID) (list entities.ProjectList, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
@@ -150,7 +150,7 @@ func (repo *Repository) Get(ctx context.Context, ids []types.ID) (list entities.
 }
 
 // GetOne - получение проекта по ID.
-func (repo *Repository) GetOne(ctx context.Context, id types.ID) (project *entities.Project, err error) {
+func (repo *Repository) GetOne(ctx context.Context, id common_types.ID) (project *entities.Project, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)

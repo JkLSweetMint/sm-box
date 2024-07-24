@@ -4,7 +4,7 @@ import (
 	"context"
 	projects_controller "sm-box/internal/app/infrastructure/controllers/projects"
 	"sm-box/internal/app/objects/models"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -19,8 +19,8 @@ type Adapter_Grpc struct {
 	components *components
 
 	controller interface {
-		Get(ctx context.Context, ids ...types.ID) (list models.ProjectList, cErr c_errors.Error)
-		GetOne(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Error)
+		Get(ctx context.Context, ids ...common_types.ID) (list models.ProjectList, cErr c_errors.Error)
+		GetOne(ctx context.Context, id common_types.ID) (project *models.ProjectInfo, cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -71,7 +71,7 @@ func New_Grpc(ctx context.Context) (adapter *Adapter_Grpc, err error) {
 }
 
 // Get - получение проектов по ID.
-func (adapter *Adapter_Grpc) Get(ctx context.Context, ids ...types.ID) (list models.ProjectList, cErr c_errors.Grpc) {
+func (adapter *Adapter_Grpc) Get(ctx context.Context, ids ...common_types.ID) (list models.ProjectList, cErr c_errors.Grpc) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
@@ -94,7 +94,7 @@ func (adapter *Adapter_Grpc) Get(ctx context.Context, ids ...types.ID) (list mod
 }
 
 // GetOne - получение проекта по ID.
-func (adapter *Adapter_Grpc) GetOne(ctx context.Context, id types.ID) (project *models.ProjectInfo, cErr c_errors.Grpc) {
+func (adapter *Adapter_Grpc) GetOne(ctx context.Context, id common_types.ID) (project *models.ProjectInfo, cErr c_errors.Grpc) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)

@@ -5,20 +5,42 @@ package grpc_service;
 option go_package = "./";
 
 message User {
-  uint64 ID        = 1;
+  uint64 ID = 1;
 
   string Email    = 3;
   string Username = 4;
 
-  repeated Role Accesses = 6;
+  UserAccesses Accesses = 6;
+}
+
+message UserAccesses {
+  repeated Permission Permissions = 1;
+  repeated Role Roles             = 2;
 }
 
 message Role {
   uint64 ID        = 1;
   uint64 ProjectID = 2;
 
-  string Name     = 3;
-  bool   IsSystem = 4;
+  string Name            = 3;
+  string NameI18n        = 4;
+  string Description     = 5;
+  string DescriptionI18n = 6;
 
-  repeated Role Inheritances = 5;
+  bool IsSystem = 7;
+
+  repeated Permission Permissions = 8;
+  repeated Role Inheritances      = 9;
+}
+
+message Permission {
+  uint64 ID        = 1;
+  uint64 ProjectID = 2;
+
+  string Name            = 3;
+  string NameI18n        = 4;
+  string Description     = 5;
+  string DescriptionI18n = 6;
+
+  bool IsSystem = 7;
 }

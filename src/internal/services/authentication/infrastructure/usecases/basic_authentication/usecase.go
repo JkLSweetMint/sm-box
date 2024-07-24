@@ -12,7 +12,7 @@ import (
 	app_entities "sm-box/internal/app/objects/entities"
 	app_models "sm-box/internal/app/objects/models"
 	error_list "sm-box/internal/common/errors"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	basic_authentication_repository "sm-box/internal/services/authentication/infrastructure/repositories/basic_authentication"
 	jwt_tokens_repository "sm-box/internal/services/authentication/infrastructure/repositories/jwt_tokens"
 	"sm-box/internal/services/authentication/objects/entities"
@@ -48,12 +48,12 @@ type gateways struct {
 		Auth(ctx context.Context, username, password string) (user *users_models.UserInfo, cErr c_errors.Error)
 	}
 	Projects interface {
-		Get(ctx context.Context, ids ...types.ID) (list app_models.ProjectList, cErr c_errors.Error)
-		GetOne(ctx context.Context, id types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error)
+		Get(ctx context.Context, ids ...common_types.ID) (list app_models.ProjectList, cErr c_errors.Error)
+		GetOne(ctx context.Context, id common_types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error)
 	}
 	Users interface {
-		Get(ctx context.Context, ids ...types.ID) (list []*users_models.UserInfo, cErr c_errors.Error)
-		GetOne(ctx context.Context, id types.ID) (project *users_models.UserInfo, cErr c_errors.Error)
+		Get(ctx context.Context, ids ...common_types.ID) (list []*users_models.UserInfo, cErr c_errors.Error)
+		GetOne(ctx context.Context, id common_types.ID) (project *users_models.UserInfo, cErr c_errors.Error)
 	}
 }
 
@@ -459,7 +459,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 	{
 		var (
 			user *users_models.UserInfo
-			ids  = make([]types.ID, 0)
+			ids  = make([]common_types.ID, 0)
 		)
 
 		// Данные пользователя
@@ -480,7 +480,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 
 		// Список id проектов
 		{
-			var ids_ = make(map[types.ID]struct{})
+			var ids_ = make(map[common_types.ID]struct{})
 
 			var writeInheritance func(rl *users_models.RoleInfo)
 
@@ -494,8 +494,8 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 				}
 			}
 
-			for _, rl := range user.Accesses {
-				writeInheritance(rl.RoleInfo)
+			for _, rl := range user.Accesses.Roles {
+				writeInheritance(rl)
 			}
 
 			for k, _ := range ids_ {
@@ -540,7 +540,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 }
 
 // SetTokenProject - установить проект для токена.
-func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken string, projectID types.ID) (
+func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken string, projectID common_types.ID) (
 	sessionToken *entities.JwtSessionToken,
 	accessToken *entities.JwtAccessToken,
 	refreshToken *entities.JwtRefreshToken,
@@ -695,7 +695,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 
 	// Проверка доступа
 	{
-		var ids = make(map[types.ID]struct{})
+		var ids = make(map[common_types.ID]struct{})
 
 		// Список id проектов
 		{
@@ -711,8 +711,8 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 				}
 			}
 
-			for _, rl := range user.Accesses {
-				writeInheritance(rl.RoleInfo)
+			for _, rl := range user.Accesses.Roles {
+				writeInheritance(rl)
 			}
 		}
 
@@ -815,7 +815,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 					Params: currentSessionToken.Params,
 				},
 				UserInfo: &entities.JwtAccessTokenUserInfo{
-					Accesses: user.Accesses.ListIDs(),
+					Accesses: user.Accesses,
 				},
 			}
 

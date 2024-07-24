@@ -1,7 +1,8 @@
 package entities
 
 import (
-	"sm-box/internal/common/types"
+	"github.com/google/uuid"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/tracer"
 )
@@ -9,12 +10,18 @@ import (
 type (
 	// Role - роль пользователя в системе.
 	Role struct {
-		ID        types.ID
-		ProjectID types.ID
+		ID        common_types.ID
+		ProjectID common_types.ID
 
 		Name     string
+		NameI18n uuid.UUID
+
+		Description     string
+		DescriptionI18n uuid.UUID
+
 		IsSystem bool
 
+		Permissions  []*Permission
 		Inheritances RoleInheritances
 	}
 
@@ -41,6 +48,16 @@ func (entity *Role) FillEmptyFields() *Role {
 		entity.Inheritances = make(RoleInheritances, 0)
 	}
 
+	if entity.Permissions == nil {
+		entity.Permissions = make([]*Permission, 0)
+	}
+
+	for _, permission := range entity.Permissions {
+		if permission != nil {
+			permission.FillEmptyFields()
+		}
+	}
+
 	return entity
 }
 
@@ -54,15 +71,33 @@ func (entity *Role) ToModel() (model *models.RoleInfo) {
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
 
+	entity.FillEmptyFields()
+
 	model = &models.RoleInfo{
-		ID:           entity.ID,
-		ProjectID:    entity.ProjectID,
-		Name:         entity.Name,
+		ID:        entity.ID,
+		ProjectID: entity.ProjectID,
+
+		Name:            entity.Name,
+		NameI18n:        entity.NameI18n,
+		Description:     entity.Description,
+		DescriptionI18n: entity.DescriptionI18n,
+
+		IsSystem: entity.IsSystem,
+
+		Permissions:  make([]*models.PermissionInfo, 0),
 		Inheritances: make(models.RoleInfoInheritances, 0),
 	}
 
 	for _, rl := range entity.Inheritances {
-		model.Inheritances = append(model.Inheritances, rl.ToModel())
+		if rl != nil {
+			model.Inheritances = append(model.Inheritances, rl.ToModel())
+		}
+	}
+
+	for _, permission := range entity.Permissions {
+		if permission != nil {
+			model.Permissions = append(model.Permissions, permission.ToModel())
+		}
 	}
 
 	return
@@ -77,6 +112,8 @@ func (entity *RoleInheritance) ToModel() (model *models.RoleInfoInheritance) {
 		trc.FunctionCall()
 		defer func() { trc.FunctionCallFinished(model) }()
 	}
+
+	entity.FillEmptyFields()
 
 	model = &models.RoleInfoInheritance{
 		RoleInfo: entity.Role.ToModel(),

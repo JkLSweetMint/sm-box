@@ -2,7 +2,7 @@ package db_models
 
 import (
 	"github.com/google/uuid"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"time"
 )
 
@@ -12,8 +12,8 @@ type (
 		ID       uuid.UUID `json:"id"`
 		ParentID uuid.UUID `json:"parent_id"`
 
-		UserID    types.ID `json:"user_id"`
-		ProjectID types.ID `json:"project_id"`
+		UserID    common_types.ID `json:"user_id"`
+		ProjectID common_types.ID `json:"project_id"`
 
 		Type string `json:"type"`
 

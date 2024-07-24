@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	app_models "sm-box/internal/app/objects/models"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/entities"
 	users_models "sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/logger"
@@ -30,12 +30,12 @@ type (
 	// gateways - шлюзы компонента.
 	gateways struct {
 		Projects interface {
-			Get(ctx context.Context, ids ...types.ID) (list app_models.ProjectList, cErr c_errors.Error)
-			GetOne(ctx context.Context, id types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error)
+			Get(ctx context.Context, ids ...common_types.ID) (list app_models.ProjectList, cErr c_errors.Error)
+			GetOne(ctx context.Context, id common_types.ID) (project *app_models.ProjectInfo, cErr c_errors.Error)
 		}
 		Users interface {
-			Get(ctx context.Context, ids ...types.ID) (list []*users_models.UserInfo, cErr c_errors.Error)
-			GetOne(ctx context.Context, id types.ID) (project *users_models.UserInfo, cErr c_errors.Error)
+			Get(ctx context.Context, ids ...common_types.ID) (list []*users_models.UserInfo, cErr c_errors.Error)
+			GetOne(ctx context.Context, id common_types.ID) (project *users_models.UserInfo, cErr c_errors.Error)
 		}
 	}
 

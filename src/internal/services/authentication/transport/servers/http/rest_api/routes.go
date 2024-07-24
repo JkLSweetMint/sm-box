@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 	app_models "sm-box/internal/app/objects/models"
 	error_list "sm-box/internal/common/errors"
-	"sm-box/internal/common/types"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/models"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -211,7 +211,7 @@ func (srv *server) registerRoutes() error {
 
 				router.Post("/set", func(ctx fiber.Ctx) (err error) {
 					type Request struct {
-						ProjectID types.ID `json:"project_id"`
+						ProjectID common_types.ID `json:"project_id"`
 					}
 					type Response struct{}
 

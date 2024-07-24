@@ -2,7 +2,7 @@ package db_models
 
 import (
 	"encoding/json"
-	"sm-box/internal/common/types"
+	users_models "sm-box/internal/services/users/objects/models"
 )
 
 type (
@@ -15,7 +15,7 @@ type (
 
 	// JwtAccessTokenUserInfo - модель база данных с информацией о пользователя для jwt токена доступа.
 	JwtAccessTokenUserInfo struct {
-		Accesses []types.ID `json:"accesses"`
+		Accesses *users_models.UserInfoAccesses `json:"accesses"`
 	}
 )
 

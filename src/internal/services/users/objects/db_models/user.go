@@ -1,11 +1,11 @@
 package db_models
 
-import "sm-box/internal/common/types"
+import common_types "sm-box/internal/common/types"
 
 type (
 	// User - модель базы данных пользователя.
 	User struct {
-		ID types.ID `db:"id"`
+		ID common_types.ID `db:"id"`
 
 		Email    string `db:"email"`
 		Username string `db:"username"`
@@ -15,7 +15,8 @@ type (
 
 	// UserAccess - модель базы данных доступа пользователя.
 	UserAccess struct {
-		UserID types.ID `db:"user_id"`
-		RoleID types.ID `db:"role_id"`
+		UserID       common_types.ID `db:"user_id"`
+		RoleID       common_types.ID `db:"role_id"`
+		PermissionID common_types.ID `db:"permission_id"`
 	}
 )
