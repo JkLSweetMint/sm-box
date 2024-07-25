@@ -315,7 +315,7 @@ func (srv *server) registerRoutes() error {
 							Name:        srv.conf.Components.AccessSystem.CookieKeyForSessionToken,
 							Value:       sessionToken.Raw,
 							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 							MaxAge:      0,
 							Expires:     sessionToken.ExpiresAt,
 							Secure:      false,

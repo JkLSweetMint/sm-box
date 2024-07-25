@@ -52,8 +52,7 @@ create table
     method        transports.http_method     not null,
     path          varchar(4096),
     regexp_path   varchar(4096),
-    active        boolean                    not null default false,
-    authorize     boolean                    not null default false
+    active        boolean                    not null default false
 
     constraint check_path
         check (((path is not null and path ~ '^(?:[-a-zA-Z0-9()*@:%_\+.~#?&\/=]*)$') or regexp_path is not null)),

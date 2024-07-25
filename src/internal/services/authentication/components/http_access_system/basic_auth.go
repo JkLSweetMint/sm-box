@@ -9,6 +9,7 @@ import (
 	error_list "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/entities"
+	"sm-box/internal/services/users/objects"
 	users_models "sm-box/internal/services/users/objects/models"
 	c_errors "sm-box/pkg/errors"
 	http_rest_api_io "sm-box/pkg/http/rest_api/io"
@@ -65,7 +66,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							Name:        acc.conf.CookieKeyForSessionToken,
 							Value:       "",
 							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 							MaxAge:      0,
 							Expires:     time.Unix(0, 0),
 							Secure:      false,
@@ -80,7 +81,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							Name:        acc.conf.CookieKeyForAccessToken,
 							Value:       "",
 							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 							MaxAge:      0,
 							Expires:     time.Unix(0, 0),
 							Secure:      false,
@@ -95,7 +96,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							Name:        acc.conf.CookieKeyForRefreshToken,
 							Value:       "",
 							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 							MaxAge:      0,
 							Expires:     time.Unix(0, 0),
 							Secure:      false,
@@ -127,7 +128,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							Name:        acc.conf.CookieKeyForSessionToken,
 							Value:       "",
 							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 							MaxAge:      0,
 							Expires:     time.Unix(0, 0),
 							Secure:      false,
@@ -142,7 +143,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							Name:        acc.conf.CookieKeyForAccessToken,
 							Value:       "",
 							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 							MaxAge:      0,
 							Expires:     time.Unix(0, 0),
 							Secure:      false,
@@ -157,7 +158,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							Name:        acc.conf.CookieKeyForRefreshToken,
 							Value:       "",
 							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 							MaxAge:      0,
 							Expires:     time.Unix(0, 0),
 							Secure:      false,
@@ -193,7 +194,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 									Name:        acc.conf.CookieKeyForSessionToken,
 									Value:       "",
 									Path:        "/",
-									Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+									Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 									MaxAge:      0,
 									Expires:     time.Unix(0, 0),
 									Secure:      false,
@@ -208,7 +209,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 									Name:        acc.conf.CookieKeyForAccessToken,
 									Value:       "",
 									Path:        "/",
-									Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+									Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 									MaxAge:      0,
 									Expires:     time.Unix(0, 0),
 									Secure:      false,
@@ -223,7 +224,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 									Name:        acc.conf.CookieKeyForRefreshToken,
 									Value:       "",
 									Path:        "/",
-									Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+									Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 									MaxAge:      0,
 									Expires:     time.Unix(0, 0),
 									Secure:      false,
@@ -449,7 +450,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							Name:        acc.conf.CookieKeyForAccessToken,
 							Value:       accessToken.Raw,
 							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 							MaxAge:      0,
 							Expires:     accessToken.ExpiresAt,
 							Secure:      true,
@@ -462,7 +463,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							Name:        acc.conf.CookieKeyForRefreshToken,
 							Value:       refreshToken.Raw,
 							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 							MaxAge:      0,
 							Expires:     refreshToken.ExpiresAt,
 							Secure:      true,
@@ -520,7 +521,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 								Name:        acc.conf.CookieKeyForSessionToken,
 								Value:       sessionToken.Raw,
 								Path:        "/",
-								Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+								Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 								MaxAge:      0,
 								Expires:     sessionToken.ExpiresAt,
 								Secure:      false,
@@ -536,7 +537,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							Name:        acc.conf.CookieKeyForAccessToken,
 							Value:       "",
 							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 							MaxAge:      0,
 							Expires:     time.Unix(0, 0),
 							Secure:      false,
@@ -551,7 +552,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							Name:        acc.conf.CookieKeyForRefreshToken,
 							Value:       "",
 							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 							MaxAge:      0,
 							Expires:     time.Unix(0, 0),
 							Secure:      false,
@@ -568,9 +569,9 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 	// Получение маршрута
 	{
 		var (
-			protocol = string(ctx.Request().Header.Peek("X-Original-Protocol"))
-			method   = string(ctx.Request().Header.Peek("X-Original-Method"))
-			path     = string(ctx.Request().Header.Peek("X-Original-Path"))
+			protocol = string(ctx.Request().Header.Peek("X-Forwarded-Protocol"))
+			method   = string(ctx.Request().Header.Peek("X-Forwarded-Method"))
+			path     = string(ctx.Request().Header.Peek("X-Forwarded-Path"))
 		)
 
 		if string(ctx.Request().Header.Peek("Upgrade")) == "websocket" {
@@ -603,35 +604,43 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 			return http_rest_api_io.WriteError(ctx, error_list.RouteNotFound_RestAPI())
 		}
 
-		// Проверка требуется ли авторизация
+		// Проверка доступа
 		{
-			if route.Authorize {
-				if accessToken == nil {
-					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.Unauthorized()))
-				}
-			}
-		}
+			var allowed bool
 
-		// Проверка доступа (при включенной авторизации)
-		{
-			if route.Authorize {
-				var allowed bool
+			// Обработка если токен доступа есть
+			{
+				if accessToken != nil {
+					if accessToken.UserInfo == nil {
+						return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccess()))
+					}
 
-				if accessToken.UserInfo == nil {
-					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccess()))
-				}
-
-			CheckAccessForRoute:
-				for _, userRole := range accessToken.UserInfo.Accesses.Roles {
+				CheckAccessForRoute:
+					for _, userRole := range accessToken.UserInfo.Accesses.Roles {
+						for _, routeRoleID := range route.Accesses.Roles {
+							if userRole.ID == routeRoleID {
+								allowed = true
+								break CheckAccessForRoute
+							}
+						}
+					}
+				} else {
 					for _, routeRoleID := range route.Accesses.Roles {
-						if userRole.ID == routeRoleID {
+						if objects.RoleIDGuest == routeRoleID {
 							allowed = true
-							break CheckAccessForRoute
+							break
 						}
 					}
 				}
+			}
 
-				if !allowed {
+			if !allowed {
+				switch {
+				case sessionToken == nil:
+					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccess()))
+				case sessionToken.UserID == 0 || sessionToken.ProjectID == 0:
+					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.Unauthorized()))
+				default:
 					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccess()))
 				}
 			}
@@ -640,20 +649,22 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 	// X-Authorization-State
 	{
-		var state string
+		if sessionToken != nil {
+			var state string
 
-		switch {
-		case sessionToken.UserID == 0 && sessionToken.ProjectID == 0:
-			state = "auth"
-		case sessionToken.UserID != 0 && sessionToken.ProjectID == 0:
-			state = "project-select"
-		case sessionToken.UserID != 0 && sessionToken.ProjectID != 0:
-			state = "done"
-		default:
-			state = "unknown"
+			switch {
+			case sessionToken.UserID == 0 && sessionToken.ProjectID == 0:
+				state = "auth"
+			case sessionToken.UserID != 0 && sessionToken.ProjectID == 0:
+				state = "project-select"
+			case sessionToken.UserID != 0 && sessionToken.ProjectID != 0:
+				state = "done"
+			default:
+				state = "unknown"
+			}
+
+			ctx.Response().Header.Set("X-Authorization-State", state)
 		}
-
-		ctx.Response().Header.Set("X-Authorization-State", state)
 	}
 
 	// Отправка ответа
@@ -772,7 +783,7 @@ func (acc *accessSystem) basicAuthenticationProcessingSessionToken(ctx fiber.Ctx
 					Name:        acc.conf.CookieKeyForSessionToken,
 					Value:       token.Raw,
 					Path:        "/",
-					Domain:      string(ctx.Request().Header.Peek("X-Original-HOST")),
+					Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
 					MaxAge:      0,
 					Expires:     token.ExpiresAt,
 					Secure:      false,

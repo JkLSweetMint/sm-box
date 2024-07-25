@@ -10,8 +10,8 @@
 		<ReadTimeout>0</ReadTimeout>
 		<WriteTimeout>0</WriteTimeout>
 		<IdleTimeout>0</IdleTimeout>
-		<ReadBufferSize>4096</ReadBufferSize>
-		<WriteBufferSize>4096</WriteBufferSize>
+		<ReadBufferSize>8192</ReadBufferSize>
+		<WriteBufferSize>8192</WriteBufferSize>
 		<CompressedFileSuffix>.service.gz</CompressedFileSuffix>
 		<ProxyHeader></ProxyHeader>
 		<GETOnly>false</GETOnly>

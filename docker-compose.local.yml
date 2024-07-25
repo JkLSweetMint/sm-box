@@ -218,9 +218,9 @@ services:
       - ./var/test:/home/app/var/test
 
   dashboard:
-    build:
-      context: .
-      dockerfile: Dockerfile.dashboard
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.dashboard
     image: box/dashboard:latest
     container_name: dashboard
     restart: unless-stopped

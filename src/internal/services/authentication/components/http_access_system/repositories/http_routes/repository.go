@@ -94,7 +94,6 @@ func (repo *Repository) GetAll(ctx context.Context) (list []*entities.HttpRoute,
 					routes.method,
 					coalesce(routes.path, '') as path,
 					coalesce(routes.regexp_path, '') as regexp_path,
-					routes.authorize,
 					routes.active
 				from
 					transports.http_routes as routes
@@ -135,8 +134,7 @@ func (repo *Repository) GetAll(ctx context.Context) (list []*entities.HttpRoute,
 					Path:       model.Path,
 					RegexpPath: model.RegexpPath,
 
-					Active:    model.Active,
-					Authorize: model.Authorize,
+					Active: model.Active,
 				}
 
 				route.FillEmptyFields()

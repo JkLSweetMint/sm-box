@@ -19,8 +19,7 @@ type (
 		Path       string         `db:"path"`
 		RegexpPath string         `db:"regexp_path"`
 
-		Active    bool `db:"active"`
-		Authorize bool `db:"authorize"`
+		Active bool `db:"active"`
 	}
 
 	// HttpRouteAccess - модель базы данных доступа http маршрута.

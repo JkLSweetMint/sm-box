@@ -255,8 +255,8 @@ func (conf *Server) Default() *Server {
 	conf.ReadTimeout = 0
 	conf.WriteTimeout = 0
 	conf.IdleTimeout = 0
-	conf.ReadBufferSize = 4096
-	conf.WriteBufferSize = 4096
+	conf.ReadBufferSize = 8192
+	conf.WriteBufferSize = 8192
 	conf.CompressedFileSuffix = ".service.gz"
 	conf.ProxyHeader = ""
 	conf.GETOnly = false

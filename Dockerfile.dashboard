@@ -4,6 +4,6 @@ WORKDIR /var/www/dashboard
 
 COPY var/www/dashboard .
 
-#RUN npm ci --omit dev
-#
-#ENTRYPOINT ["node", "."]
+RUN npm ci --omit dev
+
+ENTRYPOINT ["node", "."]

@@ -16,8 +16,7 @@ type (
 		Path       string   `json:"path"        xml:"path,attr"`
 		RegexpPath string   `json:"regexp_path" xml:"regexp_path,attr"`
 
-		Active    bool `json:"active"    xml:"active,attr"`
-		Authorize bool `json:"authorize" xml:"authorize,attr"`
+		Active bool `json:"active" xml:"active,attr"`
 
 		Accesses *HttpRouteInfoAccesses `json:"accesses,omitempty" xml:"Accesses>Access,omitempty"`
 	}

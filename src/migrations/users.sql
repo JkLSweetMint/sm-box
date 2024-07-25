@@ -26,9 +26,10 @@ create table
         check (name is not null or name_i18n is not null),
 
     check (
-        id > 2
+        id > 3
             or (id = 1 and name = 'root')
             or (id = 2 and name = 'user')
+            or (id = 3 and name = 'guest')
         )
 );
 
@@ -80,12 +81,14 @@ insert into
     access_system.roles (project_id, name, is_system)
 values
     (null, 'root', true),
-    (null, 'user', false);
+    (null, 'user', false),
+    (null, 'guest', false);
 
 insert into
     access_system.role_inheritance (parent_id, heir_id)
 values
-    (1, 2);
+    (1, 2),
+    (2, 3);
 
 create schema
     if not exists users;

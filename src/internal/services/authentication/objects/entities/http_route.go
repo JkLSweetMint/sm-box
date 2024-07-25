@@ -22,8 +22,7 @@ type (
 		Path       string   `json:"path"`
 		RegexpPath string   `json:"regexp_path"`
 
-		Active    bool `json:"active"`
-		Authorize bool `json:"authorize"`
+		Active bool `json:"active"`
 
 		Accesses *HttpRouteAccesses `json:"accesses"`
 	}
@@ -76,8 +75,7 @@ func (entity *HttpRoute) ToDbModel() (model *db_models.HttpRoute) {
 		Path:       entity.Path,
 		RegexpPath: entity.RegexpPath,
 
-		Active:    entity.Active,
-		Authorize: entity.Authorize,
+		Active: entity.Active,
 	}
 
 	return
