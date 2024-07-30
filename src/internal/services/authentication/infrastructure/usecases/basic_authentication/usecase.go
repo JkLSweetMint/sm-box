@@ -10,15 +10,18 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	app_entities "sm-box/internal/app/objects/entities"
+	app_errors "sm-box/internal/app/objects/errors"
 	app_models "sm-box/internal/app/objects/models"
-	error_list "sm-box/internal/common/errors"
+	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
 	basic_authentication_repository "sm-box/internal/services/authentication/infrastructure/repositories/basic_authentication"
 	jwt_tokens_repository "sm-box/internal/services/authentication/infrastructure/repositories/jwt_tokens"
 	"sm-box/internal/services/authentication/objects/entities"
+	srv_errors "sm-box/internal/services/authentication/objects/errors"
 	basic_authentication_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/basic_authentication_service"
 	projects_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/projects_service"
 	users_service_gateway "sm-box/internal/services/authentication/transport/gateways/grpc/users_service"
+	users_errors "sm-box/internal/services/users/objects/errors"
 	users_models "sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -192,7 +195,7 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 		{
 			if len(username) == 0 {
 				if cErr == nil {
-					cErr = error_list.InvalidAuthorizationDataWasTransferred()
+					cErr = srv_errors.InvalidAuthorizationDataWasTransferred()
 				}
 
 				cErr.Details().SetField(
@@ -203,7 +206,7 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 
 			if len(password) == 0 {
 				if cErr == nil {
-					cErr = error_list.InvalidAuthorizationDataWasTransferred()
+					cErr = srv_errors.InvalidAuthorizationDataWasTransferred()
 				}
 
 				cErr.Details().SetField(
@@ -214,7 +217,7 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 
 			if len(username) > 256 {
 				if cErr == nil {
-					cErr = error_list.InvalidAuthorizationDataWasTransferred()
+					cErr = srv_errors.InvalidAuthorizationDataWasTransferred()
 				}
 
 				cErr.Details().SetField(
@@ -225,7 +228,7 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 
 			if len(password) > 256 {
 				if cErr == nil {
-					cErr = error_list.InvalidAuthorizationDataWasTransferred()
+					cErr = srv_errors.InvalidAuthorizationDataWasTransferred()
 				}
 
 				cErr.Details().SetField(
@@ -251,7 +254,7 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 					Text("An empty session token string was passed. ").
 					Field("raw", rawSessionToken).Write()
 
-				cErr = error_list.TokenWasNotTransferred()
+				cErr = srv_errors.TokenWasNotTransferred()
 				return
 			}
 		}
@@ -268,7 +271,7 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 				Format("Failed to get token: '%s'. ", err).
 				Field("raw", rawSessionToken).Write()
 
-			cErr = error_list.InvalidToken()
+			cErr = srv_errors.InvalidToken()
 			cErr.SetError(err)
 			return
 		}
@@ -285,7 +288,7 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 				Text("The user is already logged in. ").
 				Field("session_token", currentSessionToken).Write()
 
-			cErr = error_list.AlreadyAuthorized()
+			cErr = srv_errors.AlreadyAuthorized()
 
 			return
 		}
@@ -309,7 +312,7 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 				Field("username", username).
 				Field("password", password).Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			cErr.SetError(err)
 			return
 		}
@@ -325,12 +328,12 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 				Field("username", username).
 				Field("password", password).Write()
 
-			if cErr_ := error_list.UserNotFound(); errors.Is(cErr, cErr_) {
+			if cErr_ := users_errors.UserNotFound(); errors.Is(cErr, cErr_) {
 				cErr = cErr_
 				return
 			}
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			return
 		}
 
@@ -358,7 +361,7 @@ func (usecase *UseCase) Auth(ctx context.Context, rawSessionToken, username, pas
 			usecase.components.Logger.Error().
 				Format("User session token generation failed: '%s'. ", err).Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			cErr.SetError(err)
 
 			return
@@ -403,7 +406,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 					Text("An empty session token string was passed. ").
 					Field("raw", rawSessionToken).Write()
 
-				cErr = error_list.TokenWasNotTransferred()
+				cErr = srv_errors.TokenWasNotTransferred()
 				return
 			}
 		}
@@ -418,7 +421,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 				Format("Failed to get session token data: '%s'. ", err).
 				Field("raw", rawSessionToken).Write()
 
-			cErr = error_list.InvalidToken()
+			cErr = srv_errors.InvalidToken()
 			cErr.SetError(err)
 			return
 		}
@@ -437,7 +440,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 					Text("The token is not authorized, it is impossible to receive the user's projects. ").
 					Field("token_id", sessionToken.ID).Write()
 
-				cErr = error_list.Unauthorized()
+				cErr = srv_errors.Unauthorized()
 				return
 			}
 		}
@@ -449,7 +452,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 					Text("The project has already been selected, it is not possible to re-select it. ").
 					Field("token_id", sessionToken.ID).Write()
 
-				cErr = error_list.ProjectHasAlreadyBeenSelected()
+				cErr = app_errors.ProjectHasAlreadyBeenSelected()
 				return
 			}
 		}
@@ -469,7 +472,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 					Format("User data could not be retrieved: '%s'. ", cErr).
 					Field("user_id", sessionToken.UserID).Write()
 
-				cErr = error_list.InternalServerError()
+				cErr = common_errors.InternalServerError()
 				return
 			}
 
@@ -514,7 +517,7 @@ func (usecase *UseCase) GetUserProjectList(ctx context.Context, rawSessionToken 
 				Format("The list of user's projects could not be retrieved: '%s'. ", cErr).
 				Field("user_id", sessionToken.UserID).Write()
 
-			cErr = error_list.ListUserProjectsCouldNotBeRetrieved()
+			cErr = app_errors.ListUserProjectsCouldNotBeRetrieved()
 			return
 		}
 
@@ -570,7 +573,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 		{
 			if projectID == 0 {
 				if cErr == nil {
-					cErr = error_list.InvalidDataWasTransmitted()
+					cErr = srv_errors.InvalidDataWasTransmitted()
 				}
 
 				cErr.Details().SetField(
@@ -595,7 +598,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 					Text("An empty session token string was passed. ").
 					Field("raw_session_token", rawSessionToken).Write()
 
-				cErr = error_list.TokenWasNotTransferred()
+				cErr = srv_errors.TokenWasNotTransferred()
 				return
 			}
 		}
@@ -612,7 +615,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 				Format("Failed to get session token: '%s'. ", err).
 				Field("raw", rawSessionToken).Write()
 
-			cErr = error_list.InvalidToken()
+			cErr = srv_errors.InvalidToken()
 			cErr.SetError(err)
 			return
 		}
@@ -632,7 +635,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 					Field("session_token", currentSessionToken).
 					Field("project_id", projectID).Write()
 
-				cErr = error_list.Unauthorized()
+				cErr = srv_errors.Unauthorized()
 				return
 			}
 		}
@@ -645,7 +648,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 					Field("session_token", currentSessionToken).
 					Field("project_id", projectID).Write()
 
-				cErr = error_list.ProjectHasAlreadyBeenSelected()
+				cErr = app_errors.ProjectHasAlreadyBeenSelected()
 				return
 			}
 		}
@@ -658,12 +661,12 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 				Format("Failed to get the user data: '%s'. ", cErr).
 				Field("id", currentSessionToken.UserID).Write()
 
-			if cErr_ := error_list.UserNotFound(); errors.Is(cErr, cErr_) {
+			if cErr_ := users_errors.UserNotFound(); errors.Is(cErr, cErr_) {
 				cErr = cErr_
 				return
 			}
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			return
 		}
 
@@ -680,11 +683,11 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 				Field("id", projectID).Write()
 
 			if errors.Is(cErr, sql.ErrNoRows) {
-				cErr = error_list.ProjectNotFound()
+				cErr = app_errors.ProjectNotFound()
 				return
 			}
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			return
 		}
 
@@ -722,7 +725,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 				Field("project_id", project.ID).
 				Field("user_id", user.ID).Write()
 
-			cErr = error_list.NotAccessToProject()
+			cErr = app_errors.NotAccessToProject()
 			return
 		}
 	}
@@ -749,7 +752,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 				usecase.components.Logger.Error().
 					Format("User session token generation failed: '%s'. ", err).Write()
 
-				cErr = error_list.InternalServerError()
+				cErr = common_errors.InternalServerError()
 				cErr.SetError(err)
 
 				return
@@ -778,7 +781,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 				usecase.components.Logger.Error().
 					Format("User session token generation failed: '%s'. ", err).Write()
 
-				cErr = error_list.InternalServerError()
+				cErr = common_errors.InternalServerError()
 				cErr.SetError(err)
 
 				return
@@ -790,7 +793,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 					usecase.components.Logger.Error().
 						Format("The client's token could not be registered in the database: '%s'. ", err).Write()
 
-					cErr = error_list.InternalServerError()
+					cErr = common_errors.InternalServerError()
 					cErr.SetError(err)
 
 					return
@@ -823,7 +826,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 				usecase.components.Logger.Error().
 					Format("User session token generation failed: '%s'. ", err).Write()
 
-				cErr = error_list.InternalServerError()
+				cErr = common_errors.InternalServerError()
 				cErr.SetError(err)
 
 				return
@@ -835,7 +838,7 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 					usecase.components.Logger.Error().
 						Format("The client's token could not be registered in the database: '%s'. ", err).Write()
 
-					cErr = error_list.InternalServerError()
+					cErr = common_errors.InternalServerError()
 					cErr.SetError(err)
 
 					return

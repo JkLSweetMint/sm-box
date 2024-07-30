@@ -1,0 +1,9 @@
+<Config>
+	<Connector db_name="url_shortner" host="postgres" port="5432">
+		<Auth user="postgres" password="3bxMue16ztXPR635"></Auth>
+		<Tags sslmode="disable"></Tags>
+		<MaxOpenConns>50</MaxOpenConns>
+		<MaxIdleConns>50</MaxIdleConns>
+		<ConnMaxLifetime>120000000000</ConnMaxLifetime>
+	</Connector>
+</Config>

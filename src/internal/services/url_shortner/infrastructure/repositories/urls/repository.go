@@ -17,7 +17,7 @@ const (
 	loggerInitiator = "infrastructure-[repositories]=urls"
 )
 
-// Repository - репозиторий управления сокращениями url запросов.
+// Repository - репозиторий для работы с сокращенными url запросов.
 type Repository struct {
 	connector  postgresql.Connector
 	components *components
@@ -101,11 +101,42 @@ func (repo *Repository) GetActive(ctx context.Context) (list []*entities.ShortUr
 				urls.reduction,
 				properties.type,
 				properties.number_of_uses,
+				case when properties.number_of_uses = 0 then
+					0
+				else
+					properties.number_of_uses - (
+						select
+							count(usage_history.*)
+						from
+							public.usage_history as usage_history
+						where
+							usage_history.url_id = urls.id
+					)
+				end as remained_number_of_uses,
 				coalesce(properties.start_active, '0001-01-01 00:00:0.000000 +00:00') as start_active,
 				coalesce(properties.end_active, '0001-01-01 00:00:0.000000 +00:00') as end_active
 			from
 				public.urls as urls
-					left join public.properties properties on urls.id = properties.url
+					left join public.properties properties on urls.id = properties.url_id
+			where
+				(
+					(properties.number_of_uses = 0)
+						or
+					(properties.number_of_uses > (
+						select
+							count(usage_history.*)
+						from
+							public.usage_history as usage_history
+						where
+							usage_history.url_id = urls.id
+					)))
+			  and
+				(
+					(properties.start_active is null or properties.start_active = '0001-01-01 00:00:00.000000 +00:00' or properties.start_active <= now()) and
+					(properties.end_active is null or properties.start_active = '0001-01-01 00:00:00.000000 +00:00' or properties.end_active >= now())
+					)
+			  and
+				properties.active;
 		`
 
 		if rows, err = repo.connector.QueryxContext(ctx, query); err != nil {
@@ -131,6 +162,7 @@ func (repo *Repository) GetActive(ctx context.Context) (list []*entities.ShortUr
 				&model1.Reduction,
 				&model2.Type,
 				&model2.NumberOfUses,
+				&model2.RemainedNumberOfUses,
 				&model2.StartActive,
 				&model2.EndActive); err != nil {
 				repo.components.Logger.Error().
@@ -144,10 +176,11 @@ func (repo *Repository) GetActive(ctx context.Context) (list []*entities.ShortUr
 				Reduction: model1.Reduction,
 
 				Properties: &entities.ShortUrlProperties{
-					Type:         model2.Type,
-					NumberOfUses: model2.NumberOfUses,
-					StartActive:  model2.StartActive,
-					EndActive:    model2.EndActive,
+					Type:                 model2.Type,
+					NumberOfUses:         model2.NumberOfUses,
+					RemainedNumberOfUses: model2.RemainedNumberOfUses,
+					StartActive:          model2.StartActive,
+					EndActive:            model2.EndActive,
 				},
 			})
 		}
@@ -169,7 +202,7 @@ func (repo *Repository) WriteCallToHistory(ctx context.Context, id common_types.
 	var query = `
 			insert into
 				usage_history(
-					url,
+					url_id,
 					status,
 					token_info
 				) 

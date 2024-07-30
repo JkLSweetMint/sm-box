@@ -5,7 +5,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	cors_middleware "github.com/gofiber/fiber/v3/middleware/cors"
 	"path"
-	error_list "sm-box/internal/common/errors"
+	common_errors "sm-box/internal/common/errors"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/http/rest_api/io"
@@ -31,11 +31,11 @@ func (srv *server) initFiberServer() (err error) {
 		// 404
 		{
 			if err.Error() == fmt.Sprintf("Cannot %s %s", ctx.Method(), ctx.Path()) {
-				if err = http_rest_api_io.WriteError(ctx, error_list.RouteNotFound_RestAPI()); err != nil {
+				if err = http_rest_api_io.WriteError(ctx, common_errors.RouteNotFound_RestAPI()); err != nil {
 					srv.components.Logger.Error().
 						Format("The error response could not be recorded: '%s'. ", err).Write()
 
-					return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+					return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 				}
 
 				return nil
@@ -44,11 +44,11 @@ func (srv *server) initFiberServer() (err error) {
 
 		// Internal server
 		{
-			if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+			if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(common_errors.InternalServerError())); err != nil {
 				srv.components.Logger.Error().
 					Format("The error response could not be recorded: '%s'. ", err).Write()
 
-				return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+				return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 			}
 
 			return nil

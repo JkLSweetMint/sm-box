@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	error_list "sm-box/internal/common/errors"
+	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/users/infrastructure/repositories/users"
 	"sm-box/internal/services/users/objects/entities"
+	srv_errors "sm-box/internal/services/users/objects/errors"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -107,6 +108,13 @@ func (usecase *UseCase) Get(ctx context.Context, ids ...common_types.ID) (list [
 		Text("The process of obtaining users information has been started... ").
 		Field("ids", ids).Write()
 
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("Obtaining users information is completed. ").
+			Field("ids", ids).
+			Field("list", list).Write()
+	}()
+
 	// Получение данных пользователя
 	{
 		if len(ids) > 0 {
@@ -117,7 +125,7 @@ func (usecase *UseCase) Get(ctx context.Context, ids ...common_types.ID) (list [
 					Format("Users data could not be retrieved: '%s'. ", err).
 					Field("ids", ids).Write()
 
-				cErr = error_list.InternalServerError()
+				cErr = common_errors.InternalServerError()
 				cErr.SetError(err)
 				return
 			}
@@ -127,10 +135,6 @@ func (usecase *UseCase) Get(ctx context.Context, ids ...common_types.ID) (list [
 				Field("users", list).Write()
 		}
 	}
-
-	usecase.components.Logger.Info().
-		Text("Obtaining users information is completed. ").
-		Field("ids", ids).Write()
 
 	return
 }
@@ -149,6 +153,13 @@ func (usecase *UseCase) GetOne(ctx context.Context, id common_types.ID) (us *ent
 		Text("The process of obtaining user information has been started ... ").
 		Field("id", id).Write()
 
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("Obtaining user information is completed. ").
+			Field("id", id).
+			Field("user", us).Write()
+	}()
+
 	// Получение данных пользователя
 	{
 		var err error
@@ -161,12 +172,12 @@ func (usecase *UseCase) GetOne(ctx context.Context, id common_types.ID) (us *ent
 				Field("id", id).Write()
 
 			if errors.Is(err, sql.ErrNoRows) {
-				cErr = error_list.UserNotFound()
+				cErr = srv_errors.UserNotFound()
 				cErr.SetError(err)
 				return
 			}
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			cErr.SetError(err)
 			return
 		}
@@ -175,10 +186,6 @@ func (usecase *UseCase) GetOne(ctx context.Context, id common_types.ID) (us *ent
 			Text("The user's data has been successfully received. ").
 			Field("user", us).Write()
 	}
-
-	usecase.components.Logger.Info().
-		Text("Obtaining user information is completed. ").
-		Field("id", id).Write()
 
 	return
 }

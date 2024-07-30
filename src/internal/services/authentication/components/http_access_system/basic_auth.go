@@ -5,10 +5,13 @@ import (
 	"errors"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
+	app_errors "sm-box/internal/app/objects/errors"
 	app_models "sm-box/internal/app/objects/models"
-	error_list "sm-box/internal/common/errors"
+	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/entities"
+	srv_errors "sm-box/internal/services/authentication/objects/errors"
 	"sm-box/internal/services/users/objects"
 	users_models "sm-box/internal/services/users/objects/models"
 	c_errors "sm-box/pkg/errors"
@@ -32,83 +35,6 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 	// Работа с токенами
 	{
-		// Сессия
-		{
-			var cErr c_errors.Error
-
-			if sessionToken, cErr = acc.basicAuthenticationProcessingSessionToken(ctx); cErr != nil {
-				if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
-					acc.components.Logger.Error().
-						Format("The response could not be recorded: '%s'. ", err).Write()
-
-					var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
-					cErr.SetError(err)
-
-					if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
-						acc.components.Logger.Error().
-							Format("The error response could not be recorded: '%s'. ", err).Write()
-
-						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
-					}
-
-					return
-				}
-				return
-			}
-
-			// Проверка что токен не спиздили
-			{
-				if (sessionToken != nil && sessionToken.Params != nil) && (remoteAddr != sessionToken.Params.RemoteAddr ||
-					userAgent != sessionToken.Params.UserAgent) {
-
-					if raw := ctx.Cookies(acc.conf.CookieKeyForSessionToken); raw != "" {
-						ctx.Cookie(&fiber.Cookie{
-							Name:        acc.conf.CookieKeyForSessionToken,
-							Value:       "",
-							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
-							MaxAge:      0,
-							Expires:     time.Unix(0, 0),
-							Secure:      false,
-							HTTPOnly:    false,
-							SameSite:    fiber.CookieSameSiteNoneMode,
-							SessionOnly: false,
-						})
-					}
-
-					if raw := ctx.Cookies(acc.conf.CookieKeyForAccessToken); raw != "" {
-						ctx.Cookie(&fiber.Cookie{
-							Name:        acc.conf.CookieKeyForAccessToken,
-							Value:       "",
-							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
-							MaxAge:      0,
-							Expires:     time.Unix(0, 0),
-							Secure:      false,
-							HTTPOnly:    false,
-							SameSite:    fiber.CookieSameSiteNoneMode,
-							SessionOnly: false,
-						})
-					}
-
-					if raw := ctx.Cookies(acc.conf.CookieKeyForRefreshToken); raw != "" {
-						ctx.Cookie(&fiber.Cookie{
-							Name:        acc.conf.CookieKeyForRefreshToken,
-							Value:       "",
-							Path:        "/",
-							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
-							MaxAge:      0,
-							Expires:     time.Unix(0, 0),
-							Secure:      false,
-							HTTPOnly:    false,
-							SameSite:    fiber.CookieSameSiteNoneMode,
-							SessionOnly: false,
-						})
-					}
-				}
-			}
-		}
-
 		// Доступа
 		{
 			var cErr c_errors.Error
@@ -169,7 +95,83 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 					}
 				}
 			}
+		}
 
+		// Сессия
+		{
+			var cErr c_errors.Error
+
+			if sessionToken, cErr = acc.basicAuthenticationProcessingSessionToken(ctx, accessToken); cErr != nil {
+				if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
+					acc.components.Logger.Error().
+						Format("The response could not be recorded: '%s'. ", err).Write()
+
+					var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
+					cErr.SetError(err)
+
+					if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+						acc.components.Logger.Error().
+							Format("The error response could not be recorded: '%s'. ", err).Write()
+
+						return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+					}
+
+					return
+				}
+				return
+			}
+
+			// Проверка что токен не спиздили
+			{
+				if (sessionToken != nil && sessionToken.Params != nil) && (remoteAddr != sessionToken.Params.RemoteAddr ||
+					userAgent != sessionToken.Params.UserAgent) {
+
+					if raw := ctx.Cookies(acc.conf.CookieKeyForSessionToken); raw != "" {
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForSessionToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
+
+					if raw := ctx.Cookies(acc.conf.CookieKeyForAccessToken); raw != "" {
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForAccessToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
+
+					if raw := ctx.Cookies(acc.conf.CookieKeyForRefreshToken); raw != "" {
+						ctx.Cookie(&fiber.Cookie{
+							Name:        acc.conf.CookieKeyForRefreshToken,
+							Value:       "",
+							Path:        "/",
+							Domain:      string(ctx.Request().Header.Peek("X-Forwarded-Host")),
+							MaxAge:      0,
+							Expires:     time.Unix(0, 0),
+							Secure:      false,
+							HTTPOnly:    false,
+							SameSite:    fiber.CookieSameSiteNoneMode,
+							SessionOnly: false,
+						})
+					}
+				}
+			}
 		}
 
 		// Обновления (отрабатывает если нет токена доступа)
@@ -253,16 +255,16 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 								Field("id", sessionToken.UserID).Write()
 
 							if errors.Is(cErr, sql.ErrNoRows) {
-								cErr = error_list.NotAccess()
+								cErr = srv_errors.NotAccess()
 							} else {
-								cErr = error_list.InternalServerError()
+								cErr = common_errors.InternalServerError()
 							}
 
 							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
 								acc.components.Logger.Error().
 									Format("The error response could not be recorded: '%s'. ", err).Write()
 
-								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 							}
 
 							return
@@ -283,16 +285,16 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 								Field("id", sessionToken.ProjectID).Write()
 
 							if errors.Is(cErr, sql.ErrNoRows) {
-								cErr = error_list.NotAccess()
+								cErr = srv_errors.NotAccess()
 							} else {
-								cErr = error_list.InternalServerError()
+								cErr = common_errors.InternalServerError()
 							}
 
 							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
 								acc.components.Logger.Error().
 									Format("The error response could not be recorded: '%s'. ", err).Write()
 
-								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 							}
 
 							return
@@ -335,11 +337,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 								Field("project_id", project.ID).
 								Field("user_id", user.ID).Write()
 
-							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccessToProject())); err != nil {
+							if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(app_errors.NotAccessToProject())); err != nil {
 								acc.components.Logger.Error().
 									Format("The error response could not be recorded: '%s'. ", err).Write()
 
-								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 							}
 
 							return
@@ -364,11 +366,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 								acc.components.Logger.Error().
 									Format("User session token generation failed: '%s'. ", err).Write()
 
-								if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+								if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(common_errors.InternalServerError())); err != nil {
 									acc.components.Logger.Error().
 										Format("The error response could not be recorded: '%s'. ", err).Write()
 
-									return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+									return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 								}
 
 								return
@@ -380,11 +382,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 									acc.components.Logger.Error().
 										Format("The client's refresh token could not be registered in the database: '%s'. ", err).Write()
 
-									if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+									if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(common_errors.InternalServerError())); err != nil {
 										acc.components.Logger.Error().
 											Format("The error response could not be recorded: '%s'. ", err).Write()
 
-										return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+										return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 									}
 
 									return
@@ -415,11 +417,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 								acc.components.Logger.Error().
 									Format("User session token generation failed: '%s'. ", err).Write()
 
-								if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+								if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(common_errors.InternalServerError())); err != nil {
 									acc.components.Logger.Error().
 										Format("The error response could not be recorded: '%s'. ", err).Write()
 
-									return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+									return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 								}
 
 								return
@@ -431,11 +433,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 									acc.components.Logger.Error().
 										Format("The client's access token could not be registered in the database: '%s'. ", err).Write()
 
-									if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+									if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(common_errors.InternalServerError())); err != nil {
 										acc.components.Logger.Error().
 											Format("The error response could not be recorded: '%s'. ", err).Write()
 
-										return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+										return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 									}
 
 									return
@@ -495,18 +497,18 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 								acc.components.Logger.Error().
 									Format("User token generation failed: '%s'. ", err).Write()
 
-								if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+								if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(common_errors.InternalServerError())); err != nil {
 									acc.components.Logger.Error().
 										Format("The response could not be recorded: '%s'. ", err).Write()
 
-									var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+									var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
 									cErr.SetError(err)
 
 									if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
 										acc.components.Logger.Error().
 											Format("The error response could not be recorded: '%s'. ", err).Write()
 
-										return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+										return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 									}
 
 									return
@@ -590,18 +592,18 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 				Field("method", method).
 				Field("path", path).Write()
 
-			if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.InternalServerError())); err != nil {
+			if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(common_errors.InternalServerError())); err != nil {
 				acc.components.Logger.Error().
 					Format("The error response could not be recorded: '%s'. ", err).Write()
 
-				return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+				return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 			}
 
 			return
 		}
 
 		if route == nil || !route.Active {
-			return http_rest_api_io.WriteError(ctx, error_list.RouteNotFound_RestAPI())
+			return http_rest_api_io.WriteError(ctx, common_errors.RouteNotFound_RestAPI())
 		}
 
 		// Проверка доступа
@@ -611,16 +613,36 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 			// Обработка если токен доступа есть
 			{
 				if accessToken != nil {
-					if accessToken.UserInfo == nil {
-						return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccess()))
+					if accessToken.UserInfo == nil || accessToken.UserInfo.Accesses == nil {
+						return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(srv_errors.NotAccess()))
 					}
 
-				CheckAccessForRoute:
-					for _, userRole := range accessToken.UserInfo.Accesses.Roles {
-						for _, routeRoleID := range route.Accesses.Roles {
-							if userRole.ID == routeRoleID {
-								allowed = true
-								break CheckAccessForRoute
+					// Роли
+					{
+						if accessToken.UserInfo.Accesses.Roles != nil {
+						CheckAccessForRouteByRole:
+							for _, userRole := range accessToken.UserInfo.Accesses.Roles {
+								for _, routeRoleID := range route.Accesses.Roles {
+									if userRole.ID == routeRoleID {
+										allowed = true
+										break CheckAccessForRouteByRole
+									}
+								}
+							}
+						}
+					}
+
+					// Права
+					{
+						if accessToken.UserInfo.Accesses.Permissions != nil && !allowed {
+						CheckAccessForRouteByPermission:
+							for _, userPermission := range accessToken.UserInfo.Accesses.Permissions {
+								for _, routePermissionID := range route.Accesses.Permissions {
+									if userPermission.ID == routePermissionID {
+										allowed = true
+										break CheckAccessForRouteByPermission
+									}
+								}
 							}
 						}
 					}
@@ -637,11 +659,11 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 			if !allowed {
 				switch {
 				case sessionToken == nil:
-					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccess()))
+					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(srv_errors.NotAccess()))
 				case sessionToken.UserID == 0 || sessionToken.ProjectID == 0:
-					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.Unauthorized()))
+					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(srv_errors.Unauthorized()))
 				default:
-					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(error_list.NotAccess()))
+					return http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(srv_errors.NotAccess()))
 				}
 			}
 		}
@@ -673,14 +695,14 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 			acc.components.Logger.Error().
 				Format("The response could not be recorded: '%s'. ", err).Write()
 
-			var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+			var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
 			cErr.SetError(err)
 
 			if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
 				acc.components.Logger.Error().
 					Format("The error response could not be recorded: '%s'. ", err).Write()
 
-				return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+				return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 			}
 
 			return
@@ -692,7 +714,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 // basicAuthenticationProcessingSessionToken - обработка токена сессия в промежуточном программном обеспечении
 // для аутентификации пользователя по http маршрутам.
-func (acc *accessSystem) basicAuthenticationProcessingSessionToken(ctx fiber.Ctx) (token *entities.JwtSessionToken, cErr c_errors.Error) {
+func (acc *accessSystem) basicAuthenticationProcessingSessionToken(ctx fiber.Ctx, accessToken *entities.JwtAccessToken) (token *entities.JwtSessionToken, cErr c_errors.Error) {
 	var expired bool
 
 	// Получение
@@ -705,7 +727,7 @@ func (acc *accessSystem) basicAuthenticationProcessingSessionToken(ctx fiber.Ctx
 					Format("Failed to get session token data: '%s'. ", err).
 					Field("raw", raw).Write()
 
-				cErr = error_list.InvalidToken()
+				cErr = srv_errors.InvalidToken()
 				cErr.SetError(err)
 
 				return
@@ -764,13 +786,18 @@ func (acc *accessSystem) basicAuthenticationProcessingSessionToken(ctx fiber.Ctx
 							},
 						},
 					}
+
+					if accessToken != nil {
+						token.UserID = accessToken.UserID
+						token.ProjectID = accessToken.ProjectID
+					}
 				}
 
 				if err := token.Generate(); err != nil {
 					acc.components.Logger.Error().
 						Format("User token generation failed: '%s'. ", err).Write()
 
-					cErr = error_list.InternalServerError()
+					cErr = common_errors.InternalServerError()
 					cErr.SetError(err)
 
 					return
@@ -818,7 +845,7 @@ func (acc *accessSystem) basicAuthenticationProcessingAccessToken(ctx fiber.Ctx)
 					Format("Failed to get access token data from raw: '%s'. ", err).
 					Field("raw", raw).Write()
 
-				cErr = error_list.InvalidToken()
+				cErr = srv_errors.InvalidToken()
 				cErr.SetError(err)
 
 				return
@@ -833,14 +860,20 @@ func (acc *accessSystem) basicAuthenticationProcessingAccessToken(ctx fiber.Ctx)
 			)
 
 			if token, err = acc.repositories.JwtTokens.GetJwtAccessToken(ctx.Context(), tokenID); err != nil {
-				acc.components.Logger.Error().
+				if !errors.Is(err, redis.Nil) {
+					acc.components.Logger.Error().
+						Format("Failed to get access token data from redis: '%s'. ", err).
+						Field("id", tokenID).Write()
+
+					cErr = srv_errors.InvalidToken()
+					cErr.SetError(err)
+
+					return
+				}
+
+				acc.components.Logger.Warn().
 					Format("Failed to get access token data from redis: '%s'. ", err).
 					Field("id", tokenID).Write()
-
-				cErr = error_list.InvalidToken()
-				cErr.SetError(err)
-
-				return
 			}
 		}
 	}
@@ -857,7 +890,7 @@ func (acc *accessSystem) basicAuthenticationProcessingAccessToken(ctx fiber.Ctx)
 					Field("id", token.ID).
 					Field("raw", token.Raw).Write()
 
-				cErr = error_list.ValidityPeriodOfUserTokenHasNotStarted()
+				cErr = srv_errors.ValidityPeriodOfUserTokenHasNotStarted()
 				cErr.Details().Set("not_before", token.NotBefore.Format(time.RFC3339Nano))
 
 				return
@@ -900,7 +933,7 @@ func (acc *accessSystem) basicAuthenticationProcessingRefreshToken(ctx fiber.Ctx
 					Format("Failed to get access token data from raw: '%s'. ", err).
 					Field("raw", raw).Write()
 
-				cErr = error_list.InvalidToken()
+				cErr = srv_errors.InvalidToken()
 				cErr.SetError(err)
 
 				return
@@ -915,14 +948,20 @@ func (acc *accessSystem) basicAuthenticationProcessingRefreshToken(ctx fiber.Ctx
 			)
 
 			if token, err = acc.repositories.JwtTokens.GetJwtRefreshToken(ctx.Context(), tokenID); err != nil {
-				acc.components.Logger.Error().
+				if !errors.Is(err, redis.Nil) {
+					acc.components.Logger.Error().
+						Format("Failed to get refresh token data from redis: '%s'. ", err).
+						Field("id", tokenID).Write()
+
+					cErr = srv_errors.InvalidToken()
+					cErr.SetError(err)
+
+					return
+				}
+
+				acc.components.Logger.Warn().
 					Format("Failed to get refresh token data from redis: '%s'. ", err).
 					Field("id", tokenID).Write()
-
-				cErr = error_list.InvalidToken()
-				cErr.SetError(err)
-
-				return
 			}
 		}
 	}

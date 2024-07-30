@@ -15,8 +15,8 @@ const (
 	loggerInitiator_RestAPI = "infrastructure-[adapters]=basic_authentication-(RestAPI)"
 )
 
-// Adapter_RestAPI - адаптер контроллера для rest api.
-type Adapter_RestAPI struct {
+// Adapter_HttpRestAPI - адаптер контроллера для http rest api.
+type Adapter_HttpRestAPI struct {
 	components *components
 
 	controller interface {
@@ -36,17 +36,17 @@ type components struct {
 }
 
 // New_RestAPI - создание контроллера для rest api.
-func New_RestAPI(ctx context.Context) (adapter *Adapter_RestAPI, err error) {
+func New_RestAPI(ctx context.Context) (adapter *Adapter_HttpRestAPI, err error) {
 	// tracer
 	{
-		var trace = tracer.New(tracer.LevelMain, tracer.LevelController)
+		var trace = tracer.New(tracer.LevelMain, tracer.LevelAdapter)
 
 		trace.FunctionCall(ctx)
 
 		defer func() { trace.Error(err).FunctionCallFinished(adapter) }()
 	}
 
-	adapter = new(Adapter_RestAPI)
+	adapter = new(Adapter_HttpRestAPI)
 	adapter.ctx = ctx
 
 	// Компоненты
@@ -76,7 +76,7 @@ func New_RestAPI(ctx context.Context) (adapter *Adapter_RestAPI, err error) {
 
 // Auth - базовая авторизация пользователя в системе.
 // Для авторизации используется имя пользователя и пароль.
-func (adapter *Adapter_RestAPI) Auth(ctx context.Context, rawSessionToken, username, password string) (
+func (adapter *Adapter_HttpRestAPI) Auth(ctx context.Context, rawSessionToken, username, password string) (
 	sessionToken *models.JwtTokenInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
@@ -100,7 +100,7 @@ func (adapter *Adapter_RestAPI) Auth(ctx context.Context, rawSessionToken, usern
 }
 
 // GetUserProjectList - получение списка проектов пользователя.
-func (adapter *Adapter_RestAPI) GetUserProjectList(ctx context.Context, rawSessionToken string) (
+func (adapter *Adapter_HttpRestAPI) GetUserProjectList(ctx context.Context, rawSessionToken string) (
 	list app_models.ProjectList, cErr c_errors.RestAPI) {
 	// tracer
 	{
@@ -124,7 +124,7 @@ func (adapter *Adapter_RestAPI) GetUserProjectList(ctx context.Context, rawSessi
 }
 
 // SetTokenProject - установить проект для токена.
-func (adapter *Adapter_RestAPI) SetTokenProject(ctx context.Context, rawSessionToken string, projectID common_types.ID) (
+func (adapter *Adapter_HttpRestAPI) SetTokenProject(ctx context.Context, rawSessionToken string, projectID common_types.ID) (
 	sessionToken, accessToken, refreshToken *models.JwtTokenInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
@@ -148,7 +148,7 @@ func (adapter *Adapter_RestAPI) SetTokenProject(ctx context.Context, rawSessionT
 }
 
 // Logout - завершение действия токена пользователя.
-func (adapter *Adapter_RestAPI) Logout(ctx context.Context, rawSessionToken, rawAccessToken, rawRefreshToken string) (cErr c_errors.RestAPI) {
+func (adapter *Adapter_HttpRestAPI) Logout(ctx context.Context, rawSessionToken, rawAccessToken, rawRefreshToken string) (cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)

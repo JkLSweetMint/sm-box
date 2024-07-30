@@ -3,13 +3,15 @@ package urls_usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/redis/go-redis/v9"
-	error_list "sm-box/internal/common/errors"
+	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	urls_repository "sm-box/internal/services/url_shortner/infrastructure/repositories/urls"
 	urls_redis_repository "sm-box/internal/services/url_shortner/infrastructure/repositories/urls_redis"
 	"sm-box/internal/services/url_shortner/objects/entities"
+	srv_errors "sm-box/internal/services/url_shortner/objects/errors"
 	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -37,8 +39,8 @@ type repositories struct {
 	}
 	UrlsRedis interface {
 		Set(ctx context.Context, list ...*entities.ShortUrl) (err error)
-		GetByReduce(ctx context.Context, reduce string) (url *entities.ShortUrl, err error)
-		RemoveByReduce(ctx context.Context, reduce string) (err error)
+		GetOneByReduction(ctx context.Context, reduction string) (url *entities.ShortUrl, err error)
+		RemoveByReduction(ctx context.Context, reduction string) (err error)
 	}
 }
 
@@ -112,16 +114,22 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 func (usecase *UseCase) RegisterToRedisDB(ctx context.Context) (cErr c_errors.Error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelController)
+		var trc = tracer.New(tracer.LevelUseCase)
 
 		trc.FunctionCall(ctx)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
+	var list []*entities.ShortUrl
+
 	usecase.components.Logger.Info().
 		Text("The process of obtaining all active url abbreviations has been started... ").Write()
 
-	var list []*entities.ShortUrl
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The process of getting all active url abbreviations is completed. ").
+			Field("list", list).Write()
+	}()
 
 	// Получение
 	{
@@ -131,7 +139,7 @@ func (usecase *UseCase) RegisterToRedisDB(ctx context.Context) (cErr c_errors.Er
 			usecase.components.Logger.Error().
 				Format("Could not get all active url abbreviations completed: '%s'. ", err).Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			return
 		}
 
@@ -148,58 +156,57 @@ func (usecase *UseCase) RegisterToRedisDB(ctx context.Context) (cErr c_errors.Er
 					Format("Failed to register short urls in the redis database: '%s'. ", err).
 					Field("list", list).Write()
 
-				cErr = error_list.InternalServerError()
+				cErr = common_errors.InternalServerError()
 				return
 			}
 		}
 	}
 
-	usecase.components.Logger.Info().
-		Text("The process of getting all active url abbreviations is completed. ").Write()
-
 	return
 }
 
-// GetByReduceFromRedisDB - получение короткого маршрута по сокращению из базы данных redis.
-func (usecase *UseCase) GetByReduceFromRedisDB(ctx context.Context, reduce string) (url *entities.ShortUrl, cErr c_errors.Error) {
+// GetByReductionFromRedisDB - получение короткого маршрута по сокращению из базы данных redis.
+func (usecase *UseCase) GetByReductionFromRedisDB(ctx context.Context, reduction string) (url *entities.ShortUrl, cErr c_errors.Error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelController)
+		var trc = tracer.New(tracer.LevelUseCase)
 
-		trc.FunctionCall(ctx, reduce)
+		trc.FunctionCall(ctx, reduction)
 		defer func() { trc.Error(cErr).FunctionCallFinished(url) }()
 	}
 
 	usecase.components.Logger.Info().
 		Text("The process of obtaining a short url for reduction has been launched... ").
-		Field("reduce", reduce).Write()
+		Field("reduction", reduction).Write()
+
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The process of obtaining a short url by reduction is completed. ").
+			Field("reduction", reduction).
+			Field("url", url).Write()
+	}()
 
 	// Получение
 	{
 		var err error
 
-		if url, err = usecase.repositories.UrlsRedis.GetByReduce(ctx, reduce); err != nil {
+		if url, err = usecase.repositories.UrlsRedis.GetOneByReduction(ctx, reduction); err != nil {
 			usecase.components.Logger.Error().
-				Format("Could not get all active url abbreviations completed: '%s'. ", err).Write()
+				Format("Could not get the shortened url by reduction: '%s'. ", err).Write()
 
 			if errors.Is(err, redis.Nil) {
-				cErr = error_list.ShortUrlNotFound()
+				cErr = srv_errors.ShortUrlNotFound()
 				return
 			}
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			return
 		}
 
 		usecase.components.Logger.Info().
-			Text("Short urls have been successfully collected. ").
+			Text("Short url have been successfully collected. ").
 			Field("url", url).Write()
 	}
-
-	usecase.components.Logger.Info().
-		Text("The process of obtaining a short url by reduction is completed. ").
-		Field("reduce", reduce).
-		Field("url", url).Write()
 
 	return
 }
@@ -208,7 +215,7 @@ func (usecase *UseCase) GetByReduceFromRedisDB(ctx context.Context, reduce strin
 func (usecase *UseCase) UpdateInRedisDB(ctx context.Context, url *entities.ShortUrl) (cErr c_errors.Error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelController)
+		var trc = tracer.New(tracer.LevelUseCase)
 
 		trc.FunctionCall(ctx, url)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
@@ -218,56 +225,64 @@ func (usecase *UseCase) UpdateInRedisDB(ctx context.Context, url *entities.Short
 		Text("The process of updating the short url has been started... ").
 		Field("url", url).Write()
 
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The process of updating the short url is completed. ").
+			Field("url", url).Write()
+	}()
+
 	// Обновление
 	{
 		var err error
+
+		fmt.Printf("\n\n%+v\n", url)
+		fmt.Printf("%+v\n\n\n", url.Properties)
 
 		if err = usecase.repositories.UrlsRedis.Set(ctx, url); err != nil {
 			usecase.components.Logger.Error().
 				Format("The short url data could not be updated: '%s'. ", err).Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			return
 		}
 	}
 
-	usecase.components.Logger.Info().
-		Text("The process of updating the short url is completed. ").
-		Field("url", url).Write()
-
 	return
 }
 
-// RemoveByReduceFromRedisDB - удаление короткого маршрута по сокращению из базы данных redis.
-func (usecase *UseCase) RemoveByReduceFromRedisDB(ctx context.Context, reduce string) (cErr c_errors.Error) {
+// RemoveByReductionFromRedisDB - удаление короткого маршрута по сокращению из базы данных redis.
+func (usecase *UseCase) RemoveByReductionFromRedisDB(ctx context.Context, reduction string) (cErr c_errors.Error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelController)
+		var trc = tracer.New(tracer.LevelUseCase)
 
-		trc.FunctionCall(ctx, reduce)
+		trc.FunctionCall(ctx, reduction)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	usecase.components.Logger.Info().
 		Text("The process of deleting a short url has been started... ").
-		Field("reduce", reduce).Write()
+		Field("reduction", reduction).Write()
+
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The process of deleting the short url is completed. ").
+			Field("reduction", reduction).Write()
+	}()
 
 	// Удаление
 	{
 		var err error
 
-		if err = usecase.repositories.UrlsRedis.RemoveByReduce(ctx, reduce); err != nil {
+		if err = usecase.repositories.UrlsRedis.RemoveByReduction(ctx, reduction); err != nil {
 			usecase.components.Logger.Error().
-				Format("The short url could not be deleted: '%s'. ", err).Write()
+				Format("The short url could not be deleted: '%s'. ", err).
+				Field("reduction", reduction).Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			return
 		}
 	}
-
-	usecase.components.Logger.Info().
-		Text("The process of deleting the short url is completed. ").
-		Field("reduce", reduce).Write()
 
 	return
 }
@@ -276,7 +291,7 @@ func (usecase *UseCase) RemoveByReduceFromRedisDB(ctx context.Context, reduce st
 func (usecase *UseCase) WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.Error) {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelController)
+		var trc = tracer.New(tracer.LevelUseCase)
 
 		trc.FunctionCall(ctx, id, status, token)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
@@ -288,6 +303,14 @@ func (usecase *UseCase) WriteCallToHistory(ctx context.Context, id common_types.
 		Field("status", status).
 		Field("token", token).Write()
 
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The process of recording a short route call in the history is completed. ").
+			Field("id", id).
+			Field("status", status).
+			Field("token", token).Write()
+	}()
+
 	// Запись в историю
 	{
 		var err error
@@ -296,16 +319,10 @@ func (usecase *UseCase) WriteCallToHistory(ctx context.Context, id common_types.
 			usecase.components.Logger.Error().
 				Format("The call data could not be recorded in the history: '%s'. ", err).Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			return
 		}
 	}
-
-	usecase.components.Logger.Info().
-		Text("The process of recording a short route call in the history is completed. ").
-		Field("id", id).
-		Field("status", status).
-		Field("token", token).Write()
 
 	return
 }

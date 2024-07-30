@@ -2,7 +2,7 @@ package languages_usecase
 
 import (
 	"context"
-	error_list "sm-box/internal/common/errors"
+	common_errors "sm-box/internal/common/errors"
 	languages_repository "sm-box/internal/services/i18n/infrastructure/repositories/languages"
 	"sm-box/internal/services/i18n/objects/entities"
 	"sm-box/pkg/core/components/logger"
@@ -102,6 +102,12 @@ func (usecase *UseCase) GetList(ctx context.Context) (list []*entities.Language,
 	usecase.components.Logger.Info().
 		Text("Collection of available localization languages has been launched... ").Write()
 
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The collection of available localization languages has been completed. ").
+			Field("languages", list).Write()
+	}()
+
 	// Получение
 	{
 		var err error
@@ -112,15 +118,11 @@ func (usecase *UseCase) GetList(ctx context.Context) (list []*entities.Language,
 			usecase.components.Logger.Error().
 				Format("Couldn't get localization languages: '%s'. ", err).Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			cErr.SetError(err)
 			return
 		}
 	}
-
-	usecase.components.Logger.Info().
-		Text("The collection of available localization languages has been completed. ").
-		Field("languages", list).Write()
 
 	return
 }

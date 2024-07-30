@@ -16,14 +16,14 @@ const (
 	loggerInitiator_RestAPI = "infrastructure-[adapters]=urls-(RestAPI)"
 )
 
-// Adapter_RestAPI - адаптер контроллера для rest api.
-type Adapter_RestAPI struct {
+// Adapter_HttpRestAPI - адаптер контроллера для http rest api.
+type Adapter_HttpRestAPI struct {
 	components *components
 
 	controller interface {
-		GetByReduceFromRedisDB(ctx context.Context, reduce string) (url *models.ShortUrlInfo, cErr c_errors.Error)
+		GetByReductionFromRedisDB(ctx context.Context, reduction string) (url *models.ShortUrlInfo, cErr c_errors.Error)
 		UpdateInRedisDB(ctx context.Context, url *models.ShortUrlInfo) (cErr c_errors.Error)
-		RemoveByReduceFromRedisDB(ctx context.Context, reduce string) (cErr c_errors.Error)
+		RemoveByReductionFromRedisDB(ctx context.Context, reduction string) (cErr c_errors.Error)
 
 		WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.Error)
 	}
@@ -37,17 +37,17 @@ type components struct {
 }
 
 // New_RestAPI - создание контроллера для rest api.
-func New_RestAPI(ctx context.Context) (adapter *Adapter_RestAPI, err error) {
+func New_RestAPI(ctx context.Context) (adapter *Adapter_HttpRestAPI, err error) {
 	// tracer
 	{
-		var trace = tracer.New(tracer.LevelMain, tracer.LevelController)
+		var trace = tracer.New(tracer.LevelMain, tracer.LevelAdapter)
 
 		trace.FunctionCall(ctx)
 
 		defer func() { trace.Error(err).FunctionCallFinished(adapter) }()
 	}
 
-	adapter = new(Adapter_RestAPI)
+	adapter = new(Adapter_HttpRestAPI)
 	adapter.ctx = ctx
 
 	// Компоненты
@@ -75,19 +75,19 @@ func New_RestAPI(ctx context.Context) (adapter *Adapter_RestAPI, err error) {
 	return
 }
 
-// GetByReduceFromRedisDB - получение короткого маршрута по сокращению из базы данных redis.
-func (adapter *Adapter_RestAPI) GetByReduceFromRedisDB(ctx context.Context, reduce string) (url *models.ShortUrlInfo, cErr c_errors.RestAPI) {
+// GetByReductionFromRedisDB - получение короткого маршрута по сокращению из базы данных redis.
+func (adapter *Adapter_HttpRestAPI) GetByReductionFromRedisDB(ctx context.Context, reduction string) (url *models.ShortUrlInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, reduce)
+		trc.FunctionCall(ctx, reduction)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if url, proxyErr = adapter.controller.GetByReduceFromRedisDB(ctx, reduce); proxyErr != nil {
+	if url, proxyErr = adapter.controller.GetByReductionFromRedisDB(ctx, reduction); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().
@@ -99,7 +99,7 @@ func (adapter *Adapter_RestAPI) GetByReduceFromRedisDB(ctx context.Context, redu
 }
 
 // UpdateInRedisDB - обновление короткого маршрута в базу данных redis.
-func (adapter *Adapter_RestAPI) UpdateInRedisDB(ctx context.Context, url *models.ShortUrlInfo) (cErr c_errors.RestAPI) {
+func (adapter *Adapter_HttpRestAPI) UpdateInRedisDB(ctx context.Context, url *models.ShortUrlInfo) (cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
@@ -121,19 +121,19 @@ func (adapter *Adapter_RestAPI) UpdateInRedisDB(ctx context.Context, url *models
 	return
 }
 
-// RemoveByReduceFromRedisDB - получение короткого маршрута по сокращению из базы данных redis.
-func (adapter *Adapter_RestAPI) RemoveByReduceFromRedisDB(ctx context.Context, reduce string) (cErr c_errors.RestAPI) {
+// RemoveByReductionFromRedisDB - получение короткого маршрута по сокращению из базы данных redis.
+func (adapter *Adapter_HttpRestAPI) RemoveByReductionFromRedisDB(ctx context.Context, reduction string) (cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, reduce)
+		trc.FunctionCall(ctx, reduction)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if proxyErr = adapter.controller.RemoveByReduceFromRedisDB(ctx, reduce); proxyErr != nil {
+	if proxyErr = adapter.controller.RemoveByReductionFromRedisDB(ctx, reduction); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().
@@ -145,7 +145,7 @@ func (adapter *Adapter_RestAPI) RemoveByReduceFromRedisDB(ctx context.Context, r
 }
 
 // WriteCallToHistory - записать обращение по короткой ссылке в историю.
-func (adapter *Adapter_RestAPI) WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.RestAPI) {
+func (adapter *Adapter_HttpRestAPI) WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)

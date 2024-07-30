@@ -6,11 +6,13 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"os"
 	"path"
+	"sm-box/internal/services/users/objects/models"
 	"sm-box/internal/services/users/transport/servers/http/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	env_mode "sm-box/pkg/core/env/mode"
+	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/http/postman"
 	"sm-box/pkg/tools/file"
 	"sync"
@@ -32,7 +34,12 @@ type server struct {
 }
 
 // controllers - контроллеры сервера.
-type controllers struct{}
+type controllers struct {
+	AccessSystem interface {
+		GetRolesListForSelect(ctx context.Context) (list []*models.RoleInfo, cErr c_errors.RestAPI)
+		GetPermissionsListForSelect(ctx context.Context) (list []*models.PermissionInfo, cErr c_errors.RestAPI)
+	}
+}
 
 // components - компоненты сервера.
 type components struct {

@@ -17,11 +17,13 @@ type (
 
 	// ShortUrlProperties - модель базы данных свойств короткой ссылке.
 	ShortUrlProperties struct {
-		URL          common_types.ID    `db:"url"`
-		Type         types.ShortUrlType `db:"type"`
-		NumberOfUses int64              `db:"number_of_uses"`
-		StartActive  time.Time          `db:"start_active"`
-		EndActive    time.Time          `db:"end_active"`
+		URL                  common_types.ID    `db:"url"`
+		Type                 types.ShortUrlType `db:"type"`
+		NumberOfUses         int64              `db:"number_of_uses"`
+		RemainedNumberOfUses int64              `db:"remained_number_of_uses"`
+		StartActive          time.Time          `db:"start_active"`
+		EndActive            time.Time          `db:"end_active"`
+		Active               bool               `db:"active"`
 	}
 
 	// ShortUrlAccesses - информация по доступам к короткому url.
@@ -42,10 +44,11 @@ type (
 
 	// ShortUrlInfoProperties - модель базы данных redis с информацией по свойствам короткой ссылке.
 	ShortUrlInfoProperties struct {
-		Type         types.ShortUrlType `json:"type"`
-		NumberOfUses int64              `json:"number_of_uses"`
-		StartActive  time.Time          `json:"start_active"`
-		EndActive    time.Time          `json:"end_active"`
+		Type                 types.ShortUrlType `json:"type"`
+		NumberOfUses         int64              `json:"number_of_uses"`
+		RemainedNumberOfUses int64              `json:"remained_number_of_uses"`
+		StartActive          time.Time          `json:"start_active"`
+		EndActive            time.Time          `json:"end_active"`
 	}
 
 	// ShortUrlInfoAccesses - информация по доступам к короткому url.

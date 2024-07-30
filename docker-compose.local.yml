@@ -48,9 +48,9 @@ services:
       - ./var/test:/home/app/var/test
 
   authentication-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.authentication-service
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.authentication-service
     image: box/authentication-service:latest
     container_name: authentication-service
     restart: unless-stopped
@@ -144,9 +144,9 @@ services:
       - ./var/test:/home/app/var/test
 
   url_shortner-service:
-#    build:
-#        context: .
-#        dockerfile: Dockerfile.url_shortner-service
+    build:
+        context: .
+        dockerfile: Dockerfile.url_shortner-service
     image: box/url_shortner-service:latest
     container_name: url_shortner-service
     restart: unless-stopped

@@ -2,9 +2,10 @@ package texts_usecase
 
 import (
 	"context"
-	error_list "sm-box/internal/common/errors"
+	common_errors "sm-box/internal/common/errors"
 	texts_repository "sm-box/internal/services/i18n/infrastructure/repositories/texts"
 	"sm-box/internal/services/i18n/objects/entities"
+	srv_errors "sm-box/internal/services/i18n/objects/errors"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -100,6 +101,19 @@ func (usecase *UseCase) AssembleDictionary(ctx context.Context, lang string, pat
 		defer func() { trc.Error(cErr).FunctionCallFinished(dictionary) }()
 	}
 
+	usecase.components.Logger.Info().
+		Text("The collection of localization texts has been launched... ").
+		Field("paths", paths).
+		Field("lang", lang).Write()
+
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The collection of localization texts is completed. ").
+			Field("paths", paths).
+			Field("lang", lang).
+			Field("dictionary", dictionary).Write()
+	}()
+
 	// Обработка входных данных
 	{
 		if len(paths) > 0 {
@@ -125,7 +139,7 @@ func (usecase *UseCase) AssembleDictionary(ctx context.Context, lang string, pat
 				Field("paths", paths).
 				Field("lang", lang).Write()
 
-			cErr = error_list.InvalidTextLocalizationPaths()
+			cErr = srv_errors.InvalidTextLocalizationPaths()
 			return
 		}
 
@@ -135,11 +149,6 @@ func (usecase *UseCase) AssembleDictionary(ctx context.Context, lang string, pat
 				Field("lang", lang).Write()
 		}
 	}
-
-	usecase.components.Logger.Info().
-		Text("The collection of localization texts has been launched... ").
-		Field("paths", paths).
-		Field("lang", lang).Write()
 
 	// Получение
 	{
@@ -153,17 +162,11 @@ func (usecase *UseCase) AssembleDictionary(ctx context.Context, lang string, pat
 				Field("paths", paths).
 				Field("lang", lang).Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			cErr.SetError(err)
 			return
 		}
 	}
-
-	usecase.components.Logger.Info().
-		Text("The collection of localization texts is completed. ").
-		Field("paths", paths).
-		Field("lang", lang).
-		Field("dictionary", dictionary).Write()
 
 	return
 }

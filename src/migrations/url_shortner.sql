@@ -33,6 +33,8 @@ create table
     source    varchar(2048) not null,
     reduction varchar(16)   not null default public.generate_short_url(16),
 
+    active boolean not null default false,
+
     constraint check_source
         check (source is not null and source ~ '^(?:[-a-zA-Z0-9()*@:%_\+.~#?&\/=]*)$')
 );
@@ -42,7 +44,7 @@ create type public.url_type as enum ('proxy', 'redirect');
 create table
     if not exists public.properties
 (
-    url            bigint                    not null
+    url_id         bigint                    not null
         references public.urls(id)
             on delete cascade,
     type           public.url_type           not null,
@@ -51,11 +53,14 @@ create table
     end_active     timestamptz,
 
     constraint check_properties
-        check ((number_of_uses is not null) or (start_active is not null and end_active is not null))
+        check ((number_of_uses is not null) or (start_active is not null) or (end_active is not null)),
+
+    constraint check_number_of_uses
+        check (number_of_uses >= 0)
 );
 
 create or replace function public.create_short_url(source varchar(2048), type public.url_type, number_of_uses integer, start_active timestamptz, end_active timestamptz)
-    returns void
+    returns bigint
     language plpgsql as
 $$
 declare
@@ -72,11 +77,11 @@ begin
 
     insert into
         public.properties(
-                               url,
-                               type,
-                               number_of_uses,
-                               start_active,
-                               end_active
+           url_id,
+           type,
+           number_of_uses,
+           start_active,
+           end_active
         )
     values (
             urlID,
@@ -84,7 +89,9 @@ begin
             number_of_uses,
             start_active,
             end_active
-           );
+   );
+
+    return urlID;
 end;
 $$;
 
@@ -93,7 +100,7 @@ create type public.usage_history_status as enum ('success', 'failed', 'forbidden
 create table
     if not exists public.usage_history
 (
-    url            bigint                      not null
+    url_id         bigint                      not null
         references public.urls(id)
             on delete cascade,
     status         public.usage_history_status not null,
@@ -105,7 +112,7 @@ create table
     if not exists public.accesses
 (
 
-    url           bigint not null
+    url_id         bigint not null
         references public.urls(id)
             on delete cascade,
     role_id       bigint,

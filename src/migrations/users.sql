@@ -279,3 +279,143 @@ begin
         end loop;
 end;
 $$;
+
+create function access_system.get_all_roles() returns SETOF record
+    language plpgsql
+as
+$$
+declare
+    result record;
+
+begin
+    for result in
+        WITH RECURSIVE cte_roles (id, project_id, parent_id, name, name_i18n, description, description_i18n, is_system) AS (
+            select
+                roles.id,
+                roles.project_id,
+                0::bigint as parent_id,
+                roles.name,
+                roles.name_i18n,
+                roles.description,
+                roles.description_i18n,
+                roles.is_system
+            from
+                access_system.roles as roles
+            where
+                roles.id in (
+                    select
+                        accesses.role_id as id
+                    from
+                        users.users as users
+                            left join users.accesses accesses on users.id = accesses.user_id
+                )
+
+            UNION ALL
+
+            select
+                roles.id,
+                roles.project_id,
+                role_inheritance.parent_id as parent_id,
+                roles.name,
+                roles.name_i18n,
+                roles.description,
+                roles.description_i18n,
+                roles.is_system
+            from
+                access_system.roles as roles
+                    left join access_system.role_inheritance role_inheritance on (role_inheritance.heir_id = roles.id)
+                    JOIN cte_roles cte ON cte.id = role_inheritance.parent_id
+        )
+
+        select
+            distinct id,
+                     coalesce(project_id, 0) as project_id,
+                     coalesce(parent_id, 0) as parent_id,
+                     name,
+                     name_i18n,
+                     description,
+                     description_i18n,
+                     is_system
+        from
+            cte_roles
+        loop
+            return next result;
+        end loop;
+end;
+$$;
+
+create or replace function access_system.get_all_permissions()
+    returns setof record
+    language plpgsql as
+$$
+declare
+    result record;
+
+begin
+    for result in
+        WITH RECURSIVE cte_roles (id, project_id, parent_id) AS (
+            select
+                roles.id,
+                roles.project_id,
+                0::bigint as parent_id
+            from
+                access_system.roles as roles
+            where
+                roles.id in (
+                    select
+                        accesses.role_id as id
+                    from
+                        users.users as users
+                            left join users.accesses accesses on users.id = accesses.user_id
+                )
+
+            UNION ALL
+
+            select
+                roles.id,
+                roles.project_id,
+                role_inheritance.parent_id as parent_id
+            from
+                access_system.roles as roles
+                    left join access_system.role_inheritance role_inheritance on (role_inheritance.heir_id = roles.id)
+                    JOIN cte_roles cte ON cte.id = role_inheritance.parent_id
+        )
+
+        select
+            distinct permissions.id,
+                     permissions.project_id,
+                     cte.id,
+                     permissions.name,
+                     permissions.name_i18n,
+                     permissions.description,
+                     permissions.description_i18n,
+                     permissions.is_system
+        from
+            cte_roles as cte
+                left join access_system.role_permissions as role_permissions on role_permissions.role_id = cte.id
+                left join access_system.permissions as permissions on permissions.id = role_permissions.permission_id
+        where
+            permissions.id is not null
+
+        UNION ALL
+
+        select
+            permissions.id,
+            permissions.project_id,
+            accesses.role_id,
+            permissions.name,
+            permissions.name_i18n,
+            permissions.description,
+            permissions.description_i18n,
+            permissions.is_system
+        from
+            users.accesses as accesses
+                left join access_system.permissions as permissions on permissions.id = accesses.permission_id
+        where
+            permissions.id is not null
+
+        loop
+            return next result;
+        end loop;
+end;
+$$;

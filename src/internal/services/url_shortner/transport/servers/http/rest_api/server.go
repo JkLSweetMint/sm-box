@@ -8,6 +8,7 @@ import (
 	"path"
 	common_types "sm-box/internal/common/types"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
+	"sm-box/internal/services/url_shortner/objects"
 	"sm-box/internal/services/url_shortner/objects/models"
 	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/internal/services/url_shortner/transport/servers/http/rest_api/config"
@@ -39,11 +40,48 @@ type server struct {
 // controllers - контроллеры сервера.
 type controllers struct {
 	Urls interface {
-		GetByReduceFromRedisDB(ctx context.Context, reduce string) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
+		GetByReductionFromRedisDB(ctx context.Context, reduction string) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
 		UpdateInRedisDB(ctx context.Context, url *models.ShortUrlInfo) (cErr c_errors.RestAPI)
-		RemoveByReduceFromRedisDB(ctx context.Context, reduce string) (cErr c_errors.RestAPI)
+		RemoveByReductionFromRedisDB(ctx context.Context, reduction string) (cErr c_errors.RestAPI)
 
 		WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.RestAPI)
+	}
+	UrlsManagement interface {
+		GetList(ctx context.Context,
+			search *objects.ShortUrlsListSearch,
+			sort *objects.ShortUrlsListSort,
+			pagination *objects.ShortUrlsListPagination,
+			filters *objects.ShortUrlsListFilters,
+		) (list []*models.ShortUrlInfo, cErr c_errors.RestAPI)
+		GetOne(ctx context.Context, id common_types.ID) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
+		GetOneByReduction(ctx context.Context, reduction string) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
+
+		GetUsageHistory(ctx context.Context, id common_types.ID,
+			sort *objects.ShortUrlsUsageHistoryListSort,
+			pagination *objects.ShortUrlsUsageHistoryListPagination,
+			filters *objects.ShortUrlsUsageHistoryListFilters,
+		) (history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI)
+		GetUsageHistoryByReduction(ctx context.Context, reduction string,
+			sort *objects.ShortUrlsUsageHistoryListSort,
+			pagination *objects.ShortUrlsUsageHistoryListPagination,
+			filters *objects.ShortUrlsUsageHistoryListFilters,
+		) (history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI)
+
+		Create(ctx context.Context,
+			source string,
+			type_ types.ShortUrlType,
+			numberOfUses int64,
+			startActive, endActive time.Time,
+		) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
+
+		Remove(ctx context.Context, id common_types.ID) (cErr c_errors.RestAPI)
+		RemoveByReduction(ctx context.Context, reduction string) (cErr c_errors.RestAPI)
+
+		Activate(ctx context.Context, id common_types.ID) (cErr c_errors.RestAPI)
+		ActivateByReduction(ctx context.Context, reduction string) (cErr c_errors.RestAPI)
+
+		Deactivate(ctx context.Context, id common_types.ID) (cErr c_errors.RestAPI)
+		DeactivateByReduction(ctx context.Context, reduction string) (cErr c_errors.RestAPI)
 	}
 }
 

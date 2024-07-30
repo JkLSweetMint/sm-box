@@ -15,7 +15,7 @@ const (
 	loggerInitiator = "infrastructure-[repositories]=urls_redis"
 )
 
-// Repository - репозиторий управления токенами пользователей.
+// Repository - репозиторий для работы с сокращенными url запросов в базе данных Redis.
 type Repository struct {
 	connector  redis.Connector
 	components *components
@@ -88,14 +88,20 @@ func (repo *Repository) Set(ctx context.Context, list ...*entities.ShortUrl) (er
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
+	var emptyTm time.Time
+
 	for _, url := range list {
 		var (
 			key        string = fmt.Sprintf("short_url:%s", url.Reduction)
 			value      any    = url.ToRedisDbModel()
-			expiration        = url.Properties.EndActive.Sub(time.Now())
-
-			result = repo.connector.Set(ctx, key, value, expiration)
+			expiration time.Duration
 		)
+
+		if !url.Properties.EndActive.Equal(emptyTm) {
+			expiration = url.Properties.EndActive.Sub(time.Now())
+		}
+
+		var result = repo.connector.Set(ctx, key, value, expiration)
 
 		if err = result.Err(); err != nil {
 			repo.components.Logger.Error().
@@ -107,18 +113,18 @@ func (repo *Repository) Set(ctx context.Context, list ...*entities.ShortUrl) (er
 	return
 }
 
-// GetByReduce - получение короткого маршрута по сокращению.
-func (repo *Repository) GetByReduce(ctx context.Context, reduce string) (url *entities.ShortUrl, err error) {
+// GetOneByReduction - получение короткого маршрута по сокращению.
+func (repo *Repository) GetOneByReduction(ctx context.Context, reduction string) (url *entities.ShortUrl, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
 
-		trc.FunctionCall(ctx, reduce)
+		trc.FunctionCall(ctx, reduction)
 		defer func() { trc.Error(err).FunctionCallFinished(url) }()
 	}
 
 	var (
-		key   string = fmt.Sprintf("short_url:%s", reduce)
+		key   string = fmt.Sprintf("short_url:%s", reduction)
 		value        = new(db_models.ShortUrlInfo)
 
 		result = repo.connector.Get(ctx, key)
@@ -147,10 +153,12 @@ func (repo *Repository) GetByReduce(ctx context.Context, reduce string) (url *en
 			Reduction: value.Reduction,
 
 			Properties: &entities.ShortUrlProperties{
-				Type:         value.Properties.Type,
-				NumberOfUses: value.Properties.NumberOfUses,
-				StartActive:  value.Properties.StartActive,
-				EndActive:    value.Properties.EndActive,
+				Type:                 value.Properties.Type,
+				NumberOfUses:         value.Properties.NumberOfUses,
+				RemainedNumberOfUses: value.Properties.RemainedNumberOfUses,
+				StartActive:          value.Properties.StartActive,
+				EndActive:            value.Properties.EndActive,
+				Active:               true,
 			},
 		}
 	}
@@ -158,18 +166,18 @@ func (repo *Repository) GetByReduce(ctx context.Context, reduce string) (url *en
 	return
 }
 
-// RemoveByReduce - удаление короткого маршрута по сокращению.
-func (repo *Repository) RemoveByReduce(ctx context.Context, reduce string) (err error) {
+// RemoveByReduction - удаление короткого маршрута по сокращению.
+func (repo *Repository) RemoveByReduction(ctx context.Context, reduction string) (err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
 
-		trc.FunctionCall(ctx, reduce)
+		trc.FunctionCall(ctx, reduction)
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
 	var (
-		key string = fmt.Sprintf("short_url:%s", reduce)
+		key string = fmt.Sprintf("short_url:%s", reduction)
 
 		result = repo.connector.Del(ctx, key)
 	)

@@ -6,7 +6,8 @@ import (
 	"errors"
 	projects_repository "sm-box/internal/app/infrastructure/repositories/projects"
 	"sm-box/internal/app/objects/entities"
-	error_list "sm-box/internal/common/errors"
+	srv_errors "sm-box/internal/app/objects/errors"
+	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -117,7 +118,7 @@ func (usecase *UseCase) Get(ctx context.Context, ids ...common_types.ID) (list e
 					Format("Projects data could not be retrieved: '%s'. ", err).
 					Field("ids", ids).Write()
 
-				cErr = error_list.InternalServerError()
+				cErr = common_errors.InternalServerError()
 				cErr.SetError(err)
 				return
 			}
@@ -161,12 +162,12 @@ func (usecase *UseCase) GetOne(ctx context.Context, id common_types.ID) (project
 				Field("id", id).Write()
 
 			if errors.Is(err, sql.ErrNoRows) {
-				cErr = error_list.ProjectNotFound()
+				cErr = srv_errors.ProjectNotFound()
 				cErr.SetError(err)
 				return
 			}
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			cErr.SetError(err)
 			return
 		}

@@ -4,7 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	app_models "sm-box/internal/app/objects/models"
-	error_list "sm-box/internal/common/errors"
+	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/models"
 	"sm-box/pkg/core/components/tracer"
@@ -65,7 +65,7 @@ func (srv *server) registerRoutes() error {
 									srv.components.Logger.Error().
 										Format("The error response could not be recorded: '%s'. ", err).Write()
 
-									return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+									return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 								}
 
 								return
@@ -79,7 +79,7 @@ func (srv *server) registerRoutes() error {
 							srv.components.Logger.Error().
 								Format("The error response could not be recorded: '%s'. ", err).Write()
 
-							return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 						}
 
 						return
@@ -98,7 +98,7 @@ func (srv *server) registerRoutes() error {
 						},
 						Method: postman.Method(route.Method),
 						Description: `
-Используется для получение списка проектов пользователя для выбора после авторизации. 
+Используется для получения списка проектов пользователя для выбора после авторизации. 
 После выбора проекта пользователю будут доступны методы управления проектом.
 `,
 						Body: &postman.Body{
@@ -226,18 +226,18 @@ func (srv *server) registerRoutes() error {
 							srv.components.Logger.Error().
 								Format("The request body data could not be read: '%s'. ", err).Write()
 
-							if err = http_rest_api_io.WriteError(ctx, error_list.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+							if err = http_rest_api_io.WriteError(ctx, common_errors.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
 								srv.components.Logger.Error().
 									Format("The response could not be recorded: '%s'. ", err).Write()
 
-								var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+								var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
 								cErr.SetError(err)
 
 								if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
 									srv.components.Logger.Error().
 										Format("The error response could not be recorded: '%s'. ", err).Write()
 
-									return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+									return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 								}
 
 								return
@@ -263,7 +263,7 @@ func (srv *server) registerRoutes() error {
 								srv.components.Logger.Error().
 									Format("The error response could not be recorded: '%s'. ", err).Write()
 
-								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 							}
 
 							return
@@ -330,7 +330,7 @@ func (srv *server) registerRoutes() error {
 							srv.components.Logger.Error().
 								Format("The error response could not be recorded: '%s'. ", err).Write()
 
-							return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 						}
 
 						return
@@ -480,18 +480,18 @@ func (srv *server) registerRoutes() error {
 						srv.components.Logger.Error().
 							Format("The request body data could not be read: '%s'. ", err).Write()
 
-						if err = http_rest_api_io.WriteError(ctx, error_list.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+						if err = http_rest_api_io.WriteError(ctx, common_errors.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
 							srv.components.Logger.Error().
 								Format("The response could not be recorded: '%s'. ", err).Write()
 
-							var cErr = error_list.ResponseCouldNotBeRecorded_RestAPI()
+							var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
 							cErr.SetError(err)
 
 							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
 								srv.components.Logger.Error().
 									Format("The error response could not be recorded: '%s'. ", err).Write()
 
-								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 							}
 
 							return
@@ -527,7 +527,7 @@ func (srv *server) registerRoutes() error {
 								srv.components.Logger.Error().
 									Format("The error response could not be recorded: '%s'. ", err).Write()
 
-								return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 							}
 
 							return
@@ -629,7 +629,7 @@ func (srv *server) registerRoutes() error {
 						srv.components.Logger.Error().
 							Format("The error response could not be recorded: '%s'. ", err).Write()
 
-						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+						return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 					}
 
 					return
@@ -760,7 +760,7 @@ func (srv *server) registerRoutes() error {
 							srv.components.Logger.Error().
 								Format("The error response could not be recorded: '%s'. ", err).Write()
 
-							return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+							return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 						}
 
 						return
@@ -815,7 +815,7 @@ func (srv *server) registerRoutes() error {
 						srv.components.Logger.Error().
 							Format("The error response could not be recorded: '%s'. ", err).Write()
 
-						return http_rest_api_io.WriteError(ctx, error_list.ResponseCouldNotBeRecorded_RestAPI())
+						return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 					}
 
 					return

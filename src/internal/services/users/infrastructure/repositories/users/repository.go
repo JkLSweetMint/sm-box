@@ -167,7 +167,7 @@ func (repo *Repository) Get(ctx context.Context, ids []common_types.ID) (list []
 			writePermission      func(role *entities.Role, models []*PermissionModel)
 		)
 
-		// writeRoleInheritance
+		// функции
 		{
 			writeRoleInheritance = func(parent *entities.Role, models []*RoleModel) {
 				for _, model := range models {
@@ -443,7 +443,7 @@ func (repo *Repository) GetOne(ctx context.Context, id common_types.ID) (us *ent
 			writePermission      func(role *entities.Role, models []*PermissionModel)
 		)
 
-		// writeRoleInheritance
+		// функции
 		{
 			writeRoleInheritance = func(parent *entities.Role, models []*RoleModel) {
 				for _, model := range models {

@@ -130,6 +130,105 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "Система доступа. ",
+            "item": [
+                {
+                    "name": "Роли. ",
+                    "item": [
+                        {
+                            "name": "Получение списка ролей системы доступа для select'ов. ",
+                            "description": "\nИспользуется для получения списка ролей системы доступа для select'ов.\n",
+                            "request": {
+                                "url": {
+                                    "raw": "",
+                                    "protocol": "https",
+                                    "host": [
+                                        "box",
+                                        "samgk",
+                                        "ru"
+                                    ],
+                                    "path": [
+                                        "",
+                                        "users",
+                                        "api",
+                                        "v1.0",
+                                        "access_system",
+                                        "roles",
+                                        "select"
+                                    ]
+                                },
+                                "method": "GET",
+                                "description": "",
+                                "body": {
+                                    "mode": "raw",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                                    "status": "Ǵ",
+                                    "code": 500,
+                                    "name": "Произошла внутренняя ошибка сервера. "
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Права. ",
+                    "item": [
+                        {
+                            "name": "Получение списка прав системы доступа для select'ов. ",
+                            "description": "\nИспользуется для получения списка прав системы доступа для select'ов.\n",
+                            "request": {
+                                "url": {
+                                    "raw": "",
+                                    "protocol": "https",
+                                    "host": [
+                                        "box",
+                                        "samgk",
+                                        "ru"
+                                    ],
+                                    "path": [
+                                        "",
+                                        "users",
+                                        "api",
+                                        "v1.0",
+                                        "access_system",
+                                        "permissions",
+                                        "select"
+                                    ]
+                                },
+                                "method": "GET",
+                                "description": "",
+                                "body": {
+                                    "mode": "raw",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                                    "status": "Ǵ",
+                                    "code": 500,
+                                    "name": "Произошла внутренняя ошибка сервера. "
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

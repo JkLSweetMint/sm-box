@@ -8,9 +8,10 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
-	error_list "sm-box/internal/common/errors"
+	common_errors "sm-box/internal/common/errors"
 	basic_authentication_repository "sm-box/internal/services/users/infrastructure/repositories/basic_authentication"
 	"sm-box/internal/services/users/objects/entities"
+	srv_errors "sm-box/internal/services/users/objects/errors"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -96,7 +97,7 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 	return
 }
 
-// BasicAuth - получение информации о пользователе
+// Auth - получение информации о пользователе
 // с использованием механизма базовой авторизации.
 func (usecase *UseCase) Auth(ctx context.Context, username, password string) (us *entities.User, cErr c_errors.Error) {
 	// tracer
@@ -112,6 +113,12 @@ func (usecase *UseCase) Auth(ctx context.Context, username, password string) (us
 		Field("username", username).
 		Field("password", password).Write()
 
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("Obtaining user information using the basic authorization mechanism is completed. ").
+			Field("username", username).Write()
+	}()
+
 	// Получение данных пользователя
 	{
 		var err error
@@ -125,12 +132,12 @@ func (usecase *UseCase) Auth(ctx context.Context, username, password string) (us
 				Field("password", password).Write()
 
 			if errors.Is(err, sql.ErrNoRows) {
-				cErr = error_list.UserNotFound()
+				cErr = srv_errors.UserNotFound()
 				cErr.SetError(err)
 				return
 			}
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			cErr.SetError(err)
 			return
 		}
@@ -155,7 +162,7 @@ func (usecase *UseCase) Auth(ctx context.Context, username, password string) (us
 					Field("username", username).
 					Field("password", password).Write()
 
-				cErr = error_list.InternalServerError()
+				cErr = common_errors.InternalServerError()
 				cErr.SetError(err)
 				return
 			}
@@ -171,7 +178,7 @@ func (usecase *UseCase) Auth(ctx context.Context, username, password string) (us
 					Field("username", username).
 					Field("password", us.Password).Write()
 
-				cErr = error_list.InternalServerError()
+				cErr = common_errors.InternalServerError()
 				cErr.SetError(err)
 				return
 			}
@@ -185,7 +192,7 @@ func (usecase *UseCase) Auth(ctx context.Context, username, password string) (us
 					Field("username", username).
 					Field("password", password).Write()
 
-				cErr = error_list.InternalServerError()
+				cErr = common_errors.InternalServerError()
 				cErr.SetError(err)
 				return
 			}
@@ -201,7 +208,7 @@ func (usecase *UseCase) Auth(ctx context.Context, username, password string) (us
 					Field("username", username).
 					Field("password", us.Password).Write()
 
-				cErr = error_list.InternalServerError()
+				cErr = common_errors.InternalServerError()
 				cErr.SetError(err)
 				return
 			}
@@ -212,15 +219,11 @@ func (usecase *UseCase) Auth(ctx context.Context, username, password string) (us
 				Text("Authorization failed, passwords do not match. ").
 				Field("username", username).Write()
 
-			cErr = error_list.UserNotFound()
+			cErr = srv_errors.UserNotFound()
 			cErr.SetError(err)
 			return
 		}
 	}
-
-	usecase.components.Logger.Info().
-		Text("Obtaining user information using the basic authorization mechanism is completed. ").
-		Field("username", username).Write()
 
 	return
 }

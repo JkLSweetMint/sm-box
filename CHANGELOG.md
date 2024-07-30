@@ -1,5 +1,11 @@
 # ChangeLog:
 
+### v24.0.48:
+- Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
+- Доработки [сервиса пользователей](src/internal/services/users/service.go);
+
+---
+
 ### v24.0.47:
 - Переработка системы доступа;
 - Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);

@@ -130,6 +130,412 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "Управление короткими url. ",
+            "item": [
+                {
+                    "name": "Получение списка коротких url. ",
+                    "description": "\nИспользуется для получения списка коротких url.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "url-shortner",
+                                "api",
+                                "v1.0",
+                                "management",
+                                "list"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "offset",
+                                    "value": "0",
+                                    "description": null
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "20",
+                                    "description": null
+                                },
+                                {
+                                    "key": "sort_key",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "sort_type",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "filter_active",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "filter_type",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "filter_start_active",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "filter_start_active_type",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "filter_end_active",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "filter_end_active_type",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "filter_number_of_uses",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "filter_number_of_uses_type",
+                                    "value": "",
+                                    "description": null
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Получение короткого url по ID. ",
+                    "description": "\nИспользуется для получения короткого url по ID.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "url-shortner",
+                                "api",
+                                "v1.0",
+                                "management",
+                                "by_id",
+                                ":id"
+                            ]
+                        },
+                        "method": "GET",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Получение короткого url по сокращению. ",
+                    "description": "\nИспользуется для получения короткого url по сокращению.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "url-shortner",
+                                "api",
+                                "v1.0",
+                                "management",
+                                "by_reduction",
+                                ":reduction"
+                            ]
+                        },
+                        "method": "GET",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Удаление короткого url. ",
+                    "description": "\nИспользуется для удаления короткого url.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "url-shortner",
+                                "api",
+                                "v1.0",
+                                "management",
+                                ""
+                            ]
+                        },
+                        "method": "DELETE",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "\n{\n\t\"id\": 0,\n\t\"reduction: \"\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Создание короткого url. ",
+                    "description": "\nИспользуется для создания короткого url.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "url-shortner",
+                                "api",
+                                "v1.0",
+                                "management",
+                                ""
+                            ]
+                        },
+                        "method": "POST",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "\n{\n\t\"source\": \"\",\n\t\"properties\": {\n\t\t\"type\": \"\",\n\t\t\"number_of_uses\": 0,\n\t\t\"start_active\": \"0001-01-01T00:00:00+00:00\",\n\t\t\"end_active\": \"0001-01-01T00:00:00+00:00\"\n\t}\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Активация короткого url. ",
+                    "description": "\nИспользуется для активации короткого url.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "url-shortner",
+                                "api",
+                                "v1.0",
+                                "management",
+                                "activate"
+                            ]
+                        },
+                        "method": "PUT",
+                        "description": "\n{\n\t\"id\": 0,\n\t\"reduction\": \"\"\n}\n",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "\n{\n\t\"id\": 0,\n\t\"reduction\": \"\"\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Деактивация короткого url. ",
+                    "description": "\nИспользуется для деактивации короткого url.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "url-shortner",
+                                "api",
+                                "v1.0",
+                                "management",
+                                "deactivate"
+                            ]
+                        },
+                        "method": "PUT",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "\n{\n\t\"id\": 0,\n\t\"reduction\": \"\"\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Получение историю использования короткого url. ",
+                    "description": "\nИспользуется для получения истории использования короткого url.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "url-shortner",
+                                "api",
+                                "v1.0",
+                                "management",
+                                "history"
+                            ]
+                        },
+                        "method": "GET",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

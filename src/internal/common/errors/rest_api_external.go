@@ -1,4 +1,4 @@
-package error_list
+package common_errors
 
 import (
 	"github.com/gofiber/fiber/v3"

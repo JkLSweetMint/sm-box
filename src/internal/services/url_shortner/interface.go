@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	urls_controller "sm-box/internal/services/url_shortner/infrastructure/controllers/urls"
+	urls_management_controller "sm-box/internal/services/url_shortner/infrastructure/controllers/urls_management"
 	http_rest_api "sm-box/internal/services/url_shortner/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
@@ -72,6 +73,13 @@ func New() (srv_ Service, err error) {
 		// Urls
 		{
 			if ref.controllers.urls, err = urls_controller.New(ref.Ctx()); err != nil {
+				return
+			}
+		}
+
+		// UrlsManagement
+		{
+			if ref.controllers.urlsManagement, err = urls_management_controller.New(ref.Ctx()); err != nil {
 				return
 			}
 		}

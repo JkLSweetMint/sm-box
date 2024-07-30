@@ -30,9 +30,9 @@ type Controller struct {
 type usecases struct {
 	Urls interface {
 		RegisterToRedisDB(ctx context.Context) (cErr c_errors.Error)
-		GetByReduceFromRedisDB(ctx context.Context, reduce string) (url *entities.ShortUrl, cErr c_errors.Error)
+		GetByReductionFromRedisDB(ctx context.Context, reduction string) (url *entities.ShortUrl, cErr c_errors.Error)
 		UpdateInRedisDB(ctx context.Context, url *entities.ShortUrl) (cErr c_errors.Error)
-		RemoveByReduceFromRedisDB(ctx context.Context, reduce string) (cErr c_errors.Error)
+		RemoveByReductionFromRedisDB(ctx context.Context, reduction string) (cErr c_errors.Error)
 
 		WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.Error)
 	}
@@ -120,13 +120,13 @@ func (controller *Controller) RegisterToRedisDB(ctx context.Context) (cErr c_err
 	return
 }
 
-// GetByReduceFromRedisDB - получение короткого маршрута по сокращению из базы данных redis.
-func (controller *Controller) GetByReduceFromRedisDB(ctx context.Context, reduce string) (url *models.ShortUrlInfo, cErr c_errors.Error) {
+// GetByReductionFromRedisDB - получение короткого маршрута по сокращению из базы данных redis.
+func (controller *Controller) GetByReductionFromRedisDB(ctx context.Context, reduction string) (url *models.ShortUrlInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, reduce)
+		trc.FunctionCall(ctx, reduction)
 		defer func() { trc.Error(cErr).FunctionCallFinished(url) }()
 	}
 
@@ -134,7 +134,7 @@ func (controller *Controller) GetByReduceFromRedisDB(ctx context.Context, reduce
 	{
 		var url_ *entities.ShortUrl
 
-		if url_, cErr = controller.usecases.Urls.GetByReduceFromRedisDB(ctx, reduce); cErr != nil {
+		if url_, cErr = controller.usecases.Urls.GetByReductionFromRedisDB(ctx, reduction); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
@@ -172,10 +172,11 @@ func (controller *Controller) UpdateInRedisDB(ctx context.Context, url *models.S
 				Reduction: url.Reduction,
 
 				Properties: &entities.ShortUrlProperties{
-					Type:         url.Properties.Type,
-					NumberOfUses: url.Properties.NumberOfUses,
-					StartActive:  url.Properties.StartActive,
-					EndActive:    url.Properties.EndActive,
+					Type:                 url.Properties.Type,
+					NumberOfUses:         url.Properties.NumberOfUses,
+					RemainedNumberOfUses: url.Properties.RemainedNumberOfUses,
+					StartActive:          url.Properties.StartActive,
+					EndActive:            url.Properties.EndActive,
 				},
 			}
 		}
@@ -191,19 +192,19 @@ func (controller *Controller) UpdateInRedisDB(ctx context.Context, url *models.S
 	return
 }
 
-// RemoveByReduceFromRedisDB - удаление короткого маршрута по сокращению из базы данных redis.
-func (controller *Controller) RemoveByReduceFromRedisDB(ctx context.Context, reduce string) (cErr c_errors.Error) {
+// RemoveByReductionFromRedisDB - удаление короткого маршрута по сокращению из базы данных redis.
+func (controller *Controller) RemoveByReductionFromRedisDB(ctx context.Context, reduction string) (cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, reduce)
+		trc.FunctionCall(ctx, reduction)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	// Выполнения инструкций
 	{
-		if cErr = controller.usecases.Urls.RemoveByReduceFromRedisDB(ctx, reduce); cErr != nil {
+		if cErr = controller.usecases.Urls.RemoveByReductionFromRedisDB(ctx, reduction); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 

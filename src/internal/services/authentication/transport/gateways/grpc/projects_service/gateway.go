@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	app_models "sm-box/internal/app/objects/models"
-	error_list "sm-box/internal/common/errors"
+	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -135,7 +135,7 @@ func (gw *Gateway) Get(ctx context.Context, ids ...common_types.ID) (list app_mo
 			gw.components.Logger.Error().
 				Text("Failed to get users. ").Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			cErr.SetError(errors.New("Response instance is nil. "))
 
 			return
@@ -198,7 +198,7 @@ func (gw *Gateway) GetOne(ctx context.Context, id common_types.ID) (project *app
 			gw.components.Logger.Error().
 				Text("Failed to get project. ").Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			cErr.SetError(errors.New("Project instance is nil. "))
 
 			return

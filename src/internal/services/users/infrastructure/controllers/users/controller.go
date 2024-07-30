@@ -15,7 +15,7 @@ const (
 	loggerInitiator = "infrastructure-[controllers]=users"
 )
 
-// Controller - контроллер для аутентификации пользователей.
+// Controller - контроллер работы с пользователями.
 type Controller struct {
 	components *components
 	usecases   *usecases
@@ -76,7 +76,7 @@ func New(ctx context.Context) (controller *Controller, err error) {
 	{
 		controller.usecases = new(usecases)
 
-		// Authentication
+		// Users
 		{
 			if controller.usecases.Users, err = users_usecase.New(ctx); err != nil {
 				return

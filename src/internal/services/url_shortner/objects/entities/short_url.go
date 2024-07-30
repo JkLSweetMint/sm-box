@@ -2,6 +2,7 @@ package entities
 
 import (
 	common_types "sm-box/internal/common/types"
+	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/url_shortner/objects/db_models"
 	"sm-box/internal/services/url_shortner/objects/models"
 	"sm-box/internal/services/url_shortner/objects/types"
@@ -22,16 +23,25 @@ type (
 
 	// ShortUrlAccesses - информация по доступам к короткому url.
 	ShortUrlAccesses struct {
-		Roles       []common_types.ID
-		Permissions []common_types.ID
+		RolesID       []common_types.ID
+		PermissionsID []common_types.ID
 	}
 
 	// ShortUrlProperties - свойства короткой ссылке.
 	ShortUrlProperties struct {
-		Type         types.ShortUrlType
-		NumberOfUses int64
-		StartActive  time.Time
-		EndActive    time.Time
+		Type                 types.ShortUrlType
+		NumberOfUses         int64
+		RemainedNumberOfUses int64
+		StartActive          time.Time
+		EndActive            time.Time
+		Active               bool
+	}
+
+	// ShortUrlUsageHistory - история использования короткой ссылке.
+	ShortUrlUsageHistory struct {
+		Status    string
+		Timestamp time.Time
+		TokenInfo *authentication_entities.JwtSessionToken
 	}
 )
 
@@ -49,6 +59,11 @@ func (entity *ShortUrl) FillEmptyFields() *ShortUrl {
 		entity.Properties = new(ShortUrlProperties)
 	}
 
+	if entity.Accesses == nil {
+		entity.Accesses = new(ShortUrlAccesses)
+	}
+
+	entity.Accesses.FillEmptyFields()
 	entity.Properties.FillEmptyFields()
 
 	return entity
@@ -71,11 +86,17 @@ func (entity *ShortUrl) ToModel() (model *models.ShortUrlInfo) {
 		Source:    entity.Source,
 		Reduction: entity.Reduction,
 
+		Accesses: &models.ShortUrlAccesses{
+			RolesID:       entity.Accesses.RolesID,
+			PermissionsID: entity.Accesses.PermissionsID,
+		},
 		Properties: &models.ShortUrlInfoProperties{
-			Type:         entity.Properties.Type,
-			NumberOfUses: entity.Properties.NumberOfUses,
-			StartActive:  entity.Properties.StartActive,
-			EndActive:    entity.Properties.EndActive,
+			Type:                 entity.Properties.Type,
+			NumberOfUses:         entity.Properties.NumberOfUses,
+			RemainedNumberOfUses: entity.Properties.RemainedNumberOfUses,
+			StartActive:          entity.Properties.StartActive,
+			EndActive:            entity.Properties.EndActive,
+			Active:               entity.Properties.Active,
 		},
 	}
 
@@ -98,10 +119,11 @@ func (entity *ShortUrl) ToRedisDbModel() (model *db_models.ShortUrlInfo) {
 		Reduction: entity.Reduction,
 
 		Properties: &db_models.ShortUrlInfoProperties{
-			Type:         entity.Properties.Type,
-			NumberOfUses: entity.Properties.NumberOfUses,
-			StartActive:  entity.Properties.StartActive,
-			EndActive:    entity.Properties.EndActive,
+			Type:                 entity.Properties.Type,
+			NumberOfUses:         entity.Properties.NumberOfUses,
+			RemainedNumberOfUses: entity.Properties.RemainedNumberOfUses,
+			StartActive:          entity.Properties.StartActive,
+			EndActive:            entity.Properties.EndActive,
 		},
 	}
 
@@ -119,4 +141,44 @@ func (entity *ShortUrlProperties) FillEmptyFields() *ShortUrlProperties {
 	}
 
 	return entity
+}
+
+// FillEmptyFields - заполнение пустых полей сущности.
+func (entity *ShortUrlAccesses) FillEmptyFields() *ShortUrlAccesses {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(entity) }()
+	}
+
+	if entity.RolesID == nil {
+		entity.RolesID = make([]common_types.ID, 0)
+	}
+
+	if entity.PermissionsID == nil {
+		entity.PermissionsID = make([]common_types.ID, 0)
+	}
+
+	return entity
+}
+
+// ToModel - получение внешней модели.
+func (entity *ShortUrlUsageHistory) ToModel() (model *models.ShortUrlUsageHistoryInfo) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelEntity)
+
+		trc.FunctionCall()
+		defer func() { trc.FunctionCallFinished(model) }()
+	}
+
+	model = &models.ShortUrlUsageHistoryInfo{
+		Status:    entity.Status,
+		Timestamp: entity.Timestamp,
+		TokenInfo: entity.TokenInfo,
+	}
+
+	return
 }

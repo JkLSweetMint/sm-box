@@ -42,17 +42,19 @@ create type transports.http_protocol as enum ('http', 'https', 'ws', 'wss');
 create table
     if not exists transports.http_routes
 (
-    id            bigserial                  not null
+    id            bigserial     not null
         constraint transports_http_routes_pk
             primary key,
-    system_name   varchar(1024)              not null,
-    name          varchar(1024)              not null,
-    description   varchar(4096)              not null default '',
+    system_name   varchar(1024) not null,
+    name          varchar(1024) not null,
+    description   varchar(4096) not null default '',
+
     protocols     transports.http_protocol[] not null default '{}',
     method        transports.http_method     not null,
     path          varchar(4096),
     regexp_path   varchar(4096),
-    active        boolean                    not null default false
+
+    active boolean not null default false,
 
     constraint check_path
         check (((path is not null and path ~ '^(?:[-a-zA-Z0-9()*@:%_\+.~#?&\/=]*)$') or regexp_path is not null)),
@@ -90,7 +92,7 @@ begin
                    1
                );
 
-        return new;
+    return new;
 end;
 $$;
 

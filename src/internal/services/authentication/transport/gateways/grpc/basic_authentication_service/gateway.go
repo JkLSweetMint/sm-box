@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
-	error_list "sm-box/internal/common/errors"
+	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
 	users_models "sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/logger"
@@ -128,7 +128,7 @@ func (gw *Gateway) Auth(ctx context.Context, username, password string) (user *u
 			gw.components.Logger.Error().
 				Text("Authorization failed on the remote service. ").Write()
 
-			cErr = error_list.InternalServerError()
+			cErr = common_errors.InternalServerError()
 			cErr.SetError(errors.New("User instance is nil. "))
 
 			return
