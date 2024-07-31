@@ -21,7 +21,7 @@ func (srv *service) serve(ctx context.Context) (err error) {
 
 	// Транспортная часть
 	{
-		env.Synchronization.WaitGroup.Add(1)
+		env.Synchronization.WaitGroup.Add(2)
 
 		go func() {
 			defer env.Synchronization.WaitGroup.Done()
@@ -29,6 +29,15 @@ func (srv *service) serve(ctx context.Context) (err error) {
 			if err = srv.Transport().Servers().Http().RestApi().Listen(); err != nil {
 				srv.Components().Logger().Error().
 					Format("Failed to launch 'http rest api server': '%s'. ", err).Write()
+			}
+		}()
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			if err = srv.Transport().Servers().Grpc().UrlShortnerService().Listen(); err != nil {
+				srv.Components().Logger().Error().
+					Format("Failed to launch 'grpc server for url shortner service': '%s'. ", err).Write()
 			}
 		}()
 	}
@@ -57,6 +66,11 @@ func (srv *service) shutdown(ctx context.Context) (err error) {
 		if err = srv.Transport().Servers().Http().RestApi().Shutdown(); err != nil {
 			srv.Components().Logger().Error().
 				Format("Failed to stop 'http rest api server': '%s'. ", err).Write()
+		}
+
+		if err = srv.Transport().Servers().Grpc().UrlShortnerService().Shutdown(); err != nil {
+			srv.Components().Logger().Error().
+				Format("Failed to stop 'grpc server for url shortner service': '%s'. ", err).Write()
 		}
 	}
 

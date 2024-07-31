@@ -18,122 +18,122 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ProjectsClient is the client API for Projects service.
+// ProjectsServiceClient is the client API for ProjectsService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ProjectsClient interface {
+type ProjectsServiceClient interface {
 	Get(ctx context.Context, in *ProjectsGetRequest, opts ...grpc.CallOption) (*ProjectsGetResponse, error)
 	GetOne(ctx context.Context, in *ProjectsGetOneRequest, opts ...grpc.CallOption) (*ProjectsGetOneResponse, error)
 }
 
-type projectsClient struct {
+type projectsServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewProjectsClient(cc grpc.ClientConnInterface) ProjectsClient {
-	return &projectsClient{cc}
+func NewProjectsServiceClient(cc grpc.ClientConnInterface) ProjectsServiceClient {
+	return &projectsServiceClient{cc}
 }
 
-func (c *projectsClient) Get(ctx context.Context, in *ProjectsGetRequest, opts ...grpc.CallOption) (*ProjectsGetResponse, error) {
+func (c *projectsServiceClient) Get(ctx context.Context, in *ProjectsGetRequest, opts ...grpc.CallOption) (*ProjectsGetResponse, error) {
 	out := new(ProjectsGetResponse)
-	err := c.cc.Invoke(ctx, "/grpc_service.Projects/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_service.ProjectsService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *projectsClient) GetOne(ctx context.Context, in *ProjectsGetOneRequest, opts ...grpc.CallOption) (*ProjectsGetOneResponse, error) {
+func (c *projectsServiceClient) GetOne(ctx context.Context, in *ProjectsGetOneRequest, opts ...grpc.CallOption) (*ProjectsGetOneResponse, error) {
 	out := new(ProjectsGetOneResponse)
-	err := c.cc.Invoke(ctx, "/grpc_service.Projects/GetOne", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_service.ProjectsService/GetOne", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ProjectsServer is the server API for Projects service.
-// All implementations must embed UnimplementedProjectsServer
+// ProjectsServiceServer is the server API for ProjectsService service.
+// All implementations must embed UnimplementedProjectsServiceServer
 // for forward compatibility
-type ProjectsServer interface {
+type ProjectsServiceServer interface {
 	Get(context.Context, *ProjectsGetRequest) (*ProjectsGetResponse, error)
 	GetOne(context.Context, *ProjectsGetOneRequest) (*ProjectsGetOneResponse, error)
-	mustEmbedUnimplementedProjectsServer()
+	mustEmbedUnimplementedProjectsServiceServer()
 }
 
-// UnimplementedProjectsServer must be embedded to have forward compatible implementations.
-type UnimplementedProjectsServer struct {
+// UnimplementedProjectsServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedProjectsServiceServer struct {
 }
 
-func (UnimplementedProjectsServer) Get(context.Context, *ProjectsGetRequest) (*ProjectsGetResponse, error) {
+func (UnimplementedProjectsServiceServer) Get(context.Context, *ProjectsGetRequest) (*ProjectsGetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedProjectsServer) GetOne(context.Context, *ProjectsGetOneRequest) (*ProjectsGetOneResponse, error) {
+func (UnimplementedProjectsServiceServer) GetOne(context.Context, *ProjectsGetOneRequest) (*ProjectsGetOneResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
-func (UnimplementedProjectsServer) mustEmbedUnimplementedProjectsServer() {}
+func (UnimplementedProjectsServiceServer) mustEmbedUnimplementedProjectsServiceServer() {}
 
-// UnsafeProjectsServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ProjectsServer will
+// UnsafeProjectsServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ProjectsServiceServer will
 // result in compilation errors.
-type UnsafeProjectsServer interface {
-	mustEmbedUnimplementedProjectsServer()
+type UnsafeProjectsServiceServer interface {
+	mustEmbedUnimplementedProjectsServiceServer()
 }
 
-func RegisterProjectsServer(s grpc.ServiceRegistrar, srv ProjectsServer) {
-	s.RegisterService(&Projects_ServiceDesc, srv)
+func RegisterProjectsServiceServer(s grpc.ServiceRegistrar, srv ProjectsServiceServer) {
+	s.RegisterService(&ProjectsService_ServiceDesc, srv)
 }
 
-func _Projects_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ProjectsService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProjectsGetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProjectsServer).Get(ctx, in)
+		return srv.(ProjectsServiceServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc_service.Projects/Get",
+		FullMethod: "/grpc_service.ProjectsService/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProjectsServer).Get(ctx, req.(*ProjectsGetRequest))
+		return srv.(ProjectsServiceServer).Get(ctx, req.(*ProjectsGetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Projects_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ProjectsService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProjectsGetOneRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProjectsServer).GetOne(ctx, in)
+		return srv.(ProjectsServiceServer).GetOne(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc_service.Projects/GetOne",
+		FullMethod: "/grpc_service.ProjectsService/GetOne",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProjectsServer).GetOne(ctx, req.(*ProjectsGetOneRequest))
+		return srv.(ProjectsServiceServer).GetOne(ctx, req.(*ProjectsGetOneRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Projects_ServiceDesc is the grpc.ServiceDesc for Projects service.
+// ProjectsService_ServiceDesc is the grpc.ServiceDesc for ProjectsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Projects_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "grpc_service.Projects",
-	HandlerType: (*ProjectsServer)(nil),
+var ProjectsService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "grpc_service.ProjectsService",
+	HandlerType: (*ProjectsServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Get",
-			Handler:    _Projects_Get_Handler,
+			Handler:    _ProjectsService_Get_Handler,
 		},
 		{
 			MethodName: "GetOne",
-			Handler:    _Projects_GetOne_Handler,
+			Handler:    _ProjectsService_GetOne_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

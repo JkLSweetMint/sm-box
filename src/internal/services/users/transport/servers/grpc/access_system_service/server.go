@@ -15,7 +15,7 @@ import (
 
 // server - grpc сервер для сервиса системы доступа пользователей.
 type server struct {
-	pb.AccessSystemServer
+	pb.AccessSystemServiceServer
 	listener net.Listener
 	grpc     *grpc.Server
 

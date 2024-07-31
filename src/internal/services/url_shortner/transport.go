@@ -1,6 +1,7 @@
 package service
 
 import (
+	url_shortner_srv "sm-box/internal/services/url_shortner/transport/servers/grpc/url_shortner_service"
 	http_rest_api "sm-box/internal/services/url_shortner/transport/servers/http/rest_api"
 )
 
@@ -22,7 +23,9 @@ type TransportServersHttp interface {
 }
 
 // TransportServersGrpc - описание серверов транспортной части приложения по grpc.
-type TransportServersGrpc interface {}
+type TransportServersGrpc interface {
+	UrlShortnerService() url_shortner_srv.Server
+}
 
 // TransportGateways - описание шлюзов транспортной части сервиса.
 type TransportGateways interface{}
@@ -47,7 +50,9 @@ type transportServersHttp struct {
 }
 
 // transportServersGrpc - сервера транспортной части приложения по grpc.
-type transportServersGrpc struct {}
+type transportServersGrpc struct {
+	urlShortnerService url_shortner_srv.Server
+}
 
 // transportsGateways - шлюзы транспортной части сервиса.
 type transportGateways struct {
@@ -76,4 +81,9 @@ func (t *transportServers) Grpc() TransportServersGrpc {
 // RestApi - получение http rest api сервера.
 func (t *transportServersHttp) RestApi() http_rest_api.Server {
 	return t.restApi
+}
+
+// UrlShortnerService - получение grpc сервера.
+func (t *transportServersGrpc) UrlShortnerService() url_shortner_srv.Server {
+	return t.urlShortnerService
 }

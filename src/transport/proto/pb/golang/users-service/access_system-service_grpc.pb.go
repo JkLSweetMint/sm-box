@@ -18,86 +18,86 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// AccessSystemClient is the client API for AccessSystem service.
+// AccessSystemServiceClient is the client API for AccessSystemService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AccessSystemClient interface {
+type AccessSystemServiceClient interface {
 	CheckUserAccess(ctx context.Context, in *AccessSystemCheckUserAccessRequest, opts ...grpc.CallOption) (*AccessSystemCheckUserAccessResponse, error)
 }
 
-type accessSystemClient struct {
+type accessSystemServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAccessSystemClient(cc grpc.ClientConnInterface) AccessSystemClient {
-	return &accessSystemClient{cc}
+func NewAccessSystemServiceClient(cc grpc.ClientConnInterface) AccessSystemServiceClient {
+	return &accessSystemServiceClient{cc}
 }
 
-func (c *accessSystemClient) CheckUserAccess(ctx context.Context, in *AccessSystemCheckUserAccessRequest, opts ...grpc.CallOption) (*AccessSystemCheckUserAccessResponse, error) {
+func (c *accessSystemServiceClient) CheckUserAccess(ctx context.Context, in *AccessSystemCheckUserAccessRequest, opts ...grpc.CallOption) (*AccessSystemCheckUserAccessResponse, error) {
 	out := new(AccessSystemCheckUserAccessResponse)
-	err := c.cc.Invoke(ctx, "/grpc_service.AccessSystem/CheckUserAccess", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_service.AccessSystemService/CheckUserAccess", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AccessSystemServer is the server API for AccessSystem service.
-// All implementations must embed UnimplementedAccessSystemServer
+// AccessSystemServiceServer is the server API for AccessSystemService service.
+// All implementations must embed UnimplementedAccessSystemServiceServer
 // for forward compatibility
-type AccessSystemServer interface {
+type AccessSystemServiceServer interface {
 	CheckUserAccess(context.Context, *AccessSystemCheckUserAccessRequest) (*AccessSystemCheckUserAccessResponse, error)
-	mustEmbedUnimplementedAccessSystemServer()
+	mustEmbedUnimplementedAccessSystemServiceServer()
 }
 
-// UnimplementedAccessSystemServer must be embedded to have forward compatible implementations.
-type UnimplementedAccessSystemServer struct {
+// UnimplementedAccessSystemServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAccessSystemServiceServer struct {
 }
 
-func (UnimplementedAccessSystemServer) CheckUserAccess(context.Context, *AccessSystemCheckUserAccessRequest) (*AccessSystemCheckUserAccessResponse, error) {
+func (UnimplementedAccessSystemServiceServer) CheckUserAccess(context.Context, *AccessSystemCheckUserAccessRequest) (*AccessSystemCheckUserAccessResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckUserAccess not implemented")
 }
-func (UnimplementedAccessSystemServer) mustEmbedUnimplementedAccessSystemServer() {}
+func (UnimplementedAccessSystemServiceServer) mustEmbedUnimplementedAccessSystemServiceServer() {}
 
-// UnsafeAccessSystemServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AccessSystemServer will
+// UnsafeAccessSystemServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AccessSystemServiceServer will
 // result in compilation errors.
-type UnsafeAccessSystemServer interface {
-	mustEmbedUnimplementedAccessSystemServer()
+type UnsafeAccessSystemServiceServer interface {
+	mustEmbedUnimplementedAccessSystemServiceServer()
 }
 
-func RegisterAccessSystemServer(s grpc.ServiceRegistrar, srv AccessSystemServer) {
-	s.RegisterService(&AccessSystem_ServiceDesc, srv)
+func RegisterAccessSystemServiceServer(s grpc.ServiceRegistrar, srv AccessSystemServiceServer) {
+	s.RegisterService(&AccessSystemService_ServiceDesc, srv)
 }
 
-func _AccessSystem_CheckUserAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AccessSystemService_CheckUserAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AccessSystemCheckUserAccessRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccessSystemServer).CheckUserAccess(ctx, in)
+		return srv.(AccessSystemServiceServer).CheckUserAccess(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc_service.AccessSystem/CheckUserAccess",
+		FullMethod: "/grpc_service.AccessSystemService/CheckUserAccess",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccessSystemServer).CheckUserAccess(ctx, req.(*AccessSystemCheckUserAccessRequest))
+		return srv.(AccessSystemServiceServer).CheckUserAccess(ctx, req.(*AccessSystemCheckUserAccessRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// AccessSystem_ServiceDesc is the grpc.ServiceDesc for AccessSystem service.
+// AccessSystemService_ServiceDesc is the grpc.ServiceDesc for AccessSystemService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var AccessSystem_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "grpc_service.AccessSystem",
-	HandlerType: (*AccessSystemServer)(nil),
+var AccessSystemService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "grpc_service.AccessSystemService",
+	HandlerType: (*AccessSystemServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "CheckUserAccess",
-			Handler:    _AccessSystem_CheckUserAccess_Handler,
+			Handler:    _AccessSystemService_CheckUserAccess_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package grpc_service;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./";
+
+message UrlShortner {
+  message _Accesses {
+    repeated uint64 RolesID       = 1;
+    repeated uint64 PermissionsID = 2;
+  }
+  message _Properties {
+    string Type   = 1;
+    bool   Active = 2;
+
+    int64 NumberOfUses         = 3;
+    int64 RemainedNumberOfUses = 4;
+
+    google.protobuf.Timestamp StartActive = 5;
+    google.protobuf.Timestamp EndActive   = 6;
+  }
+
+  uint64 ID        = 1;
+  string Source    = 2;
+  string Reduction = 3;
+
+  _Accesses   Accesses   = 4;
+  _Properties Properties = 5;
+}

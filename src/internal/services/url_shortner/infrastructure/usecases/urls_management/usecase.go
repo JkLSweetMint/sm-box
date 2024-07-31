@@ -67,6 +67,9 @@ type repositories struct {
 
 		UpdateActive(ctx context.Context, id common_types.ID, active bool) (err error)
 		UpdateActiveByReduction(ctx context.Context, reduction string, active bool) (err error)
+
+		UpdateAccesses(ctx context.Context, id common_types.ID, rolesID, permissionsID []common_types.ID) (err error)
+		UpdateAccessesByReduction(ctx context.Context, reduction string, rolesID, permissionsID []common_types.ID) (err error)
 	}
 	UrlsRedis interface {
 		Set(ctx context.Context, list ...*entities.ShortUrl) (err error)
@@ -171,10 +174,10 @@ func (usecase *UseCase) GetList(ctx context.Context,
 			Field("filters", filters).Write()
 	}()
 
-	// Валидация
+	// Подготовка данных
 	{
 		if search != nil {
-			search.Global = strings.TrimSpace(search.Global)
+			search.Global = strings.ToLower(strings.TrimSpace(search.Global))
 		}
 
 		if sort != nil {
@@ -182,18 +185,23 @@ func (usecase *UseCase) GetList(ctx context.Context,
 
 			if sort.Key == "" {
 				sort = nil
-			} else {
-				sort.Type = strings.ToLower(strings.TrimSpace(sort.Type))
+			}
+		}
+	}
 
-				if sort.Type != "asc" && sort.Type != "desc" {
-					usecase.components.Logger.Error().
-						Text("An invalid sort type value was passed. ").Write()
+	// Валидация
+	{
+		if sort != nil {
+			sort.Type = strings.ToLower(strings.TrimSpace(sort.Type))
 
-					cErr = common_errors.InvalidSortValue()
-					cErr.Details().Set("sort_type", "Invalid value. ")
+			if sort.Type != "asc" && sort.Type != "desc" {
+				usecase.components.Logger.Error().
+					Text("An invalid sort type value was passed. ").Write()
 
-					return
-				}
+				cErr = common_errors.InvalidSortValue()
+				cErr.Details().Set("sort_type", "Invalid value. ")
+
+				return
 			}
 		}
 
@@ -1220,6 +1228,160 @@ func (usecase *UseCase) DeactivateByReduction(ctx context.Context, reduction str
 			cErr = common_errors.InternalServerError()
 			return
 		}
+	}
+
+	return
+}
+
+// UpdateAccesses - обновления данных доступов к сокращенному url.
+func (usecase *UseCase) UpdateAccesses(ctx context.Context, id common_types.ID, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelUseCase)
+
+		trc.FunctionCall(ctx, id, rolesID, permissionsID)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	usecase.components.Logger.Info().
+		Text("The process of updating the access data of the short url by id has been started... ").
+		Field("id", id).
+		Field("roles_id", rolesID).
+		Field("permissions_id", permissionsID).Write()
+
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The process of updating the access data of the short url by id is completed. ").
+			Field("id", id).
+			Field("roles_id", rolesID).
+			Field("permissions_id", permissionsID).Write()
+	}()
+
+	// Валидация
+	{
+		if rolesID == nil && permissionsID == nil {
+			usecase.components.Logger.Error().
+				Text("An invalid type value was passed. ").Write()
+
+			cErr = common_errors.InvalidArguments()
+			cErr.Details().Set("roles_id", "Is empty. ")
+			cErr.Details().Set("permissions_id", "Is empty. ")
+
+			return
+		}
+	}
+
+	// Проверки
+	{
+		// Существования
+		{
+			if _, err := usecase.repositories.UrlsManagement.GetOne(ctx, id); err != nil {
+				usecase.components.Logger.Error().
+					Format("Could not get the shortened url by id: '%s'. ", err).Write()
+
+				if errors.Is(err, sql.ErrNoRows) {
+					cErr = srv_errors.ShortUrlNotFound()
+					return
+				}
+
+				cErr = common_errors.InternalServerError()
+				return
+			}
+		}
+	}
+
+	// Обновление
+	{
+		var err error
+
+		if err = usecase.repositories.UrlsManagement.UpdateAccesses(ctx, id, rolesID, permissionsID); err != nil {
+			usecase.components.Logger.Error().
+				Format("Failed to update short url access data by id: '%s'. ", err).Write()
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The access data of the short url has been successfully updated by id. ").
+			Field("id", id).Write()
+	}
+
+	return
+}
+
+// UpdateAccessesByReduction - обновления данных доступов к сокращенному url по сокращению.
+func (usecase *UseCase) UpdateAccessesByReduction(ctx context.Context, reduction string, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelUseCase)
+
+		trc.FunctionCall(ctx, reduction, rolesID, permissionsID)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	usecase.components.Logger.Info().
+		Text("The process of updating the access data of the short url by ireductiond has been started... ").
+		Field("reduction", reduction).
+		Field("roles_id", rolesID).
+		Field("permissions_id", permissionsID).Write()
+
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The process of updating the access data of the short url by reduction is completed. ").
+			Field("reduction", reduction).
+			Field("roles_id", rolesID).
+			Field("permissions_id", permissionsID).Write()
+	}()
+
+	// Валидация
+	{
+		if rolesID == nil && permissionsID == nil {
+			usecase.components.Logger.Error().
+				Text("An invalid type value was passed. ").Write()
+
+			cErr = common_errors.InvalidArguments()
+			cErr.Details().Set("roles_id", "Is empty. ")
+			cErr.Details().Set("permissions_id", "Is empty. ")
+
+			return
+		}
+	}
+
+	// Проверки
+	{
+		// Существования
+		{
+			if _, err := usecase.repositories.UrlsManagement.GetOneByReduction(ctx, reduction); err != nil {
+				usecase.components.Logger.Error().
+					Format("Could not get the shortened url by reduction: '%s'. ", err).Write()
+
+				if errors.Is(err, sql.ErrNoRows) {
+					cErr = srv_errors.ShortUrlNotFound()
+					return
+				}
+
+				cErr = common_errors.InternalServerError()
+				return
+			}
+		}
+	}
+
+	// Обновление
+	{
+		var err error
+
+		if err = usecase.repositories.UrlsManagement.UpdateAccessesByReduction(ctx, reduction, rolesID, permissionsID); err != nil {
+			usecase.components.Logger.Error().
+				Format("Failed to update short url access data by reduction: '%s'. ", err).Write()
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The access data of the short url has been successfully updated by reduction. ").
+			Field("reduction", reduction).Write()
 	}
 
 	return

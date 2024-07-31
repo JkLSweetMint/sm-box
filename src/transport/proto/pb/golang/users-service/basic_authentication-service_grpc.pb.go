@@ -18,86 +18,87 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// BasicAuthenticationClient is the client API for BasicAuthentication service.
+// BasicAuthenticationServiceClient is the client API for BasicAuthenticationService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type BasicAuthenticationClient interface {
+type BasicAuthenticationServiceClient interface {
 	Auth(ctx context.Context, in *BasicAuthenticationAuthRequest, opts ...grpc.CallOption) (*BasicAuthenticationAuthResponse, error)
 }
 
-type basicAuthenticationClient struct {
+type basicAuthenticationServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewBasicAuthenticationClient(cc grpc.ClientConnInterface) BasicAuthenticationClient {
-	return &basicAuthenticationClient{cc}
+func NewBasicAuthenticationServiceClient(cc grpc.ClientConnInterface) BasicAuthenticationServiceClient {
+	return &basicAuthenticationServiceClient{cc}
 }
 
-func (c *basicAuthenticationClient) Auth(ctx context.Context, in *BasicAuthenticationAuthRequest, opts ...grpc.CallOption) (*BasicAuthenticationAuthResponse, error) {
+func (c *basicAuthenticationServiceClient) Auth(ctx context.Context, in *BasicAuthenticationAuthRequest, opts ...grpc.CallOption) (*BasicAuthenticationAuthResponse, error) {
 	out := new(BasicAuthenticationAuthResponse)
-	err := c.cc.Invoke(ctx, "/grpc_service.BasicAuthentication/Auth", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc_service.BasicAuthenticationService/Auth", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// BasicAuthenticationServer is the server API for BasicAuthentication service.
-// All implementations must embed UnimplementedBasicAuthenticationServer
+// BasicAuthenticationServiceServer is the server API for BasicAuthenticationService service.
+// All implementations must embed UnimplementedBasicAuthenticationServiceServer
 // for forward compatibility
-type BasicAuthenticationServer interface {
+type BasicAuthenticationServiceServer interface {
 	Auth(context.Context, *BasicAuthenticationAuthRequest) (*BasicAuthenticationAuthResponse, error)
-	mustEmbedUnimplementedBasicAuthenticationServer()
+	mustEmbedUnimplementedBasicAuthenticationServiceServer()
 }
 
-// UnimplementedBasicAuthenticationServer must be embedded to have forward compatible implementations.
-type UnimplementedBasicAuthenticationServer struct {
+// UnimplementedBasicAuthenticationServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedBasicAuthenticationServiceServer struct {
 }
 
-func (UnimplementedBasicAuthenticationServer) Auth(context.Context, *BasicAuthenticationAuthRequest) (*BasicAuthenticationAuthResponse, error) {
+func (UnimplementedBasicAuthenticationServiceServer) Auth(context.Context, *BasicAuthenticationAuthRequest) (*BasicAuthenticationAuthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Auth not implemented")
 }
-func (UnimplementedBasicAuthenticationServer) mustEmbedUnimplementedBasicAuthenticationServer() {}
+func (UnimplementedBasicAuthenticationServiceServer) mustEmbedUnimplementedBasicAuthenticationServiceServer() {
+}
 
-// UnsafeBasicAuthenticationServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to BasicAuthenticationServer will
+// UnsafeBasicAuthenticationServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to BasicAuthenticationServiceServer will
 // result in compilation errors.
-type UnsafeBasicAuthenticationServer interface {
-	mustEmbedUnimplementedBasicAuthenticationServer()
+type UnsafeBasicAuthenticationServiceServer interface {
+	mustEmbedUnimplementedBasicAuthenticationServiceServer()
 }
 
-func RegisterBasicAuthenticationServer(s grpc.ServiceRegistrar, srv BasicAuthenticationServer) {
-	s.RegisterService(&BasicAuthentication_ServiceDesc, srv)
+func RegisterBasicAuthenticationServiceServer(s grpc.ServiceRegistrar, srv BasicAuthenticationServiceServer) {
+	s.RegisterService(&BasicAuthenticationService_ServiceDesc, srv)
 }
 
-func _BasicAuthentication_Auth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _BasicAuthenticationService_Auth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BasicAuthenticationAuthRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BasicAuthenticationServer).Auth(ctx, in)
+		return srv.(BasicAuthenticationServiceServer).Auth(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc_service.BasicAuthentication/Auth",
+		FullMethod: "/grpc_service.BasicAuthenticationService/Auth",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BasicAuthenticationServer).Auth(ctx, req.(*BasicAuthenticationAuthRequest))
+		return srv.(BasicAuthenticationServiceServer).Auth(ctx, req.(*BasicAuthenticationAuthRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// BasicAuthentication_ServiceDesc is the grpc.ServiceDesc for BasicAuthentication service.
+// BasicAuthenticationService_ServiceDesc is the grpc.ServiceDesc for BasicAuthenticationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var BasicAuthentication_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "grpc_service.BasicAuthentication",
-	HandlerType: (*BasicAuthenticationServer)(nil),
+var BasicAuthenticationService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "grpc_service.BasicAuthenticationService",
+	HandlerType: (*BasicAuthenticationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Auth",
-			Handler:    _BasicAuthentication_Auth_Handler,
+			Handler:    _BasicAuthenticationService_Auth_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -15,6 +15,6 @@ message BasicAuthenticationAuthResponse {
   User User = 1;
 }
 
-service BasicAuthentication {
+service BasicAuthenticationService {
   rpc Auth(BasicAuthenticationAuthRequest) returns (BasicAuthenticationAuthResponse);
 }

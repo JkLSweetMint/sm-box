@@ -537,6 +537,54 @@
                     ]
                 },
                 {
+                    "name": "Изменение доступов к короткому url. ",
+                    "description": "\nИспользуется для изменения доступов к короткому url.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "url-shortner",
+                                "api",
+                                "v1.0",
+                                "management",
+                                "accesses"
+                            ]
+                        },
+                        "method": "PUT",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "\n{\n\t\"id\": 0,\n\t\"reduction\": \"\",\n\t\"roles_id\": [],\n\t\"permissions_id\": []\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {}\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
+                        }
+                    ]
+                },
+                {
                     "name": "История использований. ",
                     "item": [
                         {

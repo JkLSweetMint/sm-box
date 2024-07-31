@@ -70,7 +70,7 @@ func (app *box) shutdown(ctx context.Context) (err error) {
 
 		if err = app.Transport().Servers().Grpc().ProjectsService().Shutdown(); err != nil {
 			app.Components().Logger().Error().
-				Format("grpc server for projects service': '%s'. ", err).Write()
+				Format("Failed to stop 'grpc server for projects service': '%s'. ", err).Write()
 		}
 	}
 

@@ -147,7 +147,7 @@ func (repo *Repository) GetList(ctx context.Context,
 				if filters != nil {
 					if filters.Active != nil {
 						var v = *filters.Active
-						query.WriteString(fmt.Sprintf("\nand active=%s", v))
+						query.WriteString(fmt.Sprintf("\nand active=%t", v))
 					}
 
 					if filters.Type != nil {
@@ -306,7 +306,7 @@ func (repo *Repository) GetList(ctx context.Context,
 				if filters != nil {
 					if filters.Active != nil {
 						var v = *filters.Active
-						query.WriteString(fmt.Sprintf("\nand active=%s", v))
+						query.WriteString(fmt.Sprintf("\nand active=%t", v))
 					}
 
 					if filters.Type != nil {
@@ -1111,6 +1111,282 @@ func (repo *Repository) UpdateActiveByReduction(ctx context.Context, reduction s
 	if _, err = repo.connector.Exec(query, reduction, active); err != nil {
 		repo.components.Logger.Error().
 			Format("Error updating an item from the database: '%s'. ", err).Write()
+		return
+	}
+
+	return
+}
+
+// UpdateAccesses - обновления данных доступов к сокращенному url.
+func (repo *Repository) UpdateAccesses(ctx context.Context, id common_types.ID, rolesID, permissionsID []common_types.ID) (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, id, rolesID, permissionsID)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var tx *sqlx.Tx
+
+	// Создание транзакции
+	{
+		if tx, err = repo.connector.BeginTxx(ctx, nil); err != nil {
+			repo.components.Logger.Error().
+				Format("An error occurred during the creation of the transaction: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	// Очистка текущих
+	{
+		// Роли
+		{
+			if rolesID != nil {
+				var query = `
+					delete from
+						   public.accesses as accesses
+					where
+						accesses.url_id = $1 and
+					    accesses.role_id is not null
+				`
+
+				if _, err = tx.Exec(query, id); err != nil {
+					repo.components.Logger.Error().
+						Format("Error removing an item from the database: '%s'. ", err).Write()
+					return
+				}
+			}
+		}
+
+		// Права
+		{
+			if permissionsID != nil {
+				var query = `
+					delete from
+						   public.accesses as accesses
+					where
+						accesses.url_id = $1 and
+					    accesses.permission_id is not null
+				`
+
+				if _, err = tx.Exec(query, id); err != nil {
+					repo.components.Logger.Error().
+						Format("Error removing an item from the database: '%s'. ", err).Write()
+					return
+				}
+			}
+		}
+	}
+
+	// Загрузка новых
+	{
+		// Роли
+		{
+			if rolesID != nil {
+				var query = `
+				insert into 
+					   public.accesses(
+						   url_id,
+						   role_id
+					   )
+					   values (
+						   $1,
+						   $2
+					   )
+			`
+
+				for _, role := range rolesID {
+					if _, err = tx.Exec(query, id, role); err != nil {
+						repo.components.Logger.Error().
+							Format("Error inserting an item from the database: '%s'. ", err).Write()
+						return
+					}
+				}
+			}
+		}
+
+		// Права
+		{
+			if permissionsID != nil {
+				var query = `
+				insert into 
+					   public.accesses(
+						   url_id,
+						   permission_id
+					   )
+					   values (
+						   $1,
+						   $2
+					   )
+			`
+
+				for _, permission := range permissionsID {
+					if _, err = tx.Exec(query, id, permission); err != nil {
+						repo.components.Logger.Error().
+							Format("Error inserting an item from the database: '%s'. ", err).Write()
+						return
+					}
+				}
+			}
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		repo.components.Logger.Error().
+			Format("An error occurred during the execution of the transaction: '%s'. ", err).Write()
+		return
+	}
+
+	return
+}
+
+// UpdateAccessesByReduction - обновления данных доступов к сокращенному url по сокращению.
+func (repo *Repository) UpdateAccessesByReduction(ctx context.Context, reduction string, rolesID, permissionsID []common_types.ID) (err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, reduction, rolesID, permissionsID)
+		defer func() { trc.Error(err).FunctionCallFinished() }()
+	}
+
+	var id common_types.ID
+
+	// Получение ID
+	{
+		var query = `
+			select
+				urls.id
+			from
+				public.urls as urls
+			where 
+			    urls.reduction = $1
+		`
+
+		var row = repo.connector.QueryRowxContext(ctx, query, reduction)
+
+		if err = row.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+			return
+		}
+
+		if err = row.Scan(&id); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	var tx *sqlx.Tx
+
+	// Создание транзакции
+	{
+		if tx, err = repo.connector.BeginTxx(ctx, nil); err != nil {
+			repo.components.Logger.Error().
+				Format("An error occurred during the creation of the transaction: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	// Очистка текущих
+	{
+		// Роли
+		{
+			if rolesID != nil {
+				var query = `
+					delete from
+						   public.accesses as accesses
+					where
+						accesses.url_id = $1 and
+					    accesses.role_id is not null
+				`
+
+				if _, err = tx.Exec(query, id); err != nil {
+					repo.components.Logger.Error().
+						Format("Error removing an item from the database: '%s'. ", err).Write()
+					return
+				}
+			}
+		}
+
+		// Права
+		{
+			if permissionsID != nil {
+				var query = `
+					delete from
+						   public.accesses as accesses
+					where
+						accesses.url_id = $1 and
+					    accesses.permission_id is not null
+				`
+
+				if _, err = tx.Exec(query, id); err != nil {
+					repo.components.Logger.Error().
+						Format("Error removing an item from the database: '%s'. ", err).Write()
+					return
+				}
+			}
+		}
+	}
+
+	// Загрузка новых
+	{
+		// Роли
+		{
+			if rolesID != nil {
+				var query = `
+				insert into 
+					   public.accesses(
+						   url_id,
+						   role_id
+					   )
+					   values (
+						   $1,
+						   $2
+					   )
+			`
+
+				for _, role := range rolesID {
+					if _, err = tx.Exec(query, id, role); err != nil {
+						repo.components.Logger.Error().
+							Format("Error inserting an item from the database: '%s'. ", err).Write()
+						return
+					}
+				}
+			}
+		}
+
+		// Права
+		{
+			if permissionsID != nil {
+				var query = `
+				insert into 
+					   public.accesses(
+						   url_id,
+						   permission_id
+					   )
+					   values (
+						   $1,
+						   $2
+					   )
+			`
+
+				for _, permission := range permissionsID {
+					if _, err = tx.Exec(query, id, permission); err != nil {
+						repo.components.Logger.Error().
+							Format("Error inserting an item from the database: '%s'. ", err).Write()
+						return
+					}
+				}
+			}
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		repo.components.Logger.Error().
+			Format("An error occurred during the execution of the transaction: '%s'. ", err).Write()
 		return
 	}
 

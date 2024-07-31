@@ -24,7 +24,7 @@ type Gateway struct {
 	ctx  context.Context
 
 	components *components
-	client     pb.AccessSystemClient
+	client     pb.AccessSystemServiceClient
 }
 
 type (
@@ -77,7 +77,7 @@ func New(ctx context.Context) (gw *Gateway, err error) {
 			return
 		}
 
-		gw.client = pb.NewAccessSystemClient(conn)
+		gw.client = pb.NewAccessSystemServiceClient(conn)
 	}
 
 	gw.components.Logger.Info().

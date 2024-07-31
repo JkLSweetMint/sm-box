@@ -22,7 +22,7 @@ message UsersGetOneResponse {
   User User = 1;
 }
 
-service Users {
+service UsersService {
   rpc Get(UsersGetRequest) returns (UsersGetResponse);
   rpc GetOne(UsersGetOneRequest) returns (UsersGetOneResponse);
 }

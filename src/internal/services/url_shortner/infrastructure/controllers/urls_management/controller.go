@@ -64,6 +64,9 @@ type usecases struct {
 
 		Deactivate(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 		DeactivateByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)
+
+		UpdateAccesses(ctx context.Context, id common_types.ID, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error)
+		UpdateAccessesByReduction(ctx context.Context, reduction string, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error)
 	}
 }
 
@@ -470,6 +473,52 @@ func (controller *Controller) DeactivateByReduction(ctx context.Context, reducti
 	// Выполнения инструкций
 	{
 		if cErr = controller.usecases.UrlsManagement.DeactivateByReduction(ctx, reduction); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateAccesses - обновления данных доступов к сокращенному url.
+func (controller *Controller) UpdateAccesses(ctx context.Context, id common_types.ID, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, id, rolesID, permissionsID)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	// Выполнения инструкций
+	{
+		if cErr = controller.usecases.UrlsManagement.UpdateAccesses(ctx, id, rolesID, permissionsID); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateAccessesByReduction - обновления данных доступов к сокращенному url по сокращению.
+func (controller *Controller) UpdateAccessesByReduction(ctx context.Context, reduction string, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, reduction, rolesID, permissionsID)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	// Выполнения инструкций
+	{
+		if cErr = controller.usecases.UrlsManagement.UpdateAccessesByReduction(ctx, reduction, rolesID, permissionsID); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 

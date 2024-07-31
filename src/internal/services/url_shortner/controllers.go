@@ -59,6 +59,9 @@ type Controllers interface {
 
 		Deactivate(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 		DeactivateByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)
+
+		UpdateAccesses(ctx context.Context, id common_types.ID, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error)
+		UpdateAccessesByReduction(ctx context.Context, reduction string, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error)
 	}
 }
 
@@ -117,6 +120,9 @@ func (controllers *controllers) UrlsManagement() interface {
 
 	Deactivate(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 	DeactivateByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)
+
+	UpdateAccesses(ctx context.Context, id common_types.ID, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error)
+	UpdateAccessesByReduction(ctx context.Context, reduction string, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error)
 } {
 	return controllers.urlsManagement
 }

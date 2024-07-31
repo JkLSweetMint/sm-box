@@ -1,5 +1,10 @@
 # ChangeLog:
 
+### v24.0.50:
+- Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
+
+---
+
 ### v24.0.49:
 - Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
 - Доработки [сервиса пользователей](src/internal/services/users/service.go);

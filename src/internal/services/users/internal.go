@@ -88,17 +88,17 @@ func (srv *service) shutdown(ctx context.Context) (err error) {
 
 		if err = srv.Transport().Servers().Grpc().BasicAuthenticationService().Shutdown(); err != nil {
 			srv.Components().Logger().Error().
-				Format("grpc server for authentication service': '%s'. ", err).Write()
+				Format("Failed to stop 'grpc server for authentication service': '%s'. ", err).Write()
 		}
 
 		if err = srv.Transport().Servers().Grpc().UsersService().Shutdown(); err != nil {
 			srv.Components().Logger().Error().
-				Format("grpc server for users service': '%s'. ", err).Write()
+				Format("Failed to stop 'grpc server for users service': '%s'. ", err).Write()
 		}
 
 		if err = srv.Transport().Servers().Grpc().AccessSystemService().Shutdown(); err != nil {
 			srv.Components().Logger().Error().
-				Format("grpc server for access system service': '%s'. ", err).Write()
+				Format("Failed to stop 'grpc server for access system service': '%s'. ", err).Write()
 		}
 	}
 

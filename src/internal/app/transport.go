@@ -83,7 +83,7 @@ func (t *transportServersHttp) RestApi() http_rest_api.Server {
 	return t.restApi
 }
 
-// ProjectsService - получение сервера для приложения проектов системы.
+// ProjectsService - получение grpc сервера.
 func (t *transportServersGrpc) ProjectsService() grpc_projects_srv.Server {
 	return t.projectsService
 }

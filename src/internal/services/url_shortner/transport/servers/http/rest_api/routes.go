@@ -1066,7 +1066,7 @@ func (srv *server) registerRoutes() error {
 						request.Properties.StartActive,
 						request.Properties.EndActive); cErr != nil {
 						srv.components.Logger.Error().
-							Format("Could not get the short url data by reduction: '%s'. ", cErr).Write()
+							Format("Could not create short url: '%s'. ", cErr).Write()
 
 						if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
 							srv.components.Logger.Error().
@@ -1457,6 +1457,169 @@ func (srv *server) registerRoutes() error {
 {
 	"id": 0,
 	"reduction": ""
+}
+`,
+						Options: &postman.BodyOptions{
+							Raw: postman.BodyOptionsRaw{
+								Language: postman.JSON,
+							},
+						},
+					},
+				},
+				Responses: []*postman.Response{
+					{
+						Name:   "Произошла внутренняя ошибка сервера. ",
+						Status: string(fiber.StatusInternalServerError),
+						Code:   fiber.StatusInternalServerError,
+						Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+					},
+					{
+						Name:   "Успешный ответ. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {}
+}
+`,
+					},
+				},
+			})
+		}
+
+		// PUT /accesses
+		{
+			var id = uuid.New().String()
+
+			router.Put("/accesses", func(ctx fiber.Ctx) (err error) {
+				type Request struct {
+					ID        common_types.ID `json:"id"`
+					Reduction string          `json:"reduction"`
+
+					RolesID       []common_types.ID `json:"roles_id"`
+					PermissionsID []common_types.ID `json:"permissions_id"`
+				}
+				type Response struct{}
+
+				var (
+					request  = new(Request)
+					response = new(Response)
+				)
+
+				// Чтение данных
+				{
+					if err = ctx.Bind().Body(request); err != nil {
+						srv.components.Logger.Error().
+							Format("The request body data could not be read: '%s'. ", err).Write()
+
+						if err = http_rest_api_io.WriteError(ctx, common_errors.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+							srv.components.Logger.Error().
+								Format("The response could not be recorded: '%s'. ", err).Write()
+
+							var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
+							cErr.SetError(err)
+
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								srv.components.Logger.Error().
+									Format("The error response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+							}
+
+							return
+						}
+
+						return
+					}
+				}
+
+				// Обработка
+				{
+					var cErr c_errors.RestAPI
+
+					if request.Reduction != "" {
+						if cErr = srv.controllers.UrlsManagement.UpdateAccessesByReduction(ctx.Context(), request.Reduction, request.RolesID, request.PermissionsID); cErr != nil {
+							srv.components.Logger.Error().
+								Format("The data on access to the short url by reduction could not be updated: '%s'. ", cErr).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								srv.components.Logger.Error().
+									Format("The error response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+							}
+
+							return
+						}
+					} else {
+						if cErr = srv.controllers.UrlsManagement.UpdateAccesses(ctx.Context(), request.ID, request.RolesID, request.PermissionsID); cErr != nil {
+							srv.components.Logger.Error().
+								Format("The data on access to the short url by id could not be updated '%s'. ", cErr).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								srv.components.Logger.Error().
+									Format("The error response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+							}
+
+							return
+						}
+					}
+				}
+
+				// Отправка ответа
+				{
+					if err = http_rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+						srv.components.Logger.Error().
+							Format("The error response could not be recorded: '%s'. ", err).Write()
+
+						return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+					}
+
+					return
+				}
+			}).Name(id)
+
+			var route = srv.app.GetRoute(id)
+
+			postmanGroup.AddItem(&postman.Items{
+				Name: "Изменение доступов к короткому url. ",
+				Description: `
+Используется для изменения доступов к короткому url.
+`,
+				Request: &postman.Request{
+					URL: &postman.URL{
+						Protocol: srv.conf.Postman.Protocol,
+						Host:     strings.Split(srv.conf.Postman.Host, "."),
+						Path:     strings.Split(route.Path, "/"),
+					},
+					Method:      postman.Method(route.Method),
+					Description: ``,
+					Body: &postman.Body{
+						Mode: "raw",
+						Raw: `
+{
+	"id": 0,
+	"reduction": "",
+	"roles_id": [],
+	"permissions_id": []
 }
 `,
 						Options: &postman.BodyOptions{

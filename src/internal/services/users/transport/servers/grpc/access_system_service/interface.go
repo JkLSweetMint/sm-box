@@ -72,7 +72,7 @@ func New(ctx context.Context) (srv Server, err error) {
 
 		ref.grpc = grpc.NewServer(opts...)
 
-		pb.RegisterAccessSystemServer(ref.grpc, ref)
+		pb.RegisterAccessSystemServiceServer(ref.grpc, ref)
 	}
 
 	ref.components.Logger.Info().

@@ -89,17 +89,17 @@ func (t *transportServersHttp) RestApi() http_rest_api.Server {
 	return t.restApi
 }
 
-// BasicAuthenticationService - получение сервера для приложения проектов системы.
+// BasicAuthenticationService - получение grpc сервера.
 func (t *transportServersGrpc) BasicAuthenticationService() grpc_basic_authentication_srv.Server {
 	return t.basicAuthenticationService
 }
 
-// UsersService - получение сервера для приложения проектов системы.
+// UsersService - получение grpc сервера.
 func (t *transportServersGrpc) UsersService() grpc_users_srv.Server {
 	return t.usersService
 }
 
-// AccessSystemService - получение сервера для приложения проектов системы.
+// AccessSystemService - получение grpc сервера.
 func (t *transportServersGrpc) AccessSystemService() grpc_access_system_srv.Server {
 	return t.accessSystemService
 }

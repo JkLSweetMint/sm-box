@@ -16,7 +16,7 @@ import (
 
 // server - grpc сервер для сервиса проектов системы.
 type server struct {
-	pb.ProjectsServer
+	pb.ProjectsServiceServer
 	listener net.Listener
 	grpc     *grpc.Server
 

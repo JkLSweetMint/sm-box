@@ -82,6 +82,9 @@ type controllers struct {
 
 		Deactivate(ctx context.Context, id common_types.ID) (cErr c_errors.RestAPI)
 		DeactivateByReduction(ctx context.Context, reduction string) (cErr c_errors.RestAPI)
+
+		UpdateAccesses(ctx context.Context, id common_types.ID, rolesID, permissionsID []common_types.ID) (cErr c_errors.RestAPI)
+		UpdateAccessesByReduction(ctx context.Context, reduction string, rolesID, permissionsID []common_types.ID) (cErr c_errors.RestAPI)
 	}
 }
 

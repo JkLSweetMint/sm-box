@@ -57,6 +57,9 @@ type Adapter_HttpRestAPI struct {
 
 		Deactivate(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 		DeactivateByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)
+
+		UpdateAccesses(ctx context.Context, id common_types.ID, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error)
+		UpdateAccessesByReduction(ctx context.Context, reduction string, rolesID, permissionsID []common_types.ID) (cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -389,6 +392,52 @@ func (adapter *Adapter_HttpRestAPI) DeactivateByReduction(ctx context.Context, r
 	var proxyErr c_errors.Error
 
 	if proxyErr = adapter.controller.DeactivateByReduction(ctx, reduction); proxyErr != nil {
+		cErr = c_errors.ToRestAPI(proxyErr)
+
+		adapter.components.Logger.Error().
+			Format("The controller method was executed with an error: '%s'. ", cErr).Write()
+		return
+	}
+
+	return
+}
+
+// UpdateAccesses - обновления данных доступов к сокращенному url.
+func (adapter *Adapter_HttpRestAPI) UpdateAccesses(ctx context.Context, id common_types.ID, rolesID, permissionsID []common_types.ID) (cErr c_errors.RestAPI) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, id, rolesID, permissionsID)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	var proxyErr c_errors.Error
+
+	if proxyErr = adapter.controller.UpdateAccesses(ctx, id, rolesID, permissionsID); proxyErr != nil {
+		cErr = c_errors.ToRestAPI(proxyErr)
+
+		adapter.components.Logger.Error().
+			Format("The controller method was executed with an error: '%s'. ", cErr).Write()
+		return
+	}
+
+	return
+}
+
+// UpdateAccessesByReduction - обновления данных доступов к сокращенному url по сокращению.
+func (adapter *Adapter_HttpRestAPI) UpdateAccessesByReduction(ctx context.Context, reduction string, rolesID, permissionsID []common_types.ID) (cErr c_errors.RestAPI) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, reduction, rolesID, permissionsID)
+		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+	}
+
+	var proxyErr c_errors.Error
+
+	if proxyErr = adapter.controller.UpdateAccessesByReduction(ctx, reduction, rolesID, permissionsID); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().

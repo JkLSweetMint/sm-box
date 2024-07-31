@@ -26,7 +26,7 @@ type Gateway struct {
 	ctx  context.Context
 
 	components *components
-	client     pb.BasicAuthenticationClient
+	client     pb.BasicAuthenticationServiceClient
 }
 
 type (
@@ -79,7 +79,7 @@ func New(ctx context.Context) (gw *Gateway, err error) {
 			return
 		}
 
-		gw.client = pb.NewBasicAuthenticationClient(conn)
+		gw.client = pb.NewBasicAuthenticationServiceClient(conn)
 	}
 
 	gw.components.Logger.Info().

@@ -15,6 +15,6 @@ message AccessSystemCheckUserAccessResponse {
   bool Allowed = 1;
 }
 
-service AccessSystem {
+service AccessSystemService {
   rpc CheckUserAccess(AccessSystemCheckUserAccessRequest) returns (AccessSystemCheckUserAccessResponse);
 }

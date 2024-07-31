@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package grpc_service;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./";
+
+import "src/transport/proto/src/url_shortner-service/models.proto";
+
+message UrlShortnerCreateRequest {
+  message _Properties {
+    string Type         = 1;
+    int64  NumberOfUses = 2;
+
+    google.protobuf.Timestamp StartActive = 3;
+    google.protobuf.Timestamp EndActive   = 4;
+  }
+
+  string      Source     = 1;
+  _Properties Properties = 2;
+}
+
+message UrlShortnerCreateResponse {
+  UrlShortner UrlShortner = 1;
+}
+
+service UrlShortnerService {
+  rpc Create(UrlShortnerCreateRequest) returns (UrlShortnerCreateResponse);
+}

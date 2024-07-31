@@ -22,7 +22,7 @@ message ProjectsGetOneResponse {
   Project Project = 1;
 }
 
-service Projects {
+service ProjectsService {
   rpc Get(ProjectsGetRequest) returns (ProjectsGetResponse);
   rpc GetOne(ProjectsGetOneRequest) returns (ProjectsGetOneResponse);
 }

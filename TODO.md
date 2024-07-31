@@ -9,6 +9,11 @@
  
 ---
 
+### v24.0.50:
+- [x] Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
+
+---
+
 ### v24.0.49:
 - [x] Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
 

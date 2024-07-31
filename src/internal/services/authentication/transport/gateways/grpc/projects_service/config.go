@@ -64,7 +64,7 @@ func (conf *Config) Default() *Config {
 		defer func() { trc.FunctionCallFinished(conf) }()
 	}
 
-	conf.Addr = "app:8081"
+	conf.Addr = "app:9001"
 
 	return conf
 }

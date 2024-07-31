@@ -4,6 +4,7 @@ import (
 	"context"
 	urls_controller "sm-box/internal/services/url_shortner/infrastructure/controllers/urls"
 	urls_management_controller "sm-box/internal/services/url_shortner/infrastructure/controllers/urls_management"
+	url_shortner_srv "sm-box/internal/services/url_shortner/transport/servers/grpc/url_shortner_service"
 	http_rest_api "sm-box/internal/services/url_shortner/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
@@ -97,6 +98,10 @@ func New() (srv_ Service, err error) {
 		// Сервера
 		{
 			if ref.transport.servers.http.restApi, err = http_rest_api.New(ref.Ctx()); err != nil {
+				return
+			}
+
+			if ref.transport.servers.grpc.urlShortnerService, err = url_shortner_srv.New(ref.Ctx()); err != nil {
 				return
 			}
 		}
