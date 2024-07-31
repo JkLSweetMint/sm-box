@@ -1,8 +1,6 @@
 package http_rest_api
 
 import (
-	"errors"
-	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
@@ -10,7 +8,6 @@ import (
 	common_types "sm-box/internal/common/types"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/url_shortner/objects"
-	srv_errors "sm-box/internal/services/url_shortner/objects/errors"
 	"sm-box/internal/services/url_shortner/objects/models"
 	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/tracer"
@@ -46,28 +43,8 @@ func (srv *server) registerRoutes() error {
 		router.All("/use/*", func(ctx fiber.Ctx) (err error) {
 			var (
 				reduction string
-				status    types.ShortUrlUsageHistoryStatus
-				url       *models.ShortUrlInfo
 				token     *authentication_entities.JwtSessionToken
 			)
-
-			// Запись в историю
-			{
-				defer func() {
-					go func() {
-						if url != nil {
-							var cErr c_errors.RestAPI
-
-							if cErr = srv.controllers.Urls.WriteCallToHistory(ctx.Context(), url.ID, status, token); cErr != nil {
-								srv.components.Logger.Warn().
-									Format("The call data could not be recorded in the history: '%s'. ", cErr).
-									Field("url", url).
-									Field("status", status).Write()
-							}
-						}
-					}()
-				}()
-			}
 
 			// Получение токена
 			{
@@ -78,8 +55,6 @@ func (srv *server) registerRoutes() error {
 						srv.components.Logger.Error().
 							Format("Failed to get session token data: '%s'. ", err).
 							Field("raw", raw).Write()
-
-						status = types.ShortUrlUsageHistoryStatusFailed
 
 						err = ctx.Redirect().To("/errors/403")
 						return
@@ -92,106 +67,53 @@ func (srv *server) registerRoutes() error {
 				reduction = strings.Replace(string(ctx.Request().URI().Path()), strings.Replace(route.Path, "/*", "/", 1), "", 1)
 			}
 
-			// Получение и обработка короткого url
+			// Использование
 			{
-				var cErr c_errors.RestAPI
+				var (
+					url    *models.ShortUrlInfo
+					status types.ShortUrlUsageHistoryStatus
+				)
 
-				// Получение
+				// Обработка
 				{
-					if url, cErr = srv.controllers.Urls.GetByReductionFromRedisDB(ctx.Context(), reduction); cErr != nil {
-						srv.components.Logger.Warn().
-							Format("Failed to get information on a short url: '%s'. ", cErr).Write()
+					var cErr c_errors.RestAPI
 
-						if errors.Is(cErr, srv_errors.ShortUrlNotFound()) {
-							status = types.ShortUrlUsageHistoryStatusForbidden
+					if url, status, cErr = srv.controllers.Urls.Use(ctx.Context(), reduction, token); cErr != nil {
+						srv.components.Logger.Error().
+							Format("The short url could not be used: '%s'. ", cErr).Write()
 
-							err = ctx.Redirect().To("/errors/403")
-							return
+						switch status {
+						case types.ShortUrlUsageHistoryStatusForbidden:
+							return ctx.Redirect().To("/errors/403")
+						case types.ShortUrlUsageHistoryStatusFailed:
+							return ctx.Redirect().To("/errors/50x")
 						}
 
-						status = types.ShortUrlUsageHistoryStatusFailed
+						if cErr.StatusCode() >= 500 {
+							return ctx.Redirect().To("/errors/50x")
+						} else if cErr.StatusCode() == 403 {
+							return ctx.Redirect().To("/errors/403")
+						}
 
-						err = ctx.Redirect().To("/errors/50x")
+						if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+							srv.components.Logger.Error().
+								Format("The error response could not be recorded: '%s'. ", err).Write()
+
+							return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+						}
+
 						return
 					}
-				}
 
-				// Проверки
-				{
-					var (
-						tm      = time.Now()
-						emptyTm time.Time
-					)
-
-					// Ещё не начал действовать
-					{
-						if tm.Before(url.Properties.StartActive) && !url.Properties.StartActive.Equal(emptyTm) {
-							url = nil
-
-							srv.components.Logger.Warn().
-								Text("The validity period of the short url has not yet begun. ").Write()
-
-							err = ctx.Redirect().To("/errors/403")
-							return
-						}
-					}
-
-					// Уже закончился
-					{
-						if tm.After(url.Properties.EndActive) && !url.Properties.EndActive.Equal(emptyTm) {
-							srv.components.Logger.Warn().
-								Text("The validity period of the short url has already been completed. ").Write()
-
-							// Удаление из базы данных Redis
-							{
-								if cErr = srv.controllers.Urls.RemoveByReductionFromRedisDB(ctx.Context(), url.Reduction); cErr != nil {
-									srv.components.Logger.Warn().
-										Format("The short url could not be deleted from the redis database: '%s'. ", cErr).
-										Field("url", url).Write()
-								}
-							}
-
-							url = nil
-
-							err = ctx.Redirect().To("/errors/403")
-
-							return
-						}
-					}
-
-					// Кол-во использований превышено
-					{
-						if url.Properties.NumberOfUses == 0 {
-							srv.components.Logger.Warn().
-								Text("The number of uses of the short url  is overestimated. ").Write()
-
-							// Удаление из базы данных Redis
-							{
-								if cErr = srv.controllers.Urls.RemoveByReductionFromRedisDB(ctx.Context(), url.Reduction); cErr != nil {
-									srv.components.Logger.Warn().
-										Format("The short url could not be deleted from the redis database: '%s'. ", cErr).
-										Field("url", url).Write()
-								}
-							}
-
-							url = nil
-
-							err = ctx.Redirect().To("/errors/403")
-
-							return
-						}
-					}
-
-					// Доступов пользователя
-					{
-						fmt.Printf("%+v\n", url)
+					switch status {
+					case types.ShortUrlUsageHistoryStatusForbidden:
+						return ctx.Redirect().To("/errors/403")
+					case types.ShortUrlUsageHistoryStatusFailed:
+						return ctx.Redirect().To("/errors/50x")
 					}
 				}
-			}
 
-			// Выполнение инструкций
-			{
-				// Обработка
+				// Выполнение http запроса
 				{
 					switch url.Properties.Type {
 					case types.ShortUrlTypeRedirect:
@@ -200,8 +122,6 @@ func (srv *server) registerRoutes() error {
 								srv.components.Logger.Warn().
 									Format("Failed to redirect a remote resource: '%s'. ", err).
 									Field("url", url).Write()
-
-								status = types.ShortUrlUsageHistoryStatusFailed
 
 								err = ctx.Redirect().To("/errors/50x")
 								return
@@ -218,57 +138,15 @@ func (srv *server) registerRoutes() error {
 									Format("Failed to proxy a remote resource: '%s'. ", err).
 									Field("url", url).Write()
 
-								status = types.ShortUrlUsageHistoryStatusFailed
-
 								err = ctx.Redirect().To("/errors/50x")
 								return
 							}
 						}
-					default:
-						{
-							srv.components.Logger.Error().
-								Text("Unknown type of shortened url. ").
-								Field("url", url).Write()
-
-							status = types.ShortUrlUsageHistoryStatusForbidden
-
-							err = ctx.Redirect().To("/errors/403")
-							return
-						}
-					}
-
-					status = types.ShortUrlUsageHistoryStatusSuccess
-				}
-
-				// Обновление данных в базе если кол-во использований не бесконечное
-				{
-					if url.Properties.NumberOfUses > 0 {
-						var cErr c_errors.RestAPI
-
-						url.Properties.RemainedNumberOfUses--
-
-						if url.Properties.RemainedNumberOfUses == 0 {
-							if cErr = srv.controllers.Urls.RemoveByReductionFromRedisDB(ctx.Context(), url.Reduction); cErr != nil {
-								srv.components.Logger.Warn().
-									Format("The short url could not be deleted from the redis database: '%s'. ", cErr).
-									Field("url", url).Write()
-
-								return
-							}
-						} else {
-							if cErr = srv.controllers.Urls.UpdateInRedisDB(ctx.Context(), url); cErr != nil {
-								srv.components.Logger.Warn().
-									Format("Failed to update the short url data in the redis database: '%s'. ", cErr).
-									Field("url", url).Write()
-
-								return
-							}
-						}
 					}
 				}
-
-				return
 			}
+
+			return
 		}).Name(id)
 
 		route = srv.app.GetRoute(id)
@@ -287,9 +165,9 @@ func (srv *server) registerRoutes() error {
 
 			router.Get("/list", func(ctx fiber.Ctx) (err error) {
 				type Response struct {
-					List []*models.ShortUrlInfo `json:"list" xml:"List"`
+					Count int64                  `json:"count" xml:"count,attr"`
+					List  []*models.ShortUrlInfo `json:"list"  xml:"List"`
 				}
-
 				type QueryArgs struct {
 					Search string `query:"search"`
 
@@ -321,7 +199,7 @@ func (srv *server) registerRoutes() error {
 				{
 					if err = ctx.Bind().Query(queryArgs); err != nil {
 						srv.components.Logger.Error().
-							Format("The request uri data could not be read: '%s'. ", err).Write()
+							Format("The request query data could not be read: '%s'. ", err).Write()
 
 						if err = http_rest_api_io.WriteError(ctx, common_errors.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
 							srv.components.Logger.Error().
@@ -436,7 +314,7 @@ func (srv *server) registerRoutes() error {
 
 					var cErr c_errors.RestAPI
 
-					if response.List, cErr = srv.controllers.UrlsManagement.GetList(ctx.Context(), search, sort, pagination, filters); cErr != nil {
+					if response.Count, response.List, cErr = srv.controllers.UrlsManagement.GetList(ctx.Context(), search, sort, pagination, filters); cErr != nil {
 						srv.components.Logger.Error().
 							Format("Couldn't get a list of short url: '%s'. ", cErr).Write()
 
@@ -559,6 +437,74 @@ func (srv *server) registerRoutes() error {
         "status": "error",
         "message": "Internal server error. ",
         "details": {}
+    }
+}
+`,
+					},
+					{
+						Name:   "Успешный ответ. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "count": 5,
+        "list": [
+            {
+                "id": 1,
+                "source": "https://www.youtube.com/watch?v=71pOiq-E_X4",
+                "reduction": "Fu884hxjuhjEDSU0",
+                "accesses": {
+                    "roles_id": [],
+                    "permissions_id": []
+                },
+                "properties": {
+                    "type": "redirect",
+                    "active": true,
+                    "number_of_uses": 1,
+                    "remained_number_of_uses": 0,
+                    "start_active": "0001-01-01T04:00:00+04:00",
+                    "end_active": "0001-01-01T04:00:00+04:00"
+                }
+            },
+            {
+                "id": 2,
+                "source": "https://samgk.ru/files/officialdocs/admission/vacant_22.07.2024.pdf",
+                "reduction": "9sC6RY73Q8Vyt06c",
+                "accesses": {
+                    "roles_id": [],
+                    "permissions_id": []
+                },
+                "properties": {
+                    "type": "proxy",
+                    "active": true,
+                    "number_of_uses": 0,
+                    "remained_number_of_uses": 0,
+                    "start_active": "0001-01-01T04:00:00+04:00",
+                    "end_active": "0001-01-01T04:00:00+04:00"
+                }
+            },
+            {
+                "id": 7,
+                "source": "https://habr.com/ru/companies/selectel/articles/831980/",
+                "reduction": "twv3TNknSoXB2R0o",
+                "accesses": {
+                    "roles_id": [],
+                    "permissions_id": []
+                },
+                "properties": {
+                    "type": "redirect",
+                    "active": false,
+                    "number_of_uses": 1,
+                    "remained_number_of_uses": 1,
+                    "start_active": "2024-07-30T00:00:00+04:00",
+                    "end_active": "2024-07-30T23:59:59+04:00"
+                }
+            }
+        ]
     }
 }
 `,
@@ -688,11 +634,42 @@ func (srv *server) registerRoutes() error {
 }
 `,
 					},
+					{
+						Name:   "Успешный ответ. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "url": {
+            "id": 1,
+            "source": "https://www.youtube.com/watch?v=71pOiq-E_X4",
+            "reduction": "Fu884hxjuhjEDSU0",
+            "accesses": {
+                "roles_id": [],
+                "permissions_id": []
+            },
+            "properties": {
+                "type": "redirect",
+                "active": true,
+                "number_of_uses": 1,
+                "remained_number_of_uses": 0,
+                "start_active": "0001-01-01T04:00:00+04:00",
+                "end_active": "0001-01-01T04:00:00+04:00"
+            }
+        }
+    }
+}
+`,
+					},
 				},
 			})
 		}
 
-		// GET /by_reduce/:reduction
+		// GET /by_reduction/:reduction
 		{
 			var id = uuid.New().String()
 
@@ -809,6 +786,37 @@ func (srv *server) registerRoutes() error {
         "status": "error",
         "message": "Internal server error. ",
         "details": {}
+    }
+}
+`,
+					},
+					{
+						Name:   "Успешный ответ. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "url": {
+            "id": 1,
+            "source": "https://www.youtube.com/watch?v=71pOiq-E_X4",
+            "reduction": "Fu884hxjuhjEDSU0",
+            "accesses": {
+                "roles_id": [],
+                "permissions_id": []
+            },
+            "properties": {
+                "type": "redirect",
+                "active": true,
+                "number_of_uses": 1,
+                "remained_number_of_uses": 0,
+                "start_active": "0001-01-01T04:00:00+04:00",
+                "end_active": "0001-01-01T04:00:00+04:00"
+            }
+        }
     }
 }
 `,
@@ -954,6 +962,19 @@ func (srv *server) registerRoutes() error {
         "message": "Internal server error. ",
         "details": {}
     }
+}
+`,
+					},
+					{
+						Name:   "Успешный ответ. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {}
 }
 `,
 					},
@@ -1126,6 +1147,37 @@ func (srv *server) registerRoutes() error {
 }
 `,
 					},
+					{
+						Name:   "Успешный ответ. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "url": {
+            "id": 10,
+            "source": "https://translate.yandex.ru/",
+            "reduction": "webAA4TxCJEFlS7s",
+            "accesses": {
+                "roles_id": [],
+                "permissions_id": []
+            },
+            "properties": {
+                "type": "redirect",
+                "active": false,
+                "number_of_uses": -1,
+                "remained_number_of_uses": -1,
+                "start_active": "0001-01-01T04:00:00+04:00",
+                "end_active": "0001-01-01T04:00:00+04:00"
+            }
+        }
+    }
+}
+`,
+					},
 				},
 			})
 		}
@@ -1276,6 +1328,19 @@ func (srv *server) registerRoutes() error {
 }
 `,
 					},
+					{
+						Name:   "Успешный ответ. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {}
+}
+`,
+					},
 				},
 			})
 		}
@@ -1421,71 +1486,254 @@ func (srv *server) registerRoutes() error {
 }
 `,
 					},
+					{
+						Name:   "Успешный ответ. ",
+						Status: string(fiber.StatusOK),
+						Code:   fiber.StatusOK,
+						Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {}
+}
+`,
+					},
 				},
 			})
 		}
 
 		// GET /history
 		{
-			var id = uuid.New().String()
+			var (
+				router       = router.Group("/history")
+				postmanGroup = postmanGroup.AddItemGroup("История использований. ")
+			)
 
-			router.Get("/history", func(ctx fiber.Ctx) (err error) {
-				type Response struct {
-					History []*models.ShortUrlUsageHistoryInfo `json:"history" xml:"History"`
-				}
+			// GET /by_id/:id
+			{
+				var id = uuid.New().String()
 
-				var (
-					response = new(Response)
-				)
+				router.Get("/by_id/:id", func(ctx fiber.Ctx) (err error) {
+					type Response struct {
+						Count   int64                              `json:"count"   xml:"count,attr"`
+						History []*models.ShortUrlUsageHistoryInfo `json:"history" xml:"History"`
+					}
+					type UriArgs struct {
+						ID common_types.ID `uri:"id"`
+					}
+					type QueryArgs struct {
+						Limit  *int64 `query:"limit"`
+						Offset *int64 `query:"offset"`
 
-				// Обработка
-				{
-				}
+						SortKey  string `query:"sort_key"`
+						SortType string `query:"sort_type"`
 
-				// Отправка ответа
-				{
-					if err = http_rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
-						srv.components.Logger.Error().
-							Format("The error response could not be recorded: '%s'. ", err).Write()
+						FilterStatus *string `query:"filter_status"`
 
-						return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+						FilterTimestamp     *string `query:"filter_timestamp"`
+						FilterTimestampType *string `query:"filter_timestamp_type"`
 					}
 
-					return
-				}
-			}).Name(id)
+					var (
+						response  = new(Response)
+						uriArgs   = new(UriArgs)
+						queryArgs = new(QueryArgs)
+					)
 
-			var route = srv.app.GetRoute(id)
+					// Чтение данных
+					{
+						if err = ctx.Bind().URI(uriArgs); err != nil {
+							srv.components.Logger.Error().
+								Format("The request uri data could not be read: '%s'. ", err).Write()
 
-			postmanGroup.AddItem(&postman.Items{
-				Name: "Получение историю использования короткого url. ",
-				Description: `
-Используется для получения истории использования короткого url.
+							if err = http_rest_api_io.WriteError(ctx, common_errors.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+								srv.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
+								cErr.SetError(err)
+
+								if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+									srv.components.Logger.Error().
+										Format("The error response could not be recorded: '%s'. ", err).Write()
+
+									return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+								}
+
+								return
+							}
+
+							return
+						}
+
+						if err = ctx.Bind().Query(queryArgs); err != nil {
+							srv.components.Logger.Error().
+								Format("The request query data could not be read: '%s'. ", err).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, common_errors.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+								srv.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
+								cErr.SetError(err)
+
+								if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+									srv.components.Logger.Error().
+										Format("The error response could not be recorded: '%s'. ", err).Write()
+
+									return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+								}
+
+								return
+							}
+
+							return
+						}
+					}
+
+					// Обработка
+					{
+						var (
+							sort       *objects.ShortUrlsUsageHistoryListSort
+							pagination *objects.ShortUrlsUsageHistoryListPagination
+							filters    *objects.ShortUrlsUsageHistoryListFilters
+						)
+
+						// Обработка входных данных
+						{
+							// Сортировки
+							{
+								queryArgs.SortKey = strings.TrimSpace(queryArgs.SortKey)
+								queryArgs.SortType = strings.TrimSpace(queryArgs.SortType)
+
+								if queryArgs.SortKey != "" && queryArgs.SortType != "" {
+									sort = &objects.ShortUrlsUsageHistoryListSort{
+										Key:  queryArgs.SortKey,
+										Type: queryArgs.SortType,
+									}
+								}
+							}
+
+							// Пагинация
+							{
+								pagination = &objects.ShortUrlsUsageHistoryListPagination{
+									Offset: queryArgs.Offset,
+									Limit:  queryArgs.Limit,
+								}
+							}
+
+							// Фильтрация
+							{
+								filters = new(objects.ShortUrlsUsageHistoryListFilters)
+
+								if queryArgs.FilterTimestampType != nil && *queryArgs.FilterTimestampType != "" {
+									var v = types.ShortUrlUsageHistoryStatus(strings.TrimSpace(*queryArgs.FilterTimestampType))
+									filters.Status = &v
+								}
+
+								if queryArgs.FilterTimestamp != nil && *queryArgs.FilterTimestamp != "" {
+									var v = strings.TrimSpace(*queryArgs.FilterTimestamp)
+
+									if tm, e := time.Parse(time.RFC3339Nano, v); e == nil {
+										filters.Timestamp = &tm
+										filters.TimestampType = queryArgs.FilterTimestampType
+									}
+								}
+							}
+						}
+
+						var cErr c_errors.RestAPI
+
+						if response.Count, response.History, cErr = srv.controllers.UrlsManagement.GetUsageHistory(ctx.Context(), uriArgs.ID, sort, pagination, filters); cErr != nil {
+							srv.components.Logger.Error().
+								Format("The short url usage history could not be retrieved: '%s'. ", cErr).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								srv.components.Logger.Error().
+									Format("The error response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+							}
+
+							return
+						}
+					}
+
+					// Отправка ответа
+					{
+						if err = http_rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+							srv.components.Logger.Error().
+								Format("The error response could not be recorded: '%s'. ", err).Write()
+
+							return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+						}
+
+						return
+					}
+				}).Name(id)
+
+				var route = srv.app.GetRoute(id)
+
+				postmanGroup.AddItem(&postman.Items{
+					Name: "Получение историю использования короткого url по ID. ",
+					Description: `
+Используется для получения истории использования короткого url по ID.
 `,
-				Request: &postman.Request{
-					URL: &postman.URL{
-						Protocol: srv.conf.Postman.Protocol,
-						Host:     strings.Split(srv.conf.Postman.Host, "."),
-						Path:     strings.Split(route.Path, "/"),
-					},
-					Method:      postman.Method(route.Method),
-					Description: ``,
-					Body: &postman.Body{
-						Mode: "raw",
-						Raw:  ``,
-						Options: &postman.BodyOptions{
-							Raw: postman.BodyOptionsRaw{
-								Language: postman.JSON,
+					Request: &postman.Request{
+						URL: &postman.URL{
+							Protocol: srv.conf.Postman.Protocol,
+							Host:     strings.Split(srv.conf.Postman.Host, "."),
+							Path:     strings.Split(route.Path, "/"),
+							Query: []*postman.QueryParam{
+								{
+									Key:   "offset",
+									Value: "0",
+								},
+								{
+									Key:   "limit",
+									Value: "20",
+								},
+								{
+									Key:   "sort_key",
+									Value: "",
+								},
+								{
+									Key:   "sort_type",
+									Value: "",
+								},
+								{
+									Key:   "filter_status",
+									Value: "",
+								},
+								{
+									Key:   "filter_timestamp",
+									Value: "",
+								},
+								{
+									Key:   "filter_timestamp_type",
+									Value: "",
+								},
+							},
+						},
+						Method:      postman.Method(route.Method),
+						Description: ``,
+						Body: &postman.Body{
+							Mode: "raw",
+							Raw:  ``,
+							Options: &postman.BodyOptions{
+								Raw: postman.BodyOptionsRaw{
+									Language: postman.JSON,
+								},
 							},
 						},
 					},
-				},
-				Responses: []*postman.Response{
-					{
-						Name:   "Произошла внутренняя ошибка сервера. ",
-						Status: string(fiber.StatusInternalServerError),
-						Code:   fiber.StatusInternalServerError,
-						Body: `
+					Responses: []*postman.Response{
+						{
+							Name:   "Произошла внутренняя ошибка сервера. ",
+							Status: string(fiber.StatusInternalServerError),
+							Code:   fiber.StatusInternalServerError,
+							Body: `
 {
     "code": 500,
     "code_message": "Internal Server Error",
@@ -1499,9 +1747,406 @@ func (srv *server) registerRoutes() error {
     }
 }
 `,
+						},
+						{
+							Name:   "Успешный ответ. ",
+							Status: string(fiber.StatusOK),
+							Code:   fiber.StatusOK,
+							Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "count": 14,
+        "history": [
+            {
+                "status": "success",
+                "timestamp": "2024-07-30T14:24:22.722266+04:00",
+                "token_info": {
+                    "ID": "2de0d61b-dafe-49ff-820a-88de302cf86e",
+                    "ParentID": "00000000-0000-0000-0000-000000000000",
+                    "UserID": 0,
+                    "ProjectID": 0,
+                    "Type": "session",
+                    "Raw": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzc2OTEsIm5iZiI6MTcyMjMzMjg5MSwiaWF0IjoxNzIyMzMyODkxLCJUb2tlbiI6eyJJRCI6IjJkZTBkNjFiLWRhZmUtNDlmZi04MjBhLTg4ZGUzMDJjZjg2ZSIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIyLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.u-7m54VOe9qyk22YjjoCg9DAjPc6j8waStCiRYE0s5XkWlrmKpFMVxSgXaduJ3WS5hrX_Yj_LOwez3IqgABERrMjgERvndUMoshRiTNoiVHosDVjuPvVQzYXlHom5fskR9lN-LiGL8gKXeJqCQw3GZ5NqrhzM0esYbO9q1XRrkjuO1Qs4SH2mkTYMF5iazIyRLDMOm5T9p9c13hQwDOFys58sHuSXUoD-yr0aA1WEe6AUHuOUNTLtuEQIs-o8xnFiTdQ9F5UsktcicH_5GKadI_USdNCMUqJRmRwXFyLeGGf6HV0xlRKIn8HZe6JlIZkSIpGfiM5wlwRxQ4nP4WZ2KQnZOT6D3Aoiuk8QxFhjXuqmGHFn6tjlbDDer2KJVMdeePEblIOQT-bKbiYRjVunoWZBbwTWc-E2TuGQectWkH2elqXMpT0bF9Kj8qqLIwkhMluFAuoD4gBTm-91ATKncUOH8fMOqGhFH1Y_XzirBNhd4dgr1h-AodPPyHGNUReHX_fPfGxeMEKUuVe58oubHOl7I4bMOZ7A52093BmJyzVFJbSXebXZqj6vkGwdx2buDx2sFCRsOHT5hy54M9oznOZciYepJ-GTOc1LlUhxbkWjRJYmIYFA8Jqgm-CGHPt_vkG0DSYppWsnX6ehvvuEur0kSQmYBKIiFgcQmGebt4",
+                    "ExpiresAt": "2024-08-06T09:48:11Z",
+                    "NotBefore": "2024-07-30T09:48:11Z",
+                    "IssuedAt": "2024-07-30T09:48:11Z",
+                    "Params": {
+                        "RemoteAddr": "172.22.0.1",
+                        "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36"
+                    },
+                    "Language": ""
+                }
+            },
+            {
+                "status": "success",
+                "timestamp": "2024-07-30T14:26:11.222774+04:00",
+                "token_info": {
+                    "ID": "7d7171ad-2814-449d-8132-c7aeeeb39788",
+                    "ParentID": "00000000-0000-0000-0000-000000000000",
+                    "UserID": 0,
+                    "ProjectID": 0,
+                    "Type": "session",
+                    "Raw": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzk4NjcsIm5iZiI6MTcyMjMzNTA2NywiaWF0IjoxNzIyMzM1MDY3LCJUb2tlbiI6eyJJRCI6IjdkNzE3MWFkLTI4MTQtNDQ5ZC04MTMyLWM3YWVlZWIzOTc4OCIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIzLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.HXQmQnLnpruFJaS9WVZzRQyRIpHArdHm6nWugdQUuV-dY_aDhEnycEQS97cNK5N_DnTixmYaLWDIwQToFBPXx8CE0Dlx2W6as3VpDVW3bTVx1UQzyGCEQX1rna88TyNDGB5QHFV0Mc4o9IL8VRdc_vXoonEq-7ZY2WCkPNdXPL1ypRqCjP3omWX53GEXZIec4UGQTadDnD11-T1eJTU_uEL3I9_bJr93oNSnV0iA65pKuE_tjpmW7P1zOul14rBcIV6qaLbzU-k7MEUSSnUDG2JvOaNmYHNlaC9SB6wPz9UjdeBlPQx0Yug1Fo9zg1dp0IAshmF6PpkzyQJI8N5BZ5yfKsTx2DUvyKSKmc56dJNr2z3D6GZDUutP6sQCDXlghmThWGsSm0eNnsDj0mw2TycOUMbjg6eThEyM5pLzXQlL6L06XvIhakSnJEy6qIbRBHGDy4a24tXi3Zxo0s50ZWieL_dqdjYRdPi2D42AClSeGeKMJMkFyKvnkF3R4UDwNsKFE9ecztHfkPghfuyLc4D980jxPxZenPhIzCO5O_SV_XoDeTNiu8I8ByTnuSa4myiitW1bnCihKyV037UtBQercLKtd8MWu_Y1v_9Jl7vyVBII5-HfGL7tmCaY5-pgYJCFzlRhBxBb49bZrw9MfAdBiymTcq09uHRP3rum8wA",
+                    "ExpiresAt": "2024-08-06T10:24:27Z",
+                    "NotBefore": "2024-07-30T10:24:27Z",
+                    "IssuedAt": "2024-07-30T10:24:27Z",
+                    "Params": {
+                        "RemoteAddr": "172.23.0.1",
+                        "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36"
+                    },
+                    "Language": ""
+                }
+            },
+            {
+                "status": "success",
+                "timestamp": "2024-07-30T14:27:12.406202+04:00",
+                "token_info": {
+                    "ID": "7d7171ad-2814-449d-8132-c7aeeeb39788",
+                    "ParentID": "00000000-0000-0000-0000-000000000000",
+                    "UserID": 0,
+                    "ProjectID": 0,
+                    "Type": "session",
+                    "Raw": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzk4NjcsIm5iZiI6MTcyMjMzNTA2NywiaWF0IjoxNzIyMzM1MDY3LCJUb2tlbiI6eyJJRCI6IjdkNzE3MWFkLTI4MTQtNDQ5ZC04MTMyLWM3YWVlZWIzOTc4OCIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIzLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.HXQmQnLnpruFJaS9WVZzRQyRIpHArdHm6nWugdQUuV-dY_aDhEnycEQS97cNK5N_DnTixmYaLWDIwQToFBPXx8CE0Dlx2W6as3VpDVW3bTVx1UQzyGCEQX1rna88TyNDGB5QHFV0Mc4o9IL8VRdc_vXoonEq-7ZY2WCkPNdXPL1ypRqCjP3omWX53GEXZIec4UGQTadDnD11-T1eJTU_uEL3I9_bJr93oNSnV0iA65pKuE_tjpmW7P1zOul14rBcIV6qaLbzU-k7MEUSSnUDG2JvOaNmYHNlaC9SB6wPz9UjdeBlPQx0Yug1Fo9zg1dp0IAshmF6PpkzyQJI8N5BZ5yfKsTx2DUvyKSKmc56dJNr2z3D6GZDUutP6sQCDXlghmThWGsSm0eNnsDj0mw2TycOUMbjg6eThEyM5pLzXQlL6L06XvIhakSnJEy6qIbRBHGDy4a24tXi3Zxo0s50ZWieL_dqdjYRdPi2D42AClSeGeKMJMkFyKvnkF3R4UDwNsKFE9ecztHfkPghfuyLc4D980jxPxZenPhIzCO5O_SV_XoDeTNiu8I8ByTnuSa4myiitW1bnCihKyV037UtBQercLKtd8MWu_Y1v_9Jl7vyVBII5-HfGL7tmCaY5-pgYJCFzlRhBxBb49bZrw9MfAdBiymTcq09uHRP3rum8wA",
+                    "ExpiresAt": "2024-08-06T10:24:27Z",
+                    "NotBefore": "2024-07-30T10:24:27Z",
+                    "IssuedAt": "2024-07-30T10:24:27Z",
+                    "Params": {
+                        "RemoteAddr": "172.23.0.1",
+                        "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36"
+                    },
+                    "Language": ""
+                }
+            }
+        ]
+    }
+}
+`,
+						},
 					},
-				},
-			})
+				})
+			}
+
+			// GET /by_reduction/:reduction
+			{
+				var id = uuid.New().String()
+
+				router.Get("/by_reduction/:reduction", func(ctx fiber.Ctx) (err error) {
+					type Response struct {
+						Count   int64                              `json:"count"   xml:"count,attr"`
+						History []*models.ShortUrlUsageHistoryInfo `json:"history" xml:"History"`
+					}
+					type UriArgs struct {
+						Reduction string `uri:"reduction"`
+					}
+					type QueryArgs struct {
+						Limit  *int64 `query:"limit"`
+						Offset *int64 `query:"offset"`
+
+						SortKey  string `query:"sort_key"`
+						SortType string `query:"sort_type"`
+
+						FilterStatus *string `query:"filter_status"`
+
+						FilterTimestamp     *string `query:"filter_timestamp"`
+						FilterTimestampType *string `query:"filter_timestamp_type"`
+					}
+
+					var (
+						response  = new(Response)
+						uriArgs   = new(UriArgs)
+						queryArgs = new(QueryArgs)
+					)
+
+					// Чтение данных
+					{
+						if err = ctx.Bind().URI(uriArgs); err != nil {
+							srv.components.Logger.Error().
+								Format("The request uri data could not be read: '%s'. ", err).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, common_errors.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+								srv.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
+								cErr.SetError(err)
+
+								if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+									srv.components.Logger.Error().
+										Format("The error response could not be recorded: '%s'. ", err).Write()
+
+									return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+								}
+
+								return
+							}
+
+							return
+						}
+
+						if err = ctx.Bind().Query(queryArgs); err != nil {
+							srv.components.Logger.Error().
+								Format("The request query data could not be read: '%s'. ", err).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, common_errors.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+								srv.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
+								cErr.SetError(err)
+
+								if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+									srv.components.Logger.Error().
+										Format("The error response could not be recorded: '%s'. ", err).Write()
+
+									return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+								}
+
+								return
+							}
+
+							return
+						}
+					}
+
+					// Обработка
+					{
+						var (
+							sort       *objects.ShortUrlsUsageHistoryListSort
+							pagination *objects.ShortUrlsUsageHistoryListPagination
+							filters    *objects.ShortUrlsUsageHistoryListFilters
+						)
+
+						// Обработка входных данных
+						{
+							// Сортировки
+							{
+								queryArgs.SortKey = strings.TrimSpace(queryArgs.SortKey)
+								queryArgs.SortType = strings.TrimSpace(queryArgs.SortType)
+
+								if queryArgs.SortKey != "" && queryArgs.SortType != "" {
+									sort = &objects.ShortUrlsUsageHistoryListSort{
+										Key:  queryArgs.SortKey,
+										Type: queryArgs.SortType,
+									}
+								}
+							}
+
+							// Пагинация
+							{
+								pagination = &objects.ShortUrlsUsageHistoryListPagination{
+									Offset: queryArgs.Offset,
+									Limit:  queryArgs.Limit,
+								}
+							}
+
+							// Фильтрация
+							{
+								filters = new(objects.ShortUrlsUsageHistoryListFilters)
+
+								if queryArgs.FilterTimestampType != nil && *queryArgs.FilterTimestampType != "" {
+									var v = types.ShortUrlUsageHistoryStatus(strings.TrimSpace(*queryArgs.FilterTimestampType))
+									filters.Status = &v
+								}
+
+								if queryArgs.FilterTimestamp != nil && *queryArgs.FilterTimestamp != "" {
+									var v = strings.TrimSpace(*queryArgs.FilterTimestamp)
+
+									if tm, e := time.Parse(time.RFC3339Nano, v); e == nil {
+										filters.Timestamp = &tm
+										filters.TimestampType = queryArgs.FilterTimestampType
+									}
+								}
+							}
+						}
+
+						var cErr c_errors.RestAPI
+
+						if response.Count, response.History, cErr = srv.controllers.UrlsManagement.GetUsageHistoryByReduction(ctx.Context(), uriArgs.Reduction, sort, pagination, filters); cErr != nil {
+							srv.components.Logger.Error().
+								Format("The short url usage history could not be retrieved: '%s'. ", cErr).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								srv.components.Logger.Error().
+									Format("The error response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+							}
+
+							return
+						}
+					}
+
+					// Отправка ответа
+					{
+						if err = http_rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+							srv.components.Logger.Error().
+								Format("The error response could not be recorded: '%s'. ", err).Write()
+
+							return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+						}
+
+						return
+					}
+				}).Name(id)
+
+				var route = srv.app.GetRoute(id)
+
+				postmanGroup.AddItem(&postman.Items{
+					Name: "Получение историю использования короткого url по сокращению. ",
+					Description: `
+Используется для получения истории использования короткого url по сокращению.
+`,
+					Request: &postman.Request{
+						URL: &postman.URL{
+							Protocol: srv.conf.Postman.Protocol,
+							Host:     strings.Split(srv.conf.Postman.Host, "."),
+							Path:     strings.Split(route.Path, "/"),
+							Query: []*postman.QueryParam{
+								{
+									Key:   "offset",
+									Value: "0",
+								},
+								{
+									Key:   "limit",
+									Value: "20",
+								},
+								{
+									Key:   "sort_key",
+									Value: "",
+								},
+								{
+									Key:   "sort_type",
+									Value: "",
+								},
+								{
+									Key:   "filter_status",
+									Value: "",
+								},
+								{
+									Key:   "filter_timestamp",
+									Value: "",
+								},
+								{
+									Key:   "filter_timestamp_type",
+									Value: "",
+								},
+							},
+						},
+						Method:      postman.Method(route.Method),
+						Description: ``,
+						Body: &postman.Body{
+							Mode: "raw",
+							Raw:  ``,
+							Options: &postman.BodyOptions{
+								Raw: postman.BodyOptionsRaw{
+									Language: postman.JSON,
+								},
+							},
+						},
+					},
+					Responses: []*postman.Response{
+						{
+							Name:   "Произошла внутренняя ошибка сервера. ",
+							Status: string(fiber.StatusInternalServerError),
+							Code:   fiber.StatusInternalServerError,
+							Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+						},
+						{
+							Name:   "Успешный ответ. ",
+							Status: string(fiber.StatusOK),
+							Code:   fiber.StatusOK,
+							Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {
+        "count": 14,
+        "history": [
+            {
+                "status": "success",
+                "timestamp": "2024-07-30T14:24:22.722266+04:00",
+                "token_info": {
+                    "ID": "2de0d61b-dafe-49ff-820a-88de302cf86e",
+                    "ParentID": "00000000-0000-0000-0000-000000000000",
+                    "UserID": 0,
+                    "ProjectID": 0,
+                    "Type": "session",
+                    "Raw": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzc2OTEsIm5iZiI6MTcyMjMzMjg5MSwiaWF0IjoxNzIyMzMyODkxLCJUb2tlbiI6eyJJRCI6IjJkZTBkNjFiLWRhZmUtNDlmZi04MjBhLTg4ZGUzMDJjZjg2ZSIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIyLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.u-7m54VOe9qyk22YjjoCg9DAjPc6j8waStCiRYE0s5XkWlrmKpFMVxSgXaduJ3WS5hrX_Yj_LOwez3IqgABERrMjgERvndUMoshRiTNoiVHosDVjuPvVQzYXlHom5fskR9lN-LiGL8gKXeJqCQw3GZ5NqrhzM0esYbO9q1XRrkjuO1Qs4SH2mkTYMF5iazIyRLDMOm5T9p9c13hQwDOFys58sHuSXUoD-yr0aA1WEe6AUHuOUNTLtuEQIs-o8xnFiTdQ9F5UsktcicH_5GKadI_USdNCMUqJRmRwXFyLeGGf6HV0xlRKIn8HZe6JlIZkSIpGfiM5wlwRxQ4nP4WZ2KQnZOT6D3Aoiuk8QxFhjXuqmGHFn6tjlbDDer2KJVMdeePEblIOQT-bKbiYRjVunoWZBbwTWc-E2TuGQectWkH2elqXMpT0bF9Kj8qqLIwkhMluFAuoD4gBTm-91ATKncUOH8fMOqGhFH1Y_XzirBNhd4dgr1h-AodPPyHGNUReHX_fPfGxeMEKUuVe58oubHOl7I4bMOZ7A52093BmJyzVFJbSXebXZqj6vkGwdx2buDx2sFCRsOHT5hy54M9oznOZciYepJ-GTOc1LlUhxbkWjRJYmIYFA8Jqgm-CGHPt_vkG0DSYppWsnX6ehvvuEur0kSQmYBKIiFgcQmGebt4",
+                    "ExpiresAt": "2024-08-06T09:48:11Z",
+                    "NotBefore": "2024-07-30T09:48:11Z",
+                    "IssuedAt": "2024-07-30T09:48:11Z",
+                    "Params": {
+                        "RemoteAddr": "172.22.0.1",
+                        "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36"
+                    },
+                    "Language": ""
+                }
+            },
+            {
+                "status": "success",
+                "timestamp": "2024-07-30T14:26:11.222774+04:00",
+                "token_info": {
+                    "ID": "7d7171ad-2814-449d-8132-c7aeeeb39788",
+                    "ParentID": "00000000-0000-0000-0000-000000000000",
+                    "UserID": 0,
+                    "ProjectID": 0,
+                    "Type": "session",
+                    "Raw": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzk4NjcsIm5iZiI6MTcyMjMzNTA2NywiaWF0IjoxNzIyMzM1MDY3LCJUb2tlbiI6eyJJRCI6IjdkNzE3MWFkLTI4MTQtNDQ5ZC04MTMyLWM3YWVlZWIzOTc4OCIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIzLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.HXQmQnLnpruFJaS9WVZzRQyRIpHArdHm6nWugdQUuV-dY_aDhEnycEQS97cNK5N_DnTixmYaLWDIwQToFBPXx8CE0Dlx2W6as3VpDVW3bTVx1UQzyGCEQX1rna88TyNDGB5QHFV0Mc4o9IL8VRdc_vXoonEq-7ZY2WCkPNdXPL1ypRqCjP3omWX53GEXZIec4UGQTadDnD11-T1eJTU_uEL3I9_bJr93oNSnV0iA65pKuE_tjpmW7P1zOul14rBcIV6qaLbzU-k7MEUSSnUDG2JvOaNmYHNlaC9SB6wPz9UjdeBlPQx0Yug1Fo9zg1dp0IAshmF6PpkzyQJI8N5BZ5yfKsTx2DUvyKSKmc56dJNr2z3D6GZDUutP6sQCDXlghmThWGsSm0eNnsDj0mw2TycOUMbjg6eThEyM5pLzXQlL6L06XvIhakSnJEy6qIbRBHGDy4a24tXi3Zxo0s50ZWieL_dqdjYRdPi2D42AClSeGeKMJMkFyKvnkF3R4UDwNsKFE9ecztHfkPghfuyLc4D980jxPxZenPhIzCO5O_SV_XoDeTNiu8I8ByTnuSa4myiitW1bnCihKyV037UtBQercLKtd8MWu_Y1v_9Jl7vyVBII5-HfGL7tmCaY5-pgYJCFzlRhBxBb49bZrw9MfAdBiymTcq09uHRP3rum8wA",
+                    "ExpiresAt": "2024-08-06T10:24:27Z",
+                    "NotBefore": "2024-07-30T10:24:27Z",
+                    "IssuedAt": "2024-07-30T10:24:27Z",
+                    "Params": {
+                        "RemoteAddr": "172.23.0.1",
+                        "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36"
+                    },
+                    "Language": ""
+                }
+            },
+            {
+                "status": "success",
+                "timestamp": "2024-07-30T14:27:12.406202+04:00",
+                "token_info": {
+                    "ID": "7d7171ad-2814-449d-8132-c7aeeeb39788",
+                    "ParentID": "00000000-0000-0000-0000-000000000000",
+                    "UserID": 0,
+                    "ProjectID": 0,
+                    "Type": "session",
+                    "Raw": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzk4NjcsIm5iZiI6MTcyMjMzNTA2NywiaWF0IjoxNzIyMzM1MDY3LCJUb2tlbiI6eyJJRCI6IjdkNzE3MWFkLTI4MTQtNDQ5ZC04MTMyLWM3YWVlZWIzOTc4OCIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIzLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.HXQmQnLnpruFJaS9WVZzRQyRIpHArdHm6nWugdQUuV-dY_aDhEnycEQS97cNK5N_DnTixmYaLWDIwQToFBPXx8CE0Dlx2W6as3VpDVW3bTVx1UQzyGCEQX1rna88TyNDGB5QHFV0Mc4o9IL8VRdc_vXoonEq-7ZY2WCkPNdXPL1ypRqCjP3omWX53GEXZIec4UGQTadDnD11-T1eJTU_uEL3I9_bJr93oNSnV0iA65pKuE_tjpmW7P1zOul14rBcIV6qaLbzU-k7MEUSSnUDG2JvOaNmYHNlaC9SB6wPz9UjdeBlPQx0Yug1Fo9zg1dp0IAshmF6PpkzyQJI8N5BZ5yfKsTx2DUvyKSKmc56dJNr2z3D6GZDUutP6sQCDXlghmThWGsSm0eNnsDj0mw2TycOUMbjg6eThEyM5pLzXQlL6L06XvIhakSnJEy6qIbRBHGDy4a24tXi3Zxo0s50ZWieL_dqdjYRdPi2D42AClSeGeKMJMkFyKvnkF3R4UDwNsKFE9ecztHfkPghfuyLc4D980jxPxZenPhIzCO5O_SV_XoDeTNiu8I8ByTnuSa4myiitW1bnCihKyV037UtBQercLKtd8MWu_Y1v_9Jl7vyVBII5-HfGL7tmCaY5-pgYJCFzlRhBxBb49bZrw9MfAdBiymTcq09uHRP3rum8wA",
+                    "ExpiresAt": "2024-08-06T10:24:27Z",
+                    "NotBefore": "2024-07-30T10:24:27Z",
+                    "IssuedAt": "2024-07-30T10:24:27Z",
+                    "Params": {
+                        "RemoteAddr": "172.23.0.1",
+                        "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36"
+                    },
+                    "Language": ""
+                }
+            }
+        ]
+    }
+}
+`,
+						},
+					},
+				})
+			}
 		}
 	}
 

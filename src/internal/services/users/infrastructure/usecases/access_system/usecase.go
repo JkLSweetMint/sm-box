@@ -3,7 +3,9 @@ package access_system_usecase
 import (
 	"context"
 	common_errors "sm-box/internal/common/errors"
+	common_types "sm-box/internal/common/types"
 	access_system_repository "sm-box/internal/services/users/infrastructure/repositories/access_system"
+	users_repository "sm-box/internal/services/users/infrastructure/repositories/users"
 	"sm-box/internal/services/users/objects/entities"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -28,6 +30,11 @@ type repositories struct {
 	AccessSystem interface {
 		GetRolesListForSelect(ctx context.Context) (list []*entities.Role, err error)
 		GetPermissionsListForSelect(ctx context.Context) (list []*entities.Permission, err error)
+
+		CheckUserAccess(ctx context.Context, userID common_types.ID, rolesID, permissionsID []common_types.ID) (allowed bool, err error)
+	}
+	Users interface {
+		GetOne(ctx context.Context, id common_types.ID) (us *entities.User, err error)
 	}
 }
 
@@ -78,6 +85,13 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 		// AccessSystem
 		{
 			if usecase.repositories.AccessSystem, err = access_system_repository.New(ctx); err != nil {
+				return
+			}
+		}
+
+		// Users
+		{
+			if usecase.repositories.Users, err = users_repository.New(ctx); err != nil {
 				return
 			}
 		}
@@ -165,6 +179,57 @@ func (usecase *UseCase) GetPermissionsListForSelect(ctx context.Context) (list [
 		usecase.components.Logger.Info().
 			Text("The list of access system permissions for the selects has been successfully received. ").
 			Field("users", list).Write()
+	}
+
+	return
+}
+
+// CheckUserAccess - проверка доступов пользователя.
+func (usecase *UseCase) CheckUserAccess(ctx context.Context, userID common_types.ID, rolesID, permissionsID []common_types.ID) (allowed bool, cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelUseCase)
+
+		trc.FunctionCall(ctx, userID, rolesID, permissionsID)
+		defer func() { trc.Error(cErr).FunctionCallFinished(allowed) }()
+	}
+
+	usecase.components.Logger.Info().
+		Text("The user access verification process has been started... ").
+		Field("user_id", userID).
+		Field("roles_id", rolesID).
+		Field("permissions_id", permissionsID).Write()
+
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The user access verification process is completed. ").
+			Field("user_id", userID).
+			Field("roles_id", rolesID).
+			Field("permissions_id", permissionsID).Write()
+	}()
+
+	// Проверка доступов
+	{
+		var err error
+
+		if allowed, err = usecase.repositories.AccessSystem.CheckUserAccess(ctx, userID, rolesID, permissionsID); err != nil {
+			usecase.components.Logger.Error().
+				Format("User access verification failed: '%s'. ", err).
+				Field("user_id", userID).
+				Field("roles_id", rolesID).
+				Field("permissions_id", permissionsID).Write()
+
+			cErr = common_errors.InternalServerError()
+			cErr.SetError(err)
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("User access verification completed successfully. ").
+			Field("allowed", allowed).
+			Field("user_id", userID).
+			Field("roles_id", rolesID).
+			Field("permissions_id", permissionsID).Write()
 	}
 
 	return

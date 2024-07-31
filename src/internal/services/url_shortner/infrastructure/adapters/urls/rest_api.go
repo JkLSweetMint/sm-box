@@ -2,7 +2,6 @@ package urls_adapter
 
 import (
 	"context"
-	common_types "sm-box/internal/common/types"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	urls_controller "sm-box/internal/services/url_shortner/infrastructure/controllers/urls"
 	"sm-box/internal/services/url_shortner/objects/models"
@@ -13,7 +12,7 @@ import (
 )
 
 const (
-	loggerInitiator_RestAPI = "infrastructure-[adapters]=urls-(RestAPI)"
+	loggerInitiator_HttpRestAPI = "infrastructure-[adapters]=urls-(HttpRestAPI)"
 )
 
 // Adapter_HttpRestAPI - адаптер контроллера для http rest api.
@@ -25,7 +24,7 @@ type Adapter_HttpRestAPI struct {
 		UpdateInRedisDB(ctx context.Context, url *models.ShortUrlInfo) (cErr c_errors.Error)
 		RemoveByReductionFromRedisDB(ctx context.Context, reduction string) (cErr c_errors.Error)
 
-		WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.Error)
+		Use(ctx context.Context, reduction string, token *authentication_entities.JwtSessionToken) (url *models.ShortUrlInfo, status types.ShortUrlUsageHistoryStatus, cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -56,7 +55,7 @@ func New_RestAPI(ctx context.Context) (adapter *Adapter_HttpRestAPI, err error) 
 
 		// Logger
 		{
-			if adapter.components.Logger, err = logger.New(loggerInitiator_RestAPI); err != nil {
+			if adapter.components.Logger, err = logger.New(loggerInitiator_HttpRestAPI); err != nil {
 				return
 			}
 		}
@@ -144,19 +143,19 @@ func (adapter *Adapter_HttpRestAPI) RemoveByReductionFromRedisDB(ctx context.Con
 	return
 }
 
-// WriteCallToHistory - записать обращение по короткой ссылке в историю.
-func (adapter *Adapter_HttpRestAPI) WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.RestAPI) {
+// Use - использование короткой ссылки.
+func (adapter *Adapter_HttpRestAPI) Use(ctx context.Context, reduction string, token *authentication_entities.JwtSessionToken) (url *models.ShortUrlInfo, status types.ShortUrlUsageHistoryStatus, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, id, status, token)
+		trc.FunctionCall(ctx, reduction, token)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if proxyErr = adapter.controller.WriteCallToHistory(ctx, id, status, token); proxyErr != nil {
+	if url, status, proxyErr = adapter.controller.Use(ctx, reduction, token); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().

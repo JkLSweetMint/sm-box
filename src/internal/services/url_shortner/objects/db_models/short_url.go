@@ -3,6 +3,7 @@ package db_models
 import (
 	"encoding/json"
 	common_types "sm-box/internal/common/types"
+	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/url_shortner/objects/types"
 	"time"
 )
@@ -26,10 +27,17 @@ type (
 		Active               bool               `db:"active"`
 	}
 
-	// ShortUrlAccesses - информация по доступам к короткому url.
+	// ShortUrlAccesses - модель базы данных с информацией по доступам к короткому url.
 	ShortUrlAccesses struct {
 		Roles       []common_types.ID `db:"roles"`
 		Permissions []common_types.ID `db:"permissions"`
+	}
+
+	// ShortUrlUsageHistory - модель базы данных по истории использования короткой ссылке.
+	ShortUrlUsageHistory struct {
+		Status    string                                   `db:"status"`
+		Timestamp time.Time                                `db:"timestamp"`
+		TokenInfo *authentication_entities.JwtSessionToken `db:"token_info"`
 	}
 
 	// ShortUrlInfo - модель базы данных redis с информацией по короткой ссылке.
@@ -53,8 +61,8 @@ type (
 
 	// ShortUrlInfoAccesses - информация по доступам к короткому url.
 	ShortUrlInfoAccesses struct {
-		Roles       []common_types.ID `json:"roles"`
-		Permissions []common_types.ID `json:"permissions"`
+		RolesID       []common_types.ID `json:"roles_id"`
+		PermissionsID []common_types.ID `json:"permissions_id"`
 	}
 )
 

@@ -13,6 +13,7 @@ import (
 
 const (
 	loggerInitiator = "infrastructure-[repositories]=urls_redis"
+	redisKeyPrefix  = "short_url"
 )
 
 // Repository - репозиторий для работы с сокращенными url запросов в базе данных Redis.
@@ -92,7 +93,7 @@ func (repo *Repository) Set(ctx context.Context, list ...*entities.ShortUrl) (er
 
 	for _, url := range list {
 		var (
-			key        string = fmt.Sprintf("short_url:%s", url.Reduction)
+			key        string = fmt.Sprintf("%s:%s", redisKeyPrefix, url.Reduction)
 			value      any    = url.ToRedisDbModel()
 			expiration time.Duration
 		)
@@ -124,7 +125,7 @@ func (repo *Repository) GetOneByReduction(ctx context.Context, reduction string)
 	}
 
 	var (
-		key   string = fmt.Sprintf("short_url:%s", reduction)
+		key   string = fmt.Sprintf("%s:%s", redisKeyPrefix, reduction)
 		value        = new(db_models.ShortUrlInfo)
 
 		result = repo.connector.Get(ctx, key)
@@ -152,6 +153,10 @@ func (repo *Repository) GetOneByReduction(ctx context.Context, reduction string)
 			Source:    value.Source,
 			Reduction: value.Reduction,
 
+			Accesses: &entities.ShortUrlAccesses{
+				RolesID:       value.Accesses.RolesID,
+				PermissionsID: value.Accesses.PermissionsID,
+			},
 			Properties: &entities.ShortUrlProperties{
 				Type:                 value.Properties.Type,
 				NumberOfUses:         value.Properties.NumberOfUses,
@@ -177,7 +182,7 @@ func (repo *Repository) RemoveByReduction(ctx context.Context, reduction string)
 	}
 
 	var (
-		key string = fmt.Sprintf("short_url:%s", reduction)
+		key string = fmt.Sprintf("%s:%s", redisKeyPrefix, reduction)
 
 		result = repo.connector.Del(ctx, key)
 	)

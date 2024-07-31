@@ -90,22 +90,24 @@ func (repo *Repository) GetList(ctx context.Context,
 	sort *objects.ShortUrlsListSort,
 	pagination *objects.ShortUrlsListPagination,
 	filters *objects.ShortUrlsListFilters,
-) (list []*entities.ShortUrl, err error) {
+) (count int64, list []*entities.ShortUrl, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
 
 		trc.FunctionCall(ctx, search, sort, pagination, filters)
-		defer func() { trc.Error(err).FunctionCallFinished(list) }()
+		defer func() { trc.Error(err).FunctionCallFinished(count, list) }()
 	}
 
-	var rows *sqlx.Rows
-
-	// Выполнение запроса
+	// Основные данные
 	{
-		var query = new(strings.Builder)
+		var rows *sqlx.Rows
 
-		query.WriteString(`
+		// Выполнение запроса
+		{
+			var query = new(strings.Builder)
+
+			query.WriteString(`
 			select
 				urls.id,
 				urls.source,
@@ -136,143 +138,245 @@ func (repo *Repository) GetList(ctx context.Context,
 			    
 		`)
 
-		// Доработки запроса
-		{
-			if search != nil {
-				query.WriteString(fmt.Sprintf("(urls.source like '%%%s%%' or urls.reduction like '%%%s%%')", search.Global, search.Global))
-			}
-
-			if filters != nil {
-				if filters.Active != nil {
-					var v = *filters.Active
-					query.WriteString(fmt.Sprintf("\nand active=%s", v))
+			// Доработки запроса
+			{
+				if search != nil {
+					query.WriteString(fmt.Sprintf("(urls.source like '%%%s%%' or urls.reduction like '%%%s%%')", search.Global, search.Global))
 				}
 
-				if filters.Type != nil {
-					var v = *filters.Type
-					query.WriteString(fmt.Sprintf("\nand type='%s'", v))
-				}
-
-				if filters.NumberOfUses != nil {
-					var (
-						v        = *filters.NumberOfUses
-						operator common_types.ComparisonOperators
-					)
-
-					if filters.NumberOfUsesType != nil {
-						operator = common_types.ParseComparisonOperators(*filters.NumberOfUsesType)
+				if filters != nil {
+					if filters.Active != nil {
+						var v = *filters.Active
+						query.WriteString(fmt.Sprintf("\nand active=%s", v))
 					}
 
-					query.WriteString(fmt.Sprintf("\nand number_of_uses%s%d", operator, v))
-				}
-
-				if filters.StartActive != nil {
-					var (
-						v        = *filters.StartActive
-						operator common_types.ComparisonOperators
-					)
-
-					if filters.StartActiveType != nil {
-						operator = common_types.ParseComparisonOperators(*filters.StartActiveType)
+					if filters.Type != nil {
+						var v = *filters.Type
+						query.WriteString(fmt.Sprintf("\nand type='%s'", v))
 					}
 
-					query.WriteString(fmt.Sprintf("\nand start_active%s'%s'", operator, v.Format(time.RFC3339Nano)))
-				}
+					if filters.NumberOfUses != nil {
+						var (
+							v        = *filters.NumberOfUses
+							operator common_types.ComparisonOperators
+						)
 
-				if filters.EndActive != nil {
-					var (
-						v        = *filters.EndActive
-						operator common_types.ComparisonOperators
-					)
+						if filters.NumberOfUsesType != nil {
+							operator = common_types.ParseComparisonOperators(*filters.NumberOfUsesType)
+						}
 
-					if filters.EndActiveType != nil {
-						operator = common_types.ParseComparisonOperators(*filters.EndActiveType)
+						query.WriteString(fmt.Sprintf("\nand number_of_uses%s%d", operator, v))
 					}
 
-					query.WriteString(fmt.Sprintf("\nand end_active%s'%s'", operator, v.Format(time.RFC3339Nano)))
+					if filters.StartActive != nil {
+						var (
+							v        = *filters.StartActive
+							operator common_types.ComparisonOperators
+						)
+
+						if filters.StartActiveType != nil {
+							operator = common_types.ParseComparisonOperators(*filters.StartActiveType)
+						}
+
+						query.WriteString(fmt.Sprintf("\nand start_active%s'%s'", operator, v.Format(time.RFC3339Nano)))
+					}
+
+					if filters.EndActive != nil {
+						var (
+							v        = *filters.EndActive
+							operator common_types.ComparisonOperators
+						)
+
+						if filters.EndActiveType != nil {
+							operator = common_types.ParseComparisonOperators(*filters.EndActiveType)
+						}
+
+						query.WriteString(fmt.Sprintf("\nand end_active%s'%s'", operator, v.Format(time.RFC3339Nano)))
+					}
+				}
+
+				if sort != nil {
+					if sort.Key != "" {
+						query.WriteString(fmt.Sprintf("\norder by %s %s", sort.Key, sort.Type))
+					}
+				}
+
+				if pagination != nil {
+					if pagination.Limit != nil {
+						query.WriteString(fmt.Sprintf("\nlimit %d", *pagination.Limit))
+					}
+
+					if pagination.Offset != nil {
+						query.WriteString(fmt.Sprintf("\noffset %d", *pagination.Offset))
+					}
 				}
 			}
 
-			if sort != nil {
-				if sort.Key != "" {
-					query.WriteString(fmt.Sprintf("\norder by %s %s", sort.Key, sort.Type))
-				}
-			}
-
-			if pagination != nil {
-				if pagination.Limit != nil {
-					query.WriteString(fmt.Sprintf("\nlimit %d", *pagination.Limit))
-				}
-
-				if pagination.Offset != nil {
-					query.WriteString(fmt.Sprintf("\noffset %d", *pagination.Offset))
-				}
+			if rows, err = repo.connector.QueryxContext(ctx, query.String()); err != nil {
+				repo.components.Logger.Error().
+					Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+				return
 			}
 		}
 
-		if rows, err = repo.connector.QueryxContext(ctx, query.String()); err != nil {
-			repo.components.Logger.Error().
-				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
-			return
+		// Чтение данных
+		{
+			list = make([]*entities.ShortUrl, 0)
+
+			for rows.Next() {
+				var (
+					model1                 = new(db_models.ShortUrl)
+					model2                 = new(db_models.ShortUrlProperties)
+					rolesID, permissionsID pq.Int64Array
+				)
+
+				if err = rows.Scan(
+					&model1.ID,
+					&model1.Source,
+					&model1.Reduction,
+					&model2.Type,
+					&model2.NumberOfUses,
+					&model2.RemainedNumberOfUses,
+					&model2.StartActive,
+					&model2.EndActive,
+					&model2.Active,
+					&rolesID,
+					&permissionsID); err != nil {
+					repo.components.Logger.Error().
+						Format("Error while reading item data from the database:: '%s'. ", err).Write()
+					return
+				}
+
+				var url = &entities.ShortUrl{
+					ID:        model1.ID,
+					Source:    model1.Source,
+					Reduction: model1.Reduction,
+
+					Accesses: &entities.ShortUrlAccesses{
+						RolesID:       make([]common_types.ID, 0),
+						PermissionsID: make([]common_types.ID, 0),
+					},
+					Properties: &entities.ShortUrlProperties{
+						Type:                 model2.Type,
+						NumberOfUses:         model2.NumberOfUses,
+						RemainedNumberOfUses: model2.RemainedNumberOfUses,
+						StartActive:          model2.StartActive,
+						EndActive:            model2.EndActive,
+						Active:               model2.Active,
+					},
+				}
+
+				for _, id := range rolesID {
+					url.Accesses.RolesID = append(url.Accesses.RolesID, common_types.ID(id))
+				}
+
+				for _, id := range permissionsID {
+					url.Accesses.PermissionsID = append(url.Accesses.PermissionsID, common_types.ID(id))
+				}
+
+				list = append(list, url)
+			}
 		}
 	}
 
-	// Чтение данных
+	// Получение кол-во элементов
 	{
-		list = make([]*entities.ShortUrl, 0)
+		var row *sqlx.Row
 
-		for rows.Next() {
-			var (
-				model1                 = new(db_models.ShortUrl)
-				model2                 = new(db_models.ShortUrlProperties)
-				rolesID, permissionsID pq.Int64Array
-			)
+		// Выполнение запроса
+		{
+			var query = new(strings.Builder)
 
-			if err = rows.Scan(
-				&model1.ID,
-				&model1.Source,
-				&model1.Reduction,
-				&model2.Type,
-				&model2.NumberOfUses,
-				&model2.RemainedNumberOfUses,
-				&model2.StartActive,
-				&model2.EndActive,
-				&model2.Active,
-				&rolesID,
-				&permissionsID); err != nil {
+			query.WriteString(`
+			select
+				count(urls.*)	
+			from
+				public.urls as urls
+					left join public.properties properties on urls.id = properties.url_id
+			where 
+			    
+		`)
+
+			// Доработки запроса
+			{
+				if search != nil {
+					query.WriteString(fmt.Sprintf("(urls.source like '%%%s%%' or urls.reduction like '%%%s%%')", search.Global, search.Global))
+				}
+
+				if filters != nil {
+					if filters.Active != nil {
+						var v = *filters.Active
+						query.WriteString(fmt.Sprintf("\nand active=%s", v))
+					}
+
+					if filters.Type != nil {
+						var v = *filters.Type
+						query.WriteString(fmt.Sprintf("\nand type='%s'", v))
+					}
+
+					if filters.NumberOfUses != nil {
+						var (
+							v        = *filters.NumberOfUses
+							operator common_types.ComparisonOperators
+						)
+
+						if filters.NumberOfUsesType != nil {
+							operator = common_types.ParseComparisonOperators(*filters.NumberOfUsesType)
+						}
+
+						query.WriteString(fmt.Sprintf("\nand number_of_uses%s%d", operator, v))
+					}
+
+					if filters.StartActive != nil {
+						var (
+							v        = *filters.StartActive
+							operator common_types.ComparisonOperators
+						)
+
+						if filters.StartActiveType != nil {
+							operator = common_types.ParseComparisonOperators(*filters.StartActiveType)
+						}
+
+						query.WriteString(fmt.Sprintf("\nand start_active%s'%s'", operator, v.Format(time.RFC3339Nano)))
+					}
+
+					if filters.EndActive != nil {
+						var (
+							v        = *filters.EndActive
+							operator common_types.ComparisonOperators
+						)
+
+						if filters.EndActiveType != nil {
+							operator = common_types.ParseComparisonOperators(*filters.EndActiveType)
+						}
+
+						query.WriteString(fmt.Sprintf("\nand end_active%s'%s'", operator, v.Format(time.RFC3339Nano)))
+					}
+				}
+
+				if sort != nil {
+					if sort.Key != "" {
+						query.WriteString(fmt.Sprintf("\norder by %s %s", sort.Key, sort.Type))
+					}
+				}
+			}
+
+			row = repo.connector.QueryRowxContext(ctx, query.String())
+
+			if err = row.Err(); err != nil {
+				repo.components.Logger.Error().
+					Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+				return
+			}
+		}
+
+		// Чтение данных
+		{
+			if err = row.Scan(&count); err != nil {
 				repo.components.Logger.Error().
 					Format("Error while reading item data from the database:: '%s'. ", err).Write()
 				return
 			}
-
-			var url = &entities.ShortUrl{
-				ID:        model1.ID,
-				Source:    model1.Source,
-				Reduction: model1.Reduction,
-
-				Accesses: &entities.ShortUrlAccesses{
-					RolesID:       make([]common_types.ID, 0),
-					PermissionsID: make([]common_types.ID, 0),
-				},
-				Properties: &entities.ShortUrlProperties{
-					Type:                 model2.Type,
-					NumberOfUses:         model2.NumberOfUses,
-					RemainedNumberOfUses: model2.RemainedNumberOfUses,
-					StartActive:          model2.StartActive,
-					EndActive:            model2.EndActive,
-					Active:               model2.Active,
-				},
-			}
-
-			for _, id := range rolesID {
-				url.Accesses.RolesID = append(url.Accesses.RolesID, common_types.ID(id))
-			}
-
-			for _, id := range permissionsID {
-				url.Accesses.PermissionsID = append(url.Accesses.PermissionsID, common_types.ID(id))
-			}
-
-			list = append(list, url)
 		}
 	}
 
@@ -489,6 +593,368 @@ func (repo *Repository) GetOneByReduction(ctx context.Context, reduction string)
 
 		for _, id := range permissionsID {
 			url.Accesses.PermissionsID = append(url.Accesses.PermissionsID, common_types.ID(id))
+		}
+	}
+
+	return
+}
+
+// GetUsageHistory - получение истории использования сокращенного url.
+func (repo *Repository) GetUsageHistory(ctx context.Context, id common_types.ID,
+	sort *objects.ShortUrlsUsageHistoryListSort,
+	pagination *objects.ShortUrlsUsageHistoryListPagination,
+	filters *objects.ShortUrlsUsageHistoryListFilters,
+) (count int64, history []*entities.ShortUrlUsageHistory, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, id, sort, pagination, filters)
+		defer func() { trc.Error(err).FunctionCallFinished(count, history) }()
+	}
+
+	// Основные данные
+	{
+		var rows *sqlx.Rows
+
+		// Выполнение запроса
+		{
+			var query = new(strings.Builder)
+
+			query.WriteString(`
+				select
+					usage_history.status,
+					usage_history.timestamp,
+					usage_history.token_info
+				from
+					public.usage_history as usage_history
+				where
+					usage_history.url_id = $1
+			    
+		`)
+
+			// Доработки запроса
+			{
+				if filters != nil {
+					if filters.Status != nil {
+						var v = *filters.Status
+						query.WriteString(fmt.Sprintf("\nand status='%s'", v))
+					}
+
+					if filters.Timestamp != nil {
+						var (
+							v        = *filters.Timestamp
+							operator common_types.ComparisonOperators
+						)
+
+						if filters.TimestampType != nil {
+							operator = common_types.ParseComparisonOperators(*filters.TimestampType)
+						}
+
+						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator, v.Format(time.RFC3339Nano)))
+					}
+				}
+
+				if sort != nil {
+					if sort.Key != "" {
+						query.WriteString(fmt.Sprintf("\norder by %s %s", sort.Key, sort.Type))
+					}
+				}
+
+				if pagination != nil {
+					if pagination.Limit != nil {
+						query.WriteString(fmt.Sprintf("\nlimit %d", *pagination.Limit))
+					}
+
+					if pagination.Offset != nil {
+						query.WriteString(fmt.Sprintf("\noffset %d", *pagination.Offset))
+					}
+				}
+			}
+
+			if rows, err = repo.connector.QueryxContext(ctx, query.String(), id); err != nil {
+				repo.components.Logger.Error().
+					Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+				return
+			}
+		}
+
+		// Чтение данных
+		{
+			history = make([]*entities.ShortUrlUsageHistory, 0)
+
+			for rows.Next() {
+				var model = new(db_models.ShortUrlUsageHistory)
+
+				if err = rows.StructScan(model); err != nil {
+					repo.components.Logger.Error().
+						Format("Error while reading item data from the database:: '%s'. ", err).Write()
+					return
+				}
+
+				history = append(history, &entities.ShortUrlUsageHistory{
+					Status:    model.Status,
+					Timestamp: model.Timestamp,
+					TokenInfo: model.TokenInfo,
+				})
+			}
+		}
+	}
+
+	// Получение кол-во элементов
+	{
+		var row *sqlx.Row
+
+		// Выполнение запроса
+		{
+			var query = new(strings.Builder)
+
+			query.WriteString(`
+				select
+					count(usage_history.*)
+				from
+					public.usage_history as usage_history
+				where
+					usage_history.url_id = $1
+			    
+		`)
+
+			// Доработки запроса
+			{
+				if filters != nil {
+					if filters.Status != nil {
+						var v = *filters.Status
+						query.WriteString(fmt.Sprintf("\nand status='%s'", v))
+					}
+
+					if filters.Timestamp != nil {
+						var (
+							v        = *filters.Timestamp
+							operator common_types.ComparisonOperators
+						)
+
+						if filters.TimestampType != nil {
+							operator = common_types.ParseComparisonOperators(*filters.TimestampType)
+						}
+
+						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator, v.Format(time.RFC3339Nano)))
+					}
+				}
+
+				if sort != nil {
+					if sort.Key != "" {
+						query.WriteString(fmt.Sprintf("\norder by %s %s", sort.Key, sort.Type))
+					}
+				}
+
+				if pagination != nil {
+					if pagination.Limit != nil {
+						query.WriteString(fmt.Sprintf("\nlimit %d", *pagination.Limit))
+					}
+
+					if pagination.Offset != nil {
+						query.WriteString(fmt.Sprintf("\noffset %d", *pagination.Offset))
+					}
+				}
+			}
+
+			row = repo.connector.QueryRowxContext(ctx, query.String(), id)
+
+			if err = row.Err(); err != nil {
+				repo.components.Logger.Error().
+					Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+				return
+			}
+		}
+
+		// Чтение данных
+		{
+			if err = row.Scan(&count); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// GetUsageHistoryByReduction - получение истории использования сокращенного url по сокращению.
+func (repo *Repository) GetUsageHistoryByReduction(ctx context.Context, reduction string,
+	sort *objects.ShortUrlsUsageHistoryListSort,
+	pagination *objects.ShortUrlsUsageHistoryListPagination,
+	filters *objects.ShortUrlsUsageHistoryListFilters,
+) (count int64, history []*entities.ShortUrlUsageHistory, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, reduction, sort, pagination, filters)
+		defer func() { trc.Error(err).FunctionCallFinished(count, history) }()
+	}
+
+	// Основные данные
+	{
+		var rows *sqlx.Rows
+
+		// Выполнение запроса
+		{
+			var query = new(strings.Builder)
+
+			query.WriteString(`
+			select
+				usage_history.status,
+				usage_history.timestamp,
+				usage_history.token_info
+			from
+				public.usage_history as usage_history
+			where
+				usage_history.url_id = (select urls.id from public.urls as urls where urls.reduction = $1)
+			    
+		`)
+
+			// Доработки запроса
+			{
+				if filters != nil {
+					if filters.Status != nil {
+						var v = *filters.Status
+						query.WriteString(fmt.Sprintf("\nand status='%s'", v))
+					}
+
+					if filters.Timestamp != nil {
+						var (
+							v        = *filters.Timestamp
+							operator common_types.ComparisonOperators
+						)
+
+						if filters.TimestampType != nil {
+							operator = common_types.ParseComparisonOperators(*filters.TimestampType)
+						}
+
+						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator, v.Format(time.RFC3339Nano)))
+					}
+				}
+
+				if sort != nil {
+					if sort.Key != "" {
+						query.WriteString(fmt.Sprintf("\norder by %s %s", sort.Key, sort.Type))
+					}
+				}
+
+				if pagination != nil {
+					if pagination.Limit != nil {
+						query.WriteString(fmt.Sprintf("\nlimit %d", *pagination.Limit))
+					}
+
+					if pagination.Offset != nil {
+						query.WriteString(fmt.Sprintf("\noffset %d", *pagination.Offset))
+					}
+				}
+			}
+
+			if rows, err = repo.connector.QueryxContext(ctx, query.String(), reduction); err != nil {
+				repo.components.Logger.Error().
+					Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+				return
+			}
+		}
+
+		// Чтение данных
+		{
+			history = make([]*entities.ShortUrlUsageHistory, 0)
+
+			for rows.Next() {
+				var model = new(db_models.ShortUrlUsageHistory)
+
+				if err = rows.StructScan(model); err != nil {
+					repo.components.Logger.Error().
+						Format("Error while reading item data from the database:: '%s'. ", err).Write()
+					return
+				}
+
+				history = append(history, &entities.ShortUrlUsageHistory{
+					Status:    model.Status,
+					Timestamp: model.Timestamp,
+					TokenInfo: model.TokenInfo,
+				})
+			}
+		}
+	}
+
+	// Получение кол-во элементов
+	{
+		var row *sqlx.Row
+
+		// Выполнение запроса
+		{
+			var query = new(strings.Builder)
+
+			query.WriteString(`
+				select
+					count(usage_history.*)
+				from
+					public.usage_history as usage_history
+				where
+					usage_history.url_id = (select urls.id from public.urls as urls where urls.reduction = $1)
+			    
+		`)
+
+			// Доработки запроса
+			{
+				if filters != nil {
+					if filters.Status != nil {
+						var v = *filters.Status
+						query.WriteString(fmt.Sprintf("\nand status='%s'", v))
+					}
+
+					if filters.Timestamp != nil {
+						var (
+							v        = *filters.Timestamp
+							operator common_types.ComparisonOperators
+						)
+
+						if filters.TimestampType != nil {
+							operator = common_types.ParseComparisonOperators(*filters.TimestampType)
+						}
+
+						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator, v.Format(time.RFC3339Nano)))
+					}
+				}
+
+				if sort != nil {
+					if sort.Key != "" {
+						query.WriteString(fmt.Sprintf("\norder by %s %s", sort.Key, sort.Type))
+					}
+				}
+
+				if pagination != nil {
+					if pagination.Limit != nil {
+						query.WriteString(fmt.Sprintf("\nlimit %d", *pagination.Limit))
+					}
+
+					if pagination.Offset != nil {
+						query.WriteString(fmt.Sprintf("\noffset %d", *pagination.Offset))
+					}
+				}
+			}
+
+			row = repo.connector.QueryRowxContext(ctx, query.String(), reduction)
+
+			if err = row.Err(); err != nil {
+				repo.components.Logger.Error().
+					Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+				return
+			}
+		}
+
+		// Чтение данных
+		{
+			if err = row.Scan(&count); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
 		}
 	}
 

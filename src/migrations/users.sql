@@ -141,62 +141,82 @@ declare
     result record;
 
 begin
-    for result in
-        WITH RECURSIVE cte_roles (id, project_id, parent_id, name, name_i18n, description, description_i18n, is_system) AS (
+    if (select count(users.*) from users.users as users where users.id = userID) > 0 then
+        for result in
+            WITH RECURSIVE cte_roles (id, project_id, parent_id, name, name_i18n, description, description_i18n, is_system) AS (
+                select
+                    roles.id,
+                    roles.project_id,
+                    0::bigint as parent_id,
+                    roles.name,
+                    roles.name_i18n,
+                    roles.description,
+                    roles.description_i18n,
+                    roles.is_system
+                from
+                    access_system.roles as roles
+                where
+                    roles.id in (
+                        select
+                            accesses.role_id as id
+                        from
+                            users.users as users
+                                left join users.accesses accesses on users.id = accesses.user_id
+
+                        where
+                            users.id = userID
+                    )
+
+                UNION ALL
+
+                select
+                    roles.id,
+                    roles.project_id,
+                    role_inheritance.parent_id as parent_id,
+                    roles.name,
+                    roles.name_i18n,
+                    roles.description,
+                    roles.description_i18n,
+                    roles.is_system
+                from
+                    access_system.roles as roles
+                        left join access_system.role_inheritance role_inheritance on (role_inheritance.heir_id = roles.id)
+                        JOIN cte_roles cte ON cte.id = role_inheritance.parent_id
+            )
+
             select
-                roles.id,
-                roles.project_id,
-                0::bigint as parent_id,
-                roles.name,
-                roles.name_i18n,
-                roles.description,
-                roles.description_i18n,
-                roles.is_system
+                distinct id,
+                         coalesce(project_id, 0) as project_id,
+                         coalesce(parent_id, 0) as parent_id,
+                         name,
+                         name_i18n,
+                         description,
+                         description_i18n,
+                         is_system
+            from
+                cte_roles
+            loop
+                return next result;
+        end loop;
+    else
+        for result in
+            select
+                 roles.id,
+                 coalesce(roles.project_id, 0) as project_id,
+                 0::bigint as parent_id,
+                 roles.name,
+                 roles.name_i18n,
+                 roles.description,
+                 roles.description_i18n,
+                 roles.is_system
             from
                 access_system.roles as roles
             where
-                roles.id in (
-                    select
-                        accesses.role_id as id
-                    from
-                        users.users as users
-                            left join users.accesses accesses on users.id = accesses.user_id
-
-                    where
-                        users.id = userID
-                )
-
-            UNION ALL
-
-            select
-                roles.id,
-                roles.project_id,
-                role_inheritance.parent_id as parent_id,
-                roles.name,
-                roles.name_i18n,
-                roles.description,
-                roles.description_i18n,
-                roles.is_system
-            from
-                access_system.roles as roles
-                    left join access_system.role_inheritance role_inheritance on (role_inheritance.heir_id = roles.id)
-                    JOIN cte_roles cte ON cte.id = role_inheritance.parent_id
-        )
-
-        select
-            distinct id,
-                     coalesce(project_id, 0) as project_id,
-                     coalesce(parent_id, 0) as parent_id,
-                     name,
-                     name_i18n,
-                     description,
-                     description_i18n,
-                     is_system
-        from
-            cte_roles
-        loop
-    return next result;
-end loop;
+                roles.id = 3
+            loop
+                return next result;
+            end loop;
+    end if;
 end;
 $$;
 

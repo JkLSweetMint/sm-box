@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	loggerInitiator_RestAPI = "infrastructure-[adapters]=basic_authentication-(RestAPI)"
+	loggerInitiator_HttpRestAPI = "infrastructure-[adapters]=basic_authentication-(HttpRestAPI)"
 )
 
 // Adapter_HttpRestAPI - адаптер контроллера для http rest api.
@@ -55,7 +55,7 @@ func New_RestAPI(ctx context.Context) (adapter *Adapter_HttpRestAPI, err error) 
 
 		// Logger
 		{
-			if adapter.components.Logger, err = logger.New(loggerInitiator_RestAPI); err != nil {
+			if adapter.components.Logger, err = logger.New(loggerInitiator_HttpRestAPI); err != nil {
 				return
 			}
 		}

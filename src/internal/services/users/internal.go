@@ -21,7 +21,7 @@ func (srv *service) serve(ctx context.Context) (err error) {
 
 	// Транспортная часть
 	{
-		env.Synchronization.WaitGroup.Add(3)
+		env.Synchronization.WaitGroup.Add(4)
 
 		go func() {
 			defer env.Synchronization.WaitGroup.Done()
@@ -47,6 +47,15 @@ func (srv *service) serve(ctx context.Context) (err error) {
 			if err = srv.Transport().Servers().Grpc().UsersService().Listen(); err != nil {
 				srv.Components().Logger().Error().
 					Format("Failed to launch 'grpc server for users service': '%s'. ", err).Write()
+			}
+		}()
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			if err = srv.Transport().Servers().Grpc().AccessSystemService().Listen(); err != nil {
+				srv.Components().Logger().Error().
+					Format("Failed to launch 'grpc server for access system service': '%s'. ", err).Write()
 			}
 		}()
 	}
@@ -85,6 +94,11 @@ func (srv *service) shutdown(ctx context.Context) (err error) {
 		if err = srv.Transport().Servers().Grpc().UsersService().Shutdown(); err != nil {
 			srv.Components().Logger().Error().
 				Format("grpc server for users service': '%s'. ", err).Write()
+		}
+
+		if err = srv.Transport().Servers().Grpc().AccessSystemService().Shutdown(); err != nil {
+			srv.Components().Logger().Error().
+				Format("grpc server for access system service': '%s'. ", err).Write()
 		}
 	}
 

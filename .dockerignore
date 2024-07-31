@@ -3,17 +3,17 @@
 .gitignore
 .dockerignore
 
-docker-build.bat
-docker-compose.bat
-docker-compose.local.yml
+src/docker/docker-build.bat
+src/docker/docker-compose.bat
+src/docker/docker-compose.local.yml
 docker-compose.yml
-Dockerfile.app
-Dockerfile.authentication-service
-Dockerfile.dashboard
-Dockerfile.i18n-service
-Dockerfile.resources-service
-Dockerfile.url_shortner-service
-Dockerfile.users-service
+src/docker/Dockerfile.app
+src/docker/Dockerfile.authentication-service
+src/docker/Dockerfile.dashboard
+src/docker/Dockerfile.i18n-service
+src/docker/Dockerfile.resources-service
+src/docker/Dockerfile.url_shortner-service
+src/docker/Dockerfile.users-service
 
 CHANGELOG.md
 README.md

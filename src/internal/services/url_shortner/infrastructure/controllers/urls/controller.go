@@ -2,7 +2,6 @@ package urls_controller
 
 import (
 	"context"
-	common_types "sm-box/internal/common/types"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	urls_usecase "sm-box/internal/services/url_shortner/infrastructure/usecases/urls"
 	"sm-box/internal/services/url_shortner/objects/entities"
@@ -34,7 +33,7 @@ type usecases struct {
 		UpdateInRedisDB(ctx context.Context, url *entities.ShortUrl) (cErr c_errors.Error)
 		RemoveByReductionFromRedisDB(ctx context.Context, reduction string) (cErr c_errors.Error)
 
-		WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.Error)
+		Use(ctx context.Context, reduction string, token *authentication_entities.JwtSessionToken) (url *entities.ShortUrl, status types.ShortUrlUsageHistoryStatus, cErr c_errors.Error)
 	}
 }
 
@@ -143,7 +142,9 @@ func (controller *Controller) GetByReductionFromRedisDB(ctx context.Context, red
 
 		// Преобразование в модель
 		{
-			url = url_.ToModel()
+			if url_ != nil {
+				url = url_.ToModel()
+			}
 		}
 	}
 
@@ -177,6 +178,7 @@ func (controller *Controller) UpdateInRedisDB(ctx context.Context, url *models.S
 					RemainedNumberOfUses: url.Properties.RemainedNumberOfUses,
 					StartActive:          url.Properties.StartActive,
 					EndActive:            url.Properties.EndActive,
+					Active:               url.Properties.Active,
 				},
 			}
 		}
@@ -215,23 +217,32 @@ func (controller *Controller) RemoveByReductionFromRedisDB(ctx context.Context, 
 	return
 }
 
-// WriteCallToHistory - записать обращение по короткой ссылке в историю.
-func (controller *Controller) WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.Error) {
+// Use - использование короткой ссылки.
+func (controller *Controller) Use(ctx context.Context, reduction string, token *authentication_entities.JwtSessionToken) (url *models.ShortUrlInfo, status types.ShortUrlUsageHistoryStatus, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, id, status, token)
-		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+		trc.FunctionCall(ctx, reduction, token)
+		defer func() { trc.Error(cErr).FunctionCallFinished(url, status) }()
 	}
 
 	// Выполнения инструкций
 	{
-		if cErr = controller.usecases.Urls.WriteCallToHistory(ctx, id, status, token); cErr != nil {
+		var url_ *entities.ShortUrl
+
+		if url_, status, cErr = controller.usecases.Urls.Use(ctx, reduction, token); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
 			return
+		}
+
+		// Преобразование в модель
+		{
+			if url_ != nil {
+				url = url_.ToModel()
+			}
 		}
 	}
 

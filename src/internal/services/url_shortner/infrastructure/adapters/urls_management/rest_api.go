@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	loggerInitiator_RestAPI = "infrastructure-[adapters]=urls_management-(RestAPI)"
+	loggerInitiator_HttpRestAPI = "infrastructure-[adapters]=urls_management-(HttpRestAPI)"
 )
 
 // Adapter_HttpRestAPI - адаптер контроллера для http rest api.
@@ -27,7 +27,7 @@ type Adapter_HttpRestAPI struct {
 			sort *objects.ShortUrlsListSort,
 			pagination *objects.ShortUrlsListPagination,
 			filters *objects.ShortUrlsListFilters,
-		) (list []*models.ShortUrlInfo, cErr c_errors.Error)
+		) (count int64, list []*models.ShortUrlInfo, cErr c_errors.Error)
 		GetOne(ctx context.Context, id common_types.ID) (url *models.ShortUrlInfo, cErr c_errors.Error)
 		GetOneByReduction(ctx context.Context, reduction string) (url *models.ShortUrlInfo, cErr c_errors.Error)
 
@@ -35,12 +35,12 @@ type Adapter_HttpRestAPI struct {
 			sort *objects.ShortUrlsUsageHistoryListSort,
 			pagination *objects.ShortUrlsUsageHistoryListPagination,
 			filters *objects.ShortUrlsUsageHistoryListFilters,
-		) (history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error)
+		) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error)
 		GetUsageHistoryByReduction(ctx context.Context, reduction string,
 			sort *objects.ShortUrlsUsageHistoryListSort,
 			pagination *objects.ShortUrlsUsageHistoryListPagination,
 			filters *objects.ShortUrlsUsageHistoryListFilters,
-		) (history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error)
+		) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error)
 
 		Create(ctx context.Context,
 			source string,
@@ -87,7 +87,7 @@ func New_RestAPI(ctx context.Context) (adapter *Adapter_HttpRestAPI, err error) 
 
 		// Logger
 		{
-			if adapter.components.Logger, err = logger.New(loggerInitiator_RestAPI); err != nil {
+			if adapter.components.Logger, err = logger.New(loggerInitiator_HttpRestAPI); err != nil {
 				return
 			}
 		}
@@ -112,18 +112,18 @@ func (adapter *Adapter_HttpRestAPI) GetList(ctx context.Context,
 	sort *objects.ShortUrlsListSort,
 	pagination *objects.ShortUrlsListPagination,
 	filters *objects.ShortUrlsListFilters,
-) (list []*models.ShortUrlInfo, cErr c_errors.RestAPI) {
+) (count int64, list []*models.ShortUrlInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
 		trc.FunctionCall(ctx, search, sort, pagination, filters)
-		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
+		defer func() { trc.Error(cErr).FunctionCallFinished(count, list) }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if list, proxyErr = adapter.controller.GetList(ctx, search, sort, pagination, filters); proxyErr != nil {
+	if count, list, proxyErr = adapter.controller.GetList(ctx, search, sort, pagination, filters); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().
@@ -185,18 +185,18 @@ func (adapter *Adapter_HttpRestAPI) GetUsageHistory(ctx context.Context, id comm
 	sort *objects.ShortUrlsUsageHistoryListSort,
 	pagination *objects.ShortUrlsUsageHistoryListPagination,
 	filters *objects.ShortUrlsUsageHistoryListFilters,
-) (history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI) {
+) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
 		trc.FunctionCall(ctx, id, sort, pagination, filters)
-		defer func() { trc.Error(cErr).FunctionCallFinished(history) }()
+		defer func() { trc.Error(cErr).FunctionCallFinished(count, history) }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if history, proxyErr = adapter.controller.GetUsageHistory(ctx, id, sort, pagination, filters); proxyErr != nil {
+	if count, history, proxyErr = adapter.controller.GetUsageHistory(ctx, id, sort, pagination, filters); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().
@@ -212,18 +212,18 @@ func (adapter *Adapter_HttpRestAPI) GetUsageHistoryByReduction(ctx context.Conte
 	sort *objects.ShortUrlsUsageHistoryListSort,
 	pagination *objects.ShortUrlsUsageHistoryListPagination,
 	filters *objects.ShortUrlsUsageHistoryListFilters,
-) (history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI) {
+) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
 		trc.FunctionCall(ctx, reduction, sort, pagination, filters)
-		defer func() { trc.Error(cErr).FunctionCallFinished(history) }()
+		defer func() { trc.Error(cErr).FunctionCallFinished(count, history) }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if history, proxyErr = adapter.controller.GetUsageHistoryByReduction(ctx, reduction, sort, pagination, filters); proxyErr != nil {
+	if count, history, proxyErr = adapter.controller.GetUsageHistoryByReduction(ctx, reduction, sort, pagination, filters); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().

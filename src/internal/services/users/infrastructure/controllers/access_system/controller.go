@@ -2,6 +2,7 @@ package access_system_controller
 
 import (
 	"context"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/users/infrastructure/usecases/access_system"
 	"sm-box/internal/services/users/objects/entities"
 	"sm-box/internal/services/users/objects/models"
@@ -28,6 +29,8 @@ type usecases struct {
 	AccessSystem interface {
 		GetRolesListForSelect(ctx context.Context) (list []*entities.Role, cErr c_errors.Error)
 		GetPermissionsListForSelect(ctx context.Context) (list []*entities.Permission, cErr c_errors.Error)
+
+		CheckUserAccess(ctx context.Context, userID common_types.ID, rolesID, permissionsID []common_types.ID) (allowed bool, cErr c_errors.Error)
 	}
 }
 
@@ -156,6 +159,29 @@ func (controller *Controller) GetPermissionsListForSelect(ctx context.Context) (
 			for _, perm := range permissions {
 				list = append(list, perm.ToModel())
 			}
+		}
+	}
+
+	return
+}
+
+// CheckUserAccess - проверка доступов пользователя.
+func (controller *Controller) CheckUserAccess(ctx context.Context, userID common_types.ID, rolesID, permissionsID []common_types.ID) (allowed bool, cErr c_errors.Error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelController)
+
+		trc.FunctionCall(ctx, userID, rolesID, permissionsID)
+		defer func() { trc.Error(cErr).FunctionCallFinished(allowed) }()
+	}
+
+	// Выполнения инструкций
+	{
+		if allowed, cErr = controller.usecases.AccessSystem.CheckUserAccess(ctx, userID, rolesID, permissionsID); cErr != nil {
+			controller.components.Logger.Error().
+				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
+
+			return
 		}
 	}
 

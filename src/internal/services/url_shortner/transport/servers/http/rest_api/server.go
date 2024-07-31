@@ -44,7 +44,7 @@ type controllers struct {
 		UpdateInRedisDB(ctx context.Context, url *models.ShortUrlInfo) (cErr c_errors.RestAPI)
 		RemoveByReductionFromRedisDB(ctx context.Context, reduction string) (cErr c_errors.RestAPI)
 
-		WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.RestAPI)
+		Use(ctx context.Context, reduction string, token *authentication_entities.JwtSessionToken) (url *models.ShortUrlInfo, status types.ShortUrlUsageHistoryStatus, cErr c_errors.RestAPI)
 	}
 	UrlsManagement interface {
 		GetList(ctx context.Context,
@@ -52,7 +52,7 @@ type controllers struct {
 			sort *objects.ShortUrlsListSort,
 			pagination *objects.ShortUrlsListPagination,
 			filters *objects.ShortUrlsListFilters,
-		) (list []*models.ShortUrlInfo, cErr c_errors.RestAPI)
+		) (count int64, list []*models.ShortUrlInfo, cErr c_errors.RestAPI)
 		GetOne(ctx context.Context, id common_types.ID) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
 		GetOneByReduction(ctx context.Context, reduction string) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
 
@@ -60,12 +60,12 @@ type controllers struct {
 			sort *objects.ShortUrlsUsageHistoryListSort,
 			pagination *objects.ShortUrlsUsageHistoryListPagination,
 			filters *objects.ShortUrlsUsageHistoryListFilters,
-		) (history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI)
+		) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI)
 		GetUsageHistoryByReduction(ctx context.Context, reduction string,
 			sort *objects.ShortUrlsUsageHistoryListSort,
 			pagination *objects.ShortUrlsUsageHistoryListPagination,
 			filters *objects.ShortUrlsUsageHistoryListFilters,
-		) (history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI)
+		) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI)
 
 		Create(ctx context.Context,
 			source string,

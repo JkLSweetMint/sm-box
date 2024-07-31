@@ -35,7 +35,7 @@ type usecases struct {
 			sort *objects.ShortUrlsListSort,
 			pagination *objects.ShortUrlsListPagination,
 			filters *objects.ShortUrlsListFilters,
-		) (list []*entities.ShortUrl, cErr c_errors.Error)
+		) (count int64, list []*entities.ShortUrl, cErr c_errors.Error)
 		GetOne(ctx context.Context, id common_types.ID) (url *entities.ShortUrl, cErr c_errors.Error)
 		GetOneByReduction(ctx context.Context, reduction string) (url *entities.ShortUrl, cErr c_errors.Error)
 
@@ -43,12 +43,12 @@ type usecases struct {
 			sort *objects.ShortUrlsUsageHistoryListSort,
 			pagination *objects.ShortUrlsUsageHistoryListPagination,
 			filters *objects.ShortUrlsUsageHistoryListFilters,
-		) (history []*entities.ShortUrlUsageHistory, cErr c_errors.Error)
+		) (count int64, history []*entities.ShortUrlUsageHistory, cErr c_errors.Error)
 		GetUsageHistoryByReduction(ctx context.Context, reduction string,
 			sort *objects.ShortUrlsUsageHistoryListSort,
 			pagination *objects.ShortUrlsUsageHistoryListPagination,
 			filters *objects.ShortUrlsUsageHistoryListFilters,
-		) (history []*entities.ShortUrlUsageHistory, cErr c_errors.Error)
+		) (count int64, history []*entities.ShortUrlUsageHistory, cErr c_errors.Error)
 
 		Create(ctx context.Context,
 			source string,
@@ -132,20 +132,20 @@ func (controller *Controller) GetList(ctx context.Context,
 	sort *objects.ShortUrlsListSort,
 	pagination *objects.ShortUrlsListPagination,
 	filters *objects.ShortUrlsListFilters,
-) (list []*models.ShortUrlInfo, cErr c_errors.Error) {
+) (count int64, list []*models.ShortUrlInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
 		trc.FunctionCall(ctx, search, sort, pagination, filters)
-		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
+		defer func() { trc.Error(cErr).FunctionCallFinished(count, list) }()
 	}
 
 	// Выполнения инструкций
 	{
 		var urls []*entities.ShortUrl
 
-		if urls, cErr = controller.usecases.UrlsManagement.GetList(ctx, search, sort, pagination, filters); cErr != nil {
+		if count, urls, cErr = controller.usecases.UrlsManagement.GetList(ctx, search, sort, pagination, filters); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
@@ -234,20 +234,20 @@ func (controller *Controller) GetUsageHistory(ctx context.Context, id common_typ
 	sort *objects.ShortUrlsUsageHistoryListSort,
 	pagination *objects.ShortUrlsUsageHistoryListPagination,
 	filters *objects.ShortUrlsUsageHistoryListFilters,
-) (history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error) {
+) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
 		trc.FunctionCall(ctx, id, sort, pagination, filters)
-		defer func() { trc.Error(cErr).FunctionCallFinished(history) }()
+		defer func() { trc.Error(cErr).FunctionCallFinished(count, history) }()
 	}
 
 	// Выполнения инструкций
 	{
 		var history_ []*entities.ShortUrlUsageHistory
 
-		if history_, cErr = controller.usecases.UrlsManagement.GetUsageHistory(ctx, id, sort, pagination, filters); cErr != nil {
+		if count, history_, cErr = controller.usecases.UrlsManagement.GetUsageHistory(ctx, id, sort, pagination, filters); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
@@ -272,20 +272,20 @@ func (controller *Controller) GetUsageHistoryByReduction(ctx context.Context, re
 	sort *objects.ShortUrlsUsageHistoryListSort,
 	pagination *objects.ShortUrlsUsageHistoryListPagination,
 	filters *objects.ShortUrlsUsageHistoryListFilters,
-) (history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error) {
+) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
 		trc.FunctionCall(ctx, reduction, sort, pagination, filters)
-		defer func() { trc.Error(cErr).FunctionCallFinished(history) }()
+		defer func() { trc.Error(cErr).FunctionCallFinished(count, history) }()
 	}
 
 	// Выполнения инструкций
 	{
 		var history_ []*entities.ShortUrlUsageHistory
 
-		if history_, cErr = controller.usecases.UrlsManagement.GetUsageHistoryByReduction(ctx, reduction, sort, pagination, filters); cErr != nil {
+		if count, history_, cErr = controller.usecases.UrlsManagement.GetUsageHistoryByReduction(ctx, reduction, sort, pagination, filters); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 

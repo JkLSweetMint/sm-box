@@ -40,9 +40,20 @@ type repositories struct {
 			sort *objects.ShortUrlsListSort,
 			pagination *objects.ShortUrlsListPagination,
 			filters *objects.ShortUrlsListFilters,
-		) (list []*entities.ShortUrl, err error)
+		) (count int64, list []*entities.ShortUrl, err error)
 		GetOne(ctx context.Context, id common_types.ID) (url *entities.ShortUrl, err error)
 		GetOneByReduction(ctx context.Context, reduction string) (url *entities.ShortUrl, err error)
+
+		GetUsageHistory(ctx context.Context, id common_types.ID,
+			sort *objects.ShortUrlsUsageHistoryListSort,
+			pagination *objects.ShortUrlsUsageHistoryListPagination,
+			filters *objects.ShortUrlsUsageHistoryListFilters,
+		) (count int64, history []*entities.ShortUrlUsageHistory, err error)
+		GetUsageHistoryByReduction(ctx context.Context, reduction string,
+			sort *objects.ShortUrlsUsageHistoryListSort,
+			pagination *objects.ShortUrlsUsageHistoryListPagination,
+			filters *objects.ShortUrlsUsageHistoryListFilters,
+		) (count int64, history []*entities.ShortUrlUsageHistory, err error)
 
 		Create(ctx context.Context,
 			source string,
@@ -135,13 +146,13 @@ func (usecase *UseCase) GetList(ctx context.Context,
 	sort *objects.ShortUrlsListSort,
 	pagination *objects.ShortUrlsListPagination,
 	filters *objects.ShortUrlsListFilters,
-) (list []*entities.ShortUrl, cErr c_errors.Error) {
+) (count int64, list []*entities.ShortUrl, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
 
 		trc.FunctionCall(ctx, search, sort, pagination, filters)
-		defer func() { trc.Error(cErr).FunctionCallFinished(list) }()
+		defer func() { trc.Error(cErr).FunctionCallFinished(count, list) }()
 	}
 
 	usecase.components.Logger.Info().
@@ -160,7 +171,7 @@ func (usecase *UseCase) GetList(ctx context.Context,
 			Field("filters", filters).Write()
 	}()
 
-	// Подготовка входных данных
+	// Валидация
 	{
 		if search != nil {
 			search.Global = strings.TrimSpace(search.Global)
@@ -250,7 +261,7 @@ func (usecase *UseCase) GetList(ctx context.Context,
 	{
 		var err error
 
-		if list, err = usecase.repositories.UrlsManagement.GetList(ctx, search, sort, pagination, filters); err != nil {
+		if count, list, err = usecase.repositories.UrlsManagement.GetList(ctx, search, sort, pagination, filters); err != nil {
 			usecase.components.Logger.Error().
 				Format("Failed to get a list of short urls: '%s'. ", err).Write()
 
@@ -260,7 +271,8 @@ func (usecase *UseCase) GetList(ctx context.Context,
 
 		usecase.components.Logger.Info().
 			Text("The list of short URLs was successfully received. ").
-			Field("list", list).Write()
+			Field("list", list).
+			Field("count", count).Write()
 	}
 
 	return
@@ -361,13 +373,107 @@ func (usecase *UseCase) GetUsageHistory(ctx context.Context, id common_types.ID,
 	sort *objects.ShortUrlsUsageHistoryListSort,
 	pagination *objects.ShortUrlsUsageHistoryListPagination,
 	filters *objects.ShortUrlsUsageHistoryListFilters,
-) (history []*entities.ShortUrlUsageHistory, cErr c_errors.Error) {
+) (count int64, history []*entities.ShortUrlUsageHistory, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
 
 		trc.FunctionCall(ctx, id, sort, pagination, filters)
-		defer func() { trc.Error(cErr).FunctionCallFinished(history) }()
+		defer func() { trc.Error(cErr).FunctionCallFinished(count, history) }()
+	}
+
+	usecase.components.Logger.Info().
+		Text("The process of getting the history of using a short url by id has been started... ").
+		Field("id", id).
+		Field("sort", sort).
+		Field("pagination", pagination).
+		Field("filters", filters).Write()
+
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The process of getting the history of using the short url by id is completed. ").
+			Field("id", id).
+			Field("sort", sort).
+			Field("pagination", pagination).
+			Field("filters", filters).Write()
+	}()
+
+	// Валидация
+	{
+		if sort != nil {
+			sort.Key = strings.TrimSpace(sort.Key)
+
+			if sort.Key == "" {
+				sort = nil
+			} else {
+				sort.Type = strings.ToLower(strings.TrimSpace(sort.Type))
+
+				if sort.Type != "asc" && sort.Type != "desc" {
+					usecase.components.Logger.Error().
+						Text("An invalid sort type value was passed. ").Write()
+
+					cErr = common_errors.InvalidSortValue()
+					cErr.Details().Set("sort_type", "Invalid value. ")
+
+					return
+				}
+			}
+		}
+
+		if filters != nil {
+			if filters.Timestamp != nil {
+				var v = *filters.TimestampType
+
+				if v != common_types.ComparisonOperatorsEqual &&
+					v != common_types.ComparisonOperatorsNotEqual &&
+					v != common_types.ComparisonOperatorsGreater &&
+					v != common_types.ComparisonOperatorsLess &&
+					v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
+					v != common_types.ComparisonOperatorsLessThanOrEqual {
+					usecase.components.Logger.Error().
+						Text("An invalid filter value was passed. ").Write()
+
+					cErr = common_errors.InvalidFilterValue()
+					cErr.Details().Set("timestamp_type", "Invalid value. ")
+
+					return
+				}
+			}
+
+			if filters.Status != nil {
+				var v = *filters.Status
+
+				if v != types.ShortUrlUsageHistoryStatusFailed &&
+					v != types.ShortUrlUsageHistoryStatusSuccess &&
+					v != types.ShortUrlUsageHistoryStatusForbidden {
+					usecase.components.Logger.Error().
+						Text("An invalid filter value was passed. ").Write()
+
+					cErr = common_errors.InvalidFilterValue()
+					cErr.Details().Set("status", "Invalid value. ")
+
+					return
+				}
+			}
+		}
+	}
+
+	// Получение
+	{
+		var err error
+
+		if count, history, err = usecase.repositories.UrlsManagement.GetUsageHistory(ctx, id, sort, pagination, filters); err != nil {
+			usecase.components.Logger.Error().
+				Format("The short url usage history by id could not be retrieved: '%s'. ", err).Write()
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The history of using the short url by id has been successfully obtained. ").
+			Field("history", history).
+			Field("count", count).Write()
 	}
 
 	return
@@ -378,13 +484,107 @@ func (usecase *UseCase) GetUsageHistoryByReduction(ctx context.Context, reductio
 	sort *objects.ShortUrlsUsageHistoryListSort,
 	pagination *objects.ShortUrlsUsageHistoryListPagination,
 	filters *objects.ShortUrlsUsageHistoryListFilters,
-) (history []*entities.ShortUrlUsageHistory, cErr c_errors.Error) {
+) (count int64, history []*entities.ShortUrlUsageHistory, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
 
 		trc.FunctionCall(ctx, reduction, sort, pagination, filters)
 		defer func() { trc.Error(cErr).FunctionCallFinished(history) }()
+	}
+
+	usecase.components.Logger.Info().
+		Text("The process of getting the history of using a short url by reduction has been started... ").
+		Field("reduction", reduction).
+		Field("sort", sort).
+		Field("pagination", pagination).
+		Field("filters", filters).Write()
+
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The process of getting the history of using the short url by reduction is completed. ").
+			Field("reduction", reduction).
+			Field("sort", sort).
+			Field("pagination", pagination).
+			Field("filters", filters).Write()
+	}()
+
+	// Валидация
+	{
+		if sort != nil {
+			sort.Key = strings.TrimSpace(sort.Key)
+
+			if sort.Key == "" {
+				sort = nil
+			} else {
+				sort.Type = strings.ToLower(strings.TrimSpace(sort.Type))
+
+				if sort.Type != "asc" && sort.Type != "desc" {
+					usecase.components.Logger.Error().
+						Text("An invalid sort type value was passed. ").Write()
+
+					cErr = common_errors.InvalidSortValue()
+					cErr.Details().Set("sort_type", "Invalid value. ")
+
+					return
+				}
+			}
+		}
+
+		if filters != nil {
+			if filters.Timestamp != nil {
+				var v = *filters.TimestampType
+
+				if v != common_types.ComparisonOperatorsEqual &&
+					v != common_types.ComparisonOperatorsNotEqual &&
+					v != common_types.ComparisonOperatorsGreater &&
+					v != common_types.ComparisonOperatorsLess &&
+					v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
+					v != common_types.ComparisonOperatorsLessThanOrEqual {
+					usecase.components.Logger.Error().
+						Text("An invalid filter value was passed. ").Write()
+
+					cErr = common_errors.InvalidFilterValue()
+					cErr.Details().Set("timestamp_type", "Invalid value. ")
+
+					return
+				}
+			}
+
+			if filters.Status != nil {
+				var v = *filters.Status
+
+				if v != types.ShortUrlUsageHistoryStatusFailed &&
+					v != types.ShortUrlUsageHistoryStatusSuccess &&
+					v != types.ShortUrlUsageHistoryStatusForbidden {
+					usecase.components.Logger.Error().
+						Text("An invalid filter value was passed. ").Write()
+
+					cErr = common_errors.InvalidFilterValue()
+					cErr.Details().Set("status", "Invalid value. ")
+
+					return
+				}
+			}
+		}
+	}
+
+	// Получение
+	{
+		var err error
+
+		if count, history, err = usecase.repositories.UrlsManagement.GetUsageHistoryByReduction(ctx, reduction, sort, pagination, filters); err != nil {
+			usecase.components.Logger.Error().
+				Format("The short url usage history by reduction could not be retrieved: '%s'. ", err).Write()
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The history of using the short url by reduction has been successfully obtained. ").
+			Field("history", history).
+			Field("count", count).Write()
 	}
 
 	return
@@ -416,8 +616,28 @@ func (usecase *UseCase) Create(ctx context.Context,
 
 	var id common_types.ID
 
-	// Проверки
+	// Валидация
 	{
+		if source = strings.TrimSpace(source); source == "" {
+			usecase.components.Logger.Error().
+				Text("An invalid type value was passed. ").Write()
+
+			cErr = common_errors.InvalidArguments()
+			cErr.Details().Set("source", "Is empty. ")
+
+			return
+		}
+
+		if numberOfUses < 0 {
+			usecase.components.Logger.Error().
+				Text("An invalid type value was passed. ").Write()
+
+			cErr = common_errors.InvalidArguments()
+			cErr.Details().Set("number_of_uses", "Negative value. ")
+
+			return
+		}
+
 		if type_ != types.ShortUrlTypeProxy && type_ != types.ShortUrlTypeRedirect {
 			usecase.components.Logger.Error().
 				Text("An invalid type value was passed. ").Write()
@@ -491,21 +711,23 @@ func (usecase *UseCase) Remove(ctx context.Context, id common_types.ID) (cErr c_
 			Field("id", id).Write()
 	}()
 
-	// Удаление
+	// Проверки
 	{
-		var err error
+		// Существования
+		{
+			if _, err := usecase.repositories.UrlsManagement.GetOne(ctx, id); err != nil {
+				usecase.components.Logger.Error().
+					Format("Could not get the shortened url by id: '%s'. ", err).Write()
 
-		if err = usecase.repositories.UrlsManagement.Remove(ctx, id); err != nil {
-			usecase.components.Logger.Error().
-				Format("Couldn't delete short url by id: '%s'. ", err).Write()
+				if errors.Is(err, sql.ErrNoRows) {
+					cErr = srv_errors.ShortUrlNotFound()
+					return
+				}
 
-			cErr = common_errors.InternalServerError()
-			return
+				cErr = common_errors.InternalServerError()
+				return
+			}
 		}
-
-		usecase.components.Logger.Info().
-			Text("The short url has been successfully deleted. ").
-			Field("id", id).Write()
 	}
 
 	// Работа с Redis DB
@@ -547,6 +769,23 @@ func (usecase *UseCase) Remove(ctx context.Context, id common_types.ID) (cErr c_
 		}
 	}
 
+	// Удаление
+	{
+		var err error
+
+		if err = usecase.repositories.UrlsManagement.Remove(ctx, id); err != nil {
+			usecase.components.Logger.Error().
+				Format("Couldn't delete short url by id: '%s'. ", err).Write()
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The short url has been successfully deleted. ").
+			Field("id", id).Write()
+	}
+
 	return
 }
 
@@ -570,6 +809,37 @@ func (usecase *UseCase) RemoveByReduction(ctx context.Context, reduction string)
 			Field("reduction", reduction).Write()
 	}()
 
+	// Проверки
+	{
+		// Существования
+		{
+			if _, err := usecase.repositories.UrlsManagement.GetOneByReduction(ctx, reduction); err != nil {
+				usecase.components.Logger.Error().
+					Format("Could not get the shortened url by reduction: '%s'. ", err).Write()
+
+				if errors.Is(err, sql.ErrNoRows) {
+					cErr = srv_errors.ShortUrlNotFound()
+					return
+				}
+
+				cErr = common_errors.InternalServerError()
+				return
+			}
+		}
+	}
+
+	// Работа с Redis DB
+	{
+		if err := usecase.repositories.UrlsRedis.RemoveByReduction(ctx, reduction); err != nil {
+			usecase.components.Logger.Error().
+				Format("The short url could not be deleted: '%s'. ", err).
+				Field("reduction", reduction).Write()
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+	}
+
 	// Удаление
 	{
 		var err error
@@ -585,18 +855,6 @@ func (usecase *UseCase) RemoveByReduction(ctx context.Context, reduction string)
 		usecase.components.Logger.Info().
 			Text("The short url has been successfully deleted. ").
 			Field("reduction", reduction).Write()
-	}
-
-	// Работа с Redis DB
-	{
-		if err := usecase.repositories.UrlsRedis.RemoveByReduction(ctx, reduction); err != nil {
-			usecase.components.Logger.Error().
-				Format("The short url could not be deleted: '%s'. ", err).
-				Field("reduction", reduction).Write()
-
-			cErr = common_errors.InternalServerError()
-			return
-		}
 	}
 
 	return
@@ -621,6 +879,25 @@ func (usecase *UseCase) Activate(ctx context.Context, id common_types.ID) (cErr 
 			Text("The short url activation by id process is completed. ").
 			Field("id", id).Write()
 	}()
+
+	// Проверки
+	{
+		// Существования
+		{
+			if _, err := usecase.repositories.UrlsManagement.GetOne(ctx, id); err != nil {
+				usecase.components.Logger.Error().
+					Format("Could not get the shortened url by id: '%s'. ", err).Write()
+
+				if errors.Is(err, sql.ErrNoRows) {
+					cErr = srv_errors.ShortUrlNotFound()
+					return
+				}
+
+				cErr = common_errors.InternalServerError()
+				return
+			}
+		}
+	}
 
 	// Активация
 	{
@@ -701,6 +978,25 @@ func (usecase *UseCase) ActivateByReduction(ctx context.Context, reduction strin
 			Field("reduction", reduction).Write()
 	}()
 
+	// Проверки
+	{
+		// Существования
+		{
+			if _, err := usecase.repositories.UrlsManagement.GetOneByReduction(ctx, reduction); err != nil {
+				usecase.components.Logger.Error().
+					Format("Could not get the shortened url by reduction: '%s'. ", err).Write()
+
+				if errors.Is(err, sql.ErrNoRows) {
+					cErr = srv_errors.ShortUrlNotFound()
+					return
+				}
+
+				cErr = common_errors.InternalServerError()
+				return
+			}
+		}
+	}
+
 	// Активация
 	{
 		var err error
@@ -780,7 +1076,26 @@ func (usecase *UseCase) Deactivate(ctx context.Context, id common_types.ID) (cEr
 			Field("id", id).Write()
 	}()
 
-	// Активация
+	// Проверки
+	{
+		// Существования
+		{
+			if _, err := usecase.repositories.UrlsManagement.GetOne(ctx, id); err != nil {
+				usecase.components.Logger.Error().
+					Format("Could not get the shortened url by id: '%s'. ", err).Write()
+
+				if errors.Is(err, sql.ErrNoRows) {
+					cErr = srv_errors.ShortUrlNotFound()
+					return
+				}
+
+				cErr = common_errors.InternalServerError()
+				return
+			}
+		}
+	}
+
+	// Деактивация
 	{
 		var err error
 
@@ -859,7 +1174,26 @@ func (usecase *UseCase) DeactivateByReduction(ctx context.Context, reduction str
 			Field("reduction", reduction).Write()
 	}()
 
-	// Активация
+	// Проверки
+	{
+		// Существования
+		{
+			if _, err := usecase.repositories.UrlsManagement.GetOneByReduction(ctx, reduction); err != nil {
+				usecase.components.Logger.Error().
+					Format("Could not get the shortened url by reduction: '%s'. ", err).Write()
+
+				if errors.Is(err, sql.ErrNoRows) {
+					cErr = srv_errors.ShortUrlNotFound()
+					return
+				}
+
+				cErr = common_errors.InternalServerError()
+				return
+			}
+		}
+	}
+
+	// Деактивация
 	{
 		var err error
 

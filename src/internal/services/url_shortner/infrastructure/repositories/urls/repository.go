@@ -3,6 +3,7 @@ package urls_repository
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	common_types "sm-box/internal/common/types"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/url_shortner/objects/db_models"
@@ -114,7 +115,9 @@ func (repo *Repository) GetActive(ctx context.Context) (list []*entities.ShortUr
 					)
 				end as remained_number_of_uses,
 				coalesce(properties.start_active, '0001-01-01 00:00:0.000000 +00:00') as start_active,
-				coalesce(properties.end_active, '0001-01-01 00:00:0.000000 +00:00') as end_active
+				coalesce(properties.end_active, '0001-01-01 00:00:0.000000 +00:00') as end_active,
+				array(select accesses.role_id from public.accesses as accesses where accesses.url_id = urls.id and accesses.role_id is not null) as roles_id,
+				array(select accesses.permission_id from public.accesses as accesses where accesses.url_id = urls.id and accesses.permission_id is not null) as permissions_id
 			from
 				public.urls as urls
 					left join public.properties properties on urls.id = properties.url_id
@@ -152,8 +155,9 @@ func (repo *Repository) GetActive(ctx context.Context) (list []*entities.ShortUr
 
 		for rows.Next() {
 			var (
-				model1 = new(db_models.ShortUrl)
-				model2 = new(db_models.ShortUrlProperties)
+				model1                 = new(db_models.ShortUrl)
+				model2                 = new(db_models.ShortUrlProperties)
+				rolesID, permissionsID pq.Int64Array
 			)
 
 			if err = rows.Scan(
@@ -164,25 +168,42 @@ func (repo *Repository) GetActive(ctx context.Context) (list []*entities.ShortUr
 				&model2.NumberOfUses,
 				&model2.RemainedNumberOfUses,
 				&model2.StartActive,
-				&model2.EndActive); err != nil {
+				&model2.EndActive,
+				&rolesID,
+				&permissionsID); err != nil {
 				repo.components.Logger.Error().
 					Format("Error while reading item data from the database:: '%s'. ", err).Write()
 				return
 			}
 
-			list = append(list, &entities.ShortUrl{
+			var url = &entities.ShortUrl{
 				ID:        model1.ID,
 				Source:    model1.Source,
 				Reduction: model1.Reduction,
 
+				Accesses: &entities.ShortUrlAccesses{
+					RolesID:       make([]common_types.ID, 0),
+					PermissionsID: make([]common_types.ID, 0),
+				},
 				Properties: &entities.ShortUrlProperties{
 					Type:                 model2.Type,
 					NumberOfUses:         model2.NumberOfUses,
 					RemainedNumberOfUses: model2.RemainedNumberOfUses,
 					StartActive:          model2.StartActive,
 					EndActive:            model2.EndActive,
+					Active:               model2.Active,
 				},
-			})
+			}
+
+			for _, id := range rolesID {
+				url.Accesses.RolesID = append(url.Accesses.RolesID, common_types.ID(id))
+			}
+
+			for _, id := range permissionsID {
+				url.Accesses.PermissionsID = append(url.Accesses.PermissionsID, common_types.ID(id))
+			}
+
+			list = append(list, url)
 		}
 	}
 

@@ -1,6 +1,7 @@
 package service
 
 import (
+	grpc_access_system_srv "sm-box/internal/services/users/transport/servers/grpc/access_system_service"
 	grpc_basic_authentication_srv "sm-box/internal/services/users/transport/servers/grpc/basic_authentication_service"
 	grpc_users_srv "sm-box/internal/services/users/transport/servers/grpc/users_service"
 	http_rest_api "sm-box/internal/services/users/transport/servers/http/rest_api"
@@ -27,6 +28,7 @@ type TransportServersHttp interface {
 type TransportServersGrpc interface {
 	BasicAuthenticationService() grpc_basic_authentication_srv.Server
 	UsersService() grpc_users_srv.Server
+	AccessSystemService() grpc_access_system_srv.Server
 }
 
 // TransportGateways - описание шлюзов транспортной части сервиса.
@@ -55,6 +57,7 @@ type transportServersHttp struct {
 type transportServersGrpc struct {
 	basicAuthenticationService grpc_basic_authentication_srv.Server
 	usersService               grpc_users_srv.Server
+	accessSystemService        grpc_access_system_srv.Server
 }
 
 // transportsGateways - шлюзы транспортной части сервиса.
@@ -94,4 +97,9 @@ func (t *transportServersGrpc) BasicAuthenticationService() grpc_basic_authentic
 // UsersService - получение сервера для приложения проектов системы.
 func (t *transportServersGrpc) UsersService() grpc_users_srv.Server {
 	return t.usersService
+}
+
+// AccessSystemService - получение сервера для приложения проектов системы.
+func (t *transportServersGrpc) AccessSystemService() grpc_access_system_srv.Server {
+	return t.accessSystemService
 }

@@ -83,7 +83,7 @@ func New(ctx context.Context) (gw *Gateway, err error) {
 	}
 
 	gw.components.Logger.Info().
-		Format("A '%s' grpc gateway has been created. ", "system access agent").
+		Text("A basic authentication service grpc gateway has been created. ").
 		Field("config", gw.conf).Write()
 
 	return

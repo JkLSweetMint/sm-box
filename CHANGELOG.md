@@ -1,5 +1,11 @@
 # ChangeLog:
 
+### v24.0.49:
+- Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
+- Доработки [сервиса пользователей](src/internal/services/users/service.go);
+
+---
+
 ### v24.0.48:
 - Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
 - Доработки [сервиса пользователей](src/internal/services/users/service.go);
@@ -47,7 +53,7 @@
 
 ### v24.0.41:
 - Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
-- Добавление [контейнера панели управления](Dockerfile.dashboard);
+- Добавление [контейнера панели управления](src/docker/Dockerfile.dashboard);
 - Доработки архитектуры системы;
 - Включение записи логов базы данных postgres и authentication-redis
 

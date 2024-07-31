@@ -118,6 +118,10 @@ func (entity *ShortUrl) ToRedisDbModel() (model *db_models.ShortUrlInfo) {
 		Source:    entity.Source,
 		Reduction: entity.Reduction,
 
+		Accesses: &db_models.ShortUrlInfoAccesses{
+			RolesID:       entity.Accesses.RolesID,
+			PermissionsID: entity.Accesses.PermissionsID,
+		},
 		Properties: &db_models.ShortUrlInfoProperties{
 			Type:                 entity.Properties.Type,
 			NumberOfUses:         entity.Properties.NumberOfUses,

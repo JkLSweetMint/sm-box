@@ -3,7 +3,6 @@ package urls_usecase
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/redis/go-redis/v9"
 	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
@@ -13,9 +12,11 @@ import (
 	"sm-box/internal/services/url_shortner/objects/entities"
 	srv_errors "sm-box/internal/services/url_shortner/objects/errors"
 	"sm-box/internal/services/url_shortner/objects/types"
+	access_system_service_gateway "sm-box/internal/services/url_shortner/transport/gateways/access_system"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
+	"time"
 )
 
 const (
@@ -25,10 +26,18 @@ const (
 // UseCase - логика управления сокращениями url запросов.
 type UseCase struct {
 	components   *components
+	gateways     *gateways
 	repositories *repositories
 
 	conf *Config
 	ctx  context.Context
+}
+
+// gateways - шлюзы логики.
+type gateways struct {
+	AccessSystem interface {
+		CheckUserAccess(ctx context.Context, userID common_types.ID, rolesID, permissionsID []common_types.ID) (allowed bool, cErr c_errors.Error)
+	}
 }
 
 // repositories - репозитории логики.
@@ -79,6 +88,18 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 		// Logger
 		{
 			if usecase.components.Logger, err = logger.New(loggerInitiator); err != nil {
+				return
+			}
+		}
+	}
+
+	// Шлюзы
+	{
+		usecase.gateways = new(gateways)
+
+		// AccessSystem
+		{
+			if usecase.gateways.AccessSystem, err = access_system_service_gateway.New(ctx); err != nil {
 				return
 			}
 		}
@@ -159,6 +180,10 @@ func (usecase *UseCase) RegisterToRedisDB(ctx context.Context) (cErr c_errors.Er
 				cErr = common_errors.InternalServerError()
 				return
 			}
+
+			usecase.components.Logger.Info().
+				Text("Short URLs have been successfully registered. ").
+				Field("list", list).Write()
 		}
 	}
 
@@ -233,18 +258,17 @@ func (usecase *UseCase) UpdateInRedisDB(ctx context.Context, url *entities.Short
 
 	// Обновление
 	{
-		var err error
-
-		fmt.Printf("\n\n%+v\n", url)
-		fmt.Printf("%+v\n\n\n", url.Properties)
-
-		if err = usecase.repositories.UrlsRedis.Set(ctx, url); err != nil {
+		if err := usecase.repositories.UrlsRedis.Set(ctx, url); err != nil {
 			usecase.components.Logger.Error().
 				Format("The short url data could not be updated: '%s'. ", err).Write()
 
 			cErr = common_errors.InternalServerError()
 			return
 		}
+
+		usecase.components.Logger.Info().
+			Text("The short url data has been successfully recorded. ").
+			Field("url", url).Write()
 	}
 
 	return
@@ -272,9 +296,7 @@ func (usecase *UseCase) RemoveByReductionFromRedisDB(ctx context.Context, reduct
 
 	// Удаление
 	{
-		var err error
-
-		if err = usecase.repositories.UrlsRedis.RemoveByReduction(ctx, reduction); err != nil {
+		if err := usecase.repositories.UrlsRedis.RemoveByReduction(ctx, reduction); err != nil {
 			usecase.components.Logger.Error().
 				Format("The short url could not be deleted: '%s'. ", err).
 				Field("reduction", reduction).Write()
@@ -282,47 +304,239 @@ func (usecase *UseCase) RemoveByReductionFromRedisDB(ctx context.Context, reduct
 			cErr = common_errors.InternalServerError()
 			return
 		}
+
+		usecase.components.Logger.Info().
+			Text("The short url has been successfully deleted by reduction. ").
+			Field("reduction", reduction).Write()
 	}
 
 	return
 }
 
-// WriteCallToHistory - записать обращение по короткой ссылке в историю.
-func (usecase *UseCase) WriteCallToHistory(ctx context.Context, id common_types.ID, status types.ShortUrlUsageHistoryStatus, token *authentication_entities.JwtSessionToken) (cErr c_errors.Error) {
+// Use - использование короткой ссылки.
+func (usecase *UseCase) Use(ctx context.Context, reduction string, token *authentication_entities.JwtSessionToken) (url *entities.ShortUrl, status types.ShortUrlUsageHistoryStatus, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
 
-		trc.FunctionCall(ctx, id, status, token)
-		defer func() { trc.Error(cErr).FunctionCallFinished() }()
+		trc.FunctionCall(ctx, reduction, token)
+		defer func() { trc.Error(cErr).FunctionCallFinished(url, status) }()
 	}
 
 	usecase.components.Logger.Info().
-		Text("The process of recording a short route call in the history has been started... ").
-		Field("id", id).
-		Field("status", status).
+		Text("The process of using a short url has been started... ").
+		Field("reduction", reduction).
 		Field("token", token).Write()
 
 	defer func() {
 		usecase.components.Logger.Info().
-			Text("The process of recording a short route call in the history is completed. ").
-			Field("id", id).
-			Field("status", status).
+			Text("The process of using the short url is completed. ").
+			Field("reduction", reduction).
 			Field("token", token).Write()
 	}()
 
 	// Запись в историю
 	{
-		var err error
+		defer func() {
+			go func() {
+				if cErr != nil {
+					url = nil
+				}
 
-		if err = usecase.repositories.Urls.WriteCallToHistory(ctx, id, status, token); err != nil {
-			usecase.components.Logger.Error().
-				Format("The call data could not be recorded in the history: '%s'. ", err).Write()
+				if url != nil {
+					if err := usecase.repositories.Urls.WriteCallToHistory(ctx, url.ID, status, token); err != nil {
+						usecase.components.Logger.Error().
+							Format("The call data could not be recorded in the history: '%s'. ", err).Write()
 
-			cErr = common_errors.InternalServerError()
-			return
+						cErr = common_errors.InternalServerError()
+						return
+					}
+
+					usecase.components.Logger.Info().
+						Text("The use of the short url has been successfully recorded in the history. ").
+						Field("url", url).
+						Field("token", token).Write()
+				}
+			}()
+		}()
+	}
+
+	// Получение и обработка короткого url
+	{
+		// Получение
+		{
+			var err error
+
+			if url, err = usecase.repositories.UrlsRedis.GetOneByReduction(ctx, reduction); err != nil {
+				usecase.components.Logger.Error().
+					Format("Could not get the shortened url by reduction: '%s'. ", err).Write()
+
+				if errors.Is(err, redis.Nil) {
+					cErr = srv_errors.ShortUrlNotFound()
+
+					status = types.ShortUrlUsageHistoryStatusForbidden
+
+					return
+				}
+
+				status = types.ShortUrlUsageHistoryStatusFailed
+
+				cErr = common_errors.InternalServerError()
+				return
+			}
+
+			usecase.components.Logger.Info().
+				Text("The short url data was successfully received. ").
+				Field("url", url).Write()
+		}
+
+		// Проверки
+		{
+			var (
+				tm      = time.Now()
+				emptyTm time.Time
+			)
+
+			// Ещё не начал действовать
+			{
+				if tm.Before(url.Properties.StartActive) && !url.Properties.StartActive.Equal(emptyTm) {
+					usecase.components.Logger.Warn().
+						Text("The validity period of the short url has not yet begun. ").Write()
+
+					return
+				}
+			}
+
+			// Уже закончился
+			{
+				if tm.After(url.Properties.EndActive) && !url.Properties.EndActive.Equal(emptyTm) {
+					usecase.components.Logger.Warn().
+						Text("The validity period of the short url has already been completed. ").Write()
+
+					// Удаление из базы данных Redis
+					{
+						if err := usecase.repositories.UrlsRedis.RemoveByReduction(ctx, url.Reduction); err != nil {
+							usecase.components.Logger.Error().
+								Format("The short url could not be deleted: '%s'. ", err).
+								Field("reduction", reduction).Write()
+
+							cErr = common_errors.InternalServerError()
+							return
+						}
+
+						usecase.components.Logger.Info().
+							Text("The short url has been successfully deleted by reduction. ").
+							Field("reduction", reduction).Write()
+					}
+
+					return
+				}
+			}
+
+			// Кол-во использований превышено
+			{
+				if url.Properties.RemainedNumberOfUses == 0 && url.Properties.NumberOfUses > 0 {
+					usecase.components.Logger.Warn().
+						Text("The number of uses of the short url  is overestimated. ").Write()
+
+					// Удаление из базы данных Redis
+					{
+						if err := usecase.repositories.UrlsRedis.RemoveByReduction(ctx, url.Reduction); err != nil {
+							usecase.components.Logger.Error().
+								Format("The short url could not be deleted: '%s'. ", err).
+								Field("reduction", reduction).Write()
+
+							cErr = common_errors.InternalServerError()
+							return
+						}
+
+						usecase.components.Logger.Info().
+							Text("The short url has been successfully deleted by reduction. ").
+							Field("reduction", reduction).Write()
+					}
+
+					status = types.ShortUrlUsageHistoryStatusForbidden
+					return
+				}
+			}
+
+			// Доступов пользователя
+			{
+				var allowed bool
+
+				if url != nil && url.Accesses != nil && token != nil {
+					if allowed, cErr = usecase.gateways.AccessSystem.CheckUserAccess(ctx, token.UserID, url.Accesses.RolesID, url.Accesses.PermissionsID); cErr != nil {
+						usecase.components.Logger.Error().
+							Format("The user's access to the short url could not be verified: '%s'. ", cErr).Write()
+
+						status = types.ShortUrlUsageHistoryStatusFailed
+
+						cErr = common_errors.InternalServerError()
+						return
+					}
+
+					usecase.components.Logger.Info().
+						Text("Verification of the user's access to the short url has been completed successfully. ").
+						Field("allowed", allowed).
+						Field("url", url).
+						Field("token", token).Write()
+				}
+
+				if !allowed {
+					usecase.components.Logger.Warn().
+						Text("The user does not have access to the short url. ").
+						Field("token", token).
+						Field("url", url).Write()
+
+					status = types.ShortUrlUsageHistoryStatusForbidden
+					return
+				}
+			}
 		}
 	}
+
+	// Выполнение инструкций
+	{
+		// Обновление данных в базе если кол-во использований не бесконечное
+		{
+			if url.Properties.NumberOfUses > 0 {
+				url.Properties.RemainedNumberOfUses--
+
+				if url.Properties.RemainedNumberOfUses == 0 {
+					if err := usecase.repositories.UrlsRedis.RemoveByReduction(ctx, url.Reduction); err != nil {
+						usecase.components.Logger.Error().
+							Format("The short url could not be deleted: '%s'. ", err).
+							Field("reduction", reduction).Write()
+
+						status = types.ShortUrlUsageHistoryStatusFailed
+
+						cErr = common_errors.InternalServerError()
+						return
+					}
+
+					usecase.components.Logger.Info().
+						Text("The short url has been successfully deleted by reduction. ").
+						Field("reduction", reduction).Write()
+				} else {
+					if err := usecase.repositories.UrlsRedis.Set(ctx, url); err != nil {
+						usecase.components.Logger.Error().
+							Format("The short url data could not be updated: '%s'. ", err).Write()
+
+						status = types.ShortUrlUsageHistoryStatusFailed
+
+						cErr = common_errors.InternalServerError()
+						return
+					}
+
+					usecase.components.Logger.Info().
+						Text("The short url data has been successfully recorded. ").
+						Field("url", url).Write()
+				}
+			}
+		}
+	}
+
+	status = types.ShortUrlUsageHistoryStatusSuccess
 
 	return
 }

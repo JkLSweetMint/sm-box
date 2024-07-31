@@ -3,6 +3,7 @@ package access_system_repository
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/users/objects/db_models"
 	"sm-box/internal/services/users/objects/entities"
@@ -375,6 +376,120 @@ func (repo *Repository) GetPermissionsListForSelect(ctx context.Context) (list [
 
 				continue
 			}
+		}
+	}
+
+	return
+}
+
+// CheckUserAccess - проверка доступов пользователя.
+func (repo *Repository) CheckUserAccess(ctx context.Context, userID common_types.ID, rolesID, permissionsID []common_types.ID) (allowed bool, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, userID, rolesID, permissionsID)
+		defer func() { trc.Error(err).FunctionCallFinished(allowed) }()
+	}
+
+	var (
+		row   *sqlx.Row
+		query = `
+				select 
+				  ((
+					roles_id is not null 
+					and array_length(roles_id, 1) > 0
+				  ) 
+				  or (
+					permissions_id is not null 
+					and array_length(permissions_id, 1) > 0
+				  )) as allowed
+				from 
+				  (
+					select 
+						  (
+							select 
+							  array_agg(intersect_element) 
+							from 
+							  (
+								select 
+								  unnest($2::bigint[]) as intersect_element 
+								intersect 
+								select 
+								  unnest(
+									array(
+									  select 
+										distinct id 
+									  from 
+										access_system.get_user_roles($1) as (
+										  id bigint, project_id bigint, parent_id bigint, 
+										  name varchar, name_i18n uuid, description varchar, 
+										  description_i18n uuid, is_system boolean
+										)
+									)
+								  )
+							  )
+						  ) as roles_id, 
+						  (
+							select 
+							  array_agg(intersect_element) 
+							from 
+							  (
+								select 
+								  unnest($3::bigint[]) as intersect_element 
+								intersect 
+								select 
+								  unnest(
+									array(
+									  select 
+										distinct id 
+									  from 
+										access_system.get_user_permissions($1) as (
+										  id bigint, project_id bigint, role_id bigint, 
+										  name varchar, name_i18n uuid, description varchar, 
+										  description_i18n uuid, is_system boolean
+										)
+									)
+								  )
+							  )
+						  ) as permissions_id
+					  );
+			`
+	)
+
+	var (
+		rolesID_       = make(pq.Int64Array, 0, len(rolesID))
+		permissionsID_ = make(pq.Int64Array, 0, len(permissionsID))
+	)
+
+	// Подготовка данных
+	{
+		for _, id := range rolesID {
+			rolesID_ = append(rolesID_, int64(id))
+		}
+
+		for _, id := range permissionsID {
+			permissionsID_ = append(permissionsID_, int64(id))
+		}
+	}
+
+	// Выполнение запроса
+	{
+		row = repo.connector.QueryRowxContext(ctx, query, userID, rolesID_, permissionsID_)
+
+		if err = row.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	// Чтение данных
+	{
+		if err = row.Scan(&allowed); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
 		}
 	}
 

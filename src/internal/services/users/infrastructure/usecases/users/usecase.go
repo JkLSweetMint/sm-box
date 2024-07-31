@@ -79,7 +79,7 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 	{
 		usecase.repositories = new(repositories)
 
-		// Authentication
+		// Users
 		{
 			if usecase.repositories.Users, err = users_repository.New(ctx); err != nil {
 				return

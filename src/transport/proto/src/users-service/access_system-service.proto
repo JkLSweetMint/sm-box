@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package grpc_service;
+
+option go_package = "./";
+
+message AccessSystemCheckUserAccessRequest {
+  uint64 UserID = 1;
+
+  repeated uint64 RolesID = 2;
+  repeated uint64 PermissionsID = 3;
+}
+
+message AccessSystemCheckUserAccessResponse {
+  bool Allowed = 1;
+}
+
+service AccessSystem {
+  rpc CheckUserAccess(AccessSystemCheckUserAccessRequest) returns (AccessSystemCheckUserAccessResponse);
+}

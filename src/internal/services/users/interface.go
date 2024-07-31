@@ -4,6 +4,7 @@ import (
 	"context"
 	basic_authentication_controller "sm-box/internal/services/users/infrastructure/controllers/basic_authentication"
 	users_controller "sm-box/internal/services/users/infrastructure/controllers/users"
+	grpc_access_system_srv "sm-box/internal/services/users/transport/servers/grpc/access_system_service"
 	grpc_basic_authentication_srv "sm-box/internal/services/users/transport/servers/grpc/basic_authentication_service"
 	grpc_users_srv "sm-box/internal/services/users/transport/servers/grpc/users_service"
 	http_rest_api "sm-box/internal/services/users/transport/servers/http/rest_api"
@@ -107,6 +108,10 @@ func New() (srv_ Service, err error) {
 			}
 
 			if ref.transport.servers.grpc.usersService, err = grpc_users_srv.New(ref.Ctx()); err != nil {
+				return
+			}
+
+			if ref.transport.servers.grpc.accessSystemService, err = grpc_access_system_srv.New(ref.Ctx()); err != nil {
 				return
 			}
 		}

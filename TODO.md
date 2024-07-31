@@ -9,6 +9,11 @@
  
 ---
 
+### v24.0.49:
+- [x] Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
+
+---
+
 ### v24.0.48:
 - [x] Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
 
@@ -55,7 +60,7 @@
 
 ### v24.0.42:
 - [x] Доработки [сервиса аутентификации](src/internal/services/authentication/service.go);
-- [x] Добавление [контейнера панели управления](Dockerfile.dashboard);
+- [x] Добавление [контейнера панели управления](src/docker/Dockerfile.dashboard);
 
 ---
 

@@ -239,6 +239,12 @@
                             "status": "Ǵ",
                             "code": 500,
                             "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"count\": 5,\n        \"list\": [\n            {\n                \"id\": 1,\n                \"source\": \"https://www.youtube.com/watch?v=71pOiq-E_X4\",\n                \"reduction\": \"Fu884hxjuhjEDSU0\",\n                \"accesses\": {\n                    \"roles_id\": [],\n                    \"permissions_id\": []\n                },\n                \"properties\": {\n                    \"type\": \"redirect\",\n                    \"active\": true,\n                    \"number_of_uses\": 1,\n                    \"remained_number_of_uses\": 0,\n                    \"start_active\": \"0001-01-01T04:00:00+04:00\",\n                    \"end_active\": \"0001-01-01T04:00:00+04:00\"\n                }\n            },\n            {\n                \"id\": 2,\n                \"source\": \"https://samgk.ru/files/officialdocs/admission/vacant_22.07.2024.pdf\",\n                \"reduction\": \"9sC6RY73Q8Vyt06c\",\n                \"accesses\": {\n                    \"roles_id\": [],\n                    \"permissions_id\": []\n                },\n                \"properties\": {\n                    \"type\": \"proxy\",\n                    \"active\": true,\n                    \"number_of_uses\": 0,\n                    \"remained_number_of_uses\": 0,\n                    \"start_active\": \"0001-01-01T04:00:00+04:00\",\n                    \"end_active\": \"0001-01-01T04:00:00+04:00\"\n                }\n            },\n            {\n                \"id\": 7,\n                \"source\": \"https://habr.com/ru/companies/selectel/articles/831980/\",\n                \"reduction\": \"twv3TNknSoXB2R0o\",\n                \"accesses\": {\n                    \"roles_id\": [],\n                    \"permissions_id\": []\n                },\n                \"properties\": {\n                    \"type\": \"redirect\",\n                    \"active\": false,\n                    \"number_of_uses\": 1,\n                    \"remained_number_of_uses\": 1,\n                    \"start_active\": \"2024-07-30T00:00:00+04:00\",\n                    \"end_active\": \"2024-07-30T23:59:59+04:00\"\n                }\n            }\n        ]\n    }\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
                         }
                     ]
                 },
@@ -281,6 +287,12 @@
                             "status": "Ǵ",
                             "code": 500,
                             "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"url\": {\n            \"id\": 1,\n            \"source\": \"https://www.youtube.com/watch?v=71pOiq-E_X4\",\n            \"reduction\": \"Fu884hxjuhjEDSU0\",\n            \"accesses\": {\n                \"roles_id\": [],\n                \"permissions_id\": []\n            },\n            \"properties\": {\n                \"type\": \"redirect\",\n                \"active\": true,\n                \"number_of_uses\": 1,\n                \"remained_number_of_uses\": 0,\n                \"start_active\": \"0001-01-01T04:00:00+04:00\",\n                \"end_active\": \"0001-01-01T04:00:00+04:00\"\n            }\n        }\n    }\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
                         }
                     ]
                 },
@@ -323,6 +335,12 @@
                             "status": "Ǵ",
                             "code": 500,
                             "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"url\": {\n            \"id\": 1,\n            \"source\": \"https://www.youtube.com/watch?v=71pOiq-E_X4\",\n            \"reduction\": \"Fu884hxjuhjEDSU0\",\n            \"accesses\": {\n                \"roles_id\": [],\n                \"permissions_id\": []\n            },\n            \"properties\": {\n                \"type\": \"redirect\",\n                \"active\": true,\n                \"number_of_uses\": 1,\n                \"remained_number_of_uses\": 0,\n                \"start_active\": \"0001-01-01T04:00:00+04:00\",\n                \"end_active\": \"0001-01-01T04:00:00+04:00\"\n            }\n        }\n    }\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
                         }
                     ]
                 },
@@ -365,6 +383,12 @@
                             "status": "Ǵ",
                             "code": 500,
                             "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {}\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
                         }
                     ]
                 },
@@ -407,6 +431,12 @@
                             "status": "Ǵ",
                             "code": 500,
                             "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"url\": {\n            \"id\": 10,\n            \"source\": \"https://translate.yandex.ru/\",\n            \"reduction\": \"webAA4TxCJEFlS7s\",\n            \"accesses\": {\n                \"roles_id\": [],\n                \"permissions_id\": []\n            },\n            \"properties\": {\n                \"type\": \"redirect\",\n                \"active\": false,\n                \"number_of_uses\": -1,\n                \"remained_number_of_uses\": -1,\n                \"start_active\": \"0001-01-01T04:00:00+04:00\",\n                \"end_active\": \"0001-01-01T04:00:00+04:00\"\n            }\n        }\n    }\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
                         }
                     ]
                 },
@@ -449,6 +479,12 @@
                             "status": "Ǵ",
                             "code": 500,
                             "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {}\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
                         }
                     ]
                 },
@@ -491,47 +527,189 @@
                             "status": "Ǵ",
                             "code": 500,
                             "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {}\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
                         }
                     ]
                 },
                 {
-                    "name": "Получение историю использования короткого url. ",
-                    "description": "\nИспользуется для получения истории использования короткого url.\n",
-                    "request": {
-                        "url": {
-                            "raw": "",
-                            "protocol": "https",
-                            "host": [
-                                "box",
-                                "samgk",
-                                "ru"
-                            ],
-                            "path": [
-                                "",
-                                "url-shortner",
-                                "api",
-                                "v1.0",
-                                "management",
-                                "history"
+                    "name": "История использований. ",
+                    "item": [
+                        {
+                            "name": "Получение историю использования короткого url по ID. ",
+                            "description": "\nИспользуется для получения истории использования короткого url по ID.\n",
+                            "request": {
+                                "url": {
+                                    "raw": "",
+                                    "protocol": "https",
+                                    "host": [
+                                        "box",
+                                        "samgk",
+                                        "ru"
+                                    ],
+                                    "path": [
+                                        "",
+                                        "url-shortner",
+                                        "api",
+                                        "v1.0",
+                                        "management",
+                                        "history",
+                                        "by_id",
+                                        ":id"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "offset",
+                                            "value": "0",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "20",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "sort_key",
+                                            "value": "",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "sort_type",
+                                            "value": "",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "filter_status",
+                                            "value": "",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "filter_timestamp",
+                                            "value": "",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "filter_timestamp_type",
+                                            "value": "",
+                                            "description": null
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "description": "",
+                                "body": {
+                                    "mode": "raw",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                                    "status": "Ǵ",
+                                    "code": 500,
+                                    "name": "Произошла внутренняя ошибка сервера. "
+                                },
+                                {
+                                    "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"count\": 14,\n        \"history\": [\n            {\n                \"status\": \"success\",\n                \"timestamp\": \"2024-07-30T14:24:22.722266+04:00\",\n                \"token_info\": {\n                    \"ID\": \"2de0d61b-dafe-49ff-820a-88de302cf86e\",\n                    \"ParentID\": \"00000000-0000-0000-0000-000000000000\",\n                    \"UserID\": 0,\n                    \"ProjectID\": 0,\n                    \"Type\": \"session\",\n                    \"Raw\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzc2OTEsIm5iZiI6MTcyMjMzMjg5MSwiaWF0IjoxNzIyMzMyODkxLCJUb2tlbiI6eyJJRCI6IjJkZTBkNjFiLWRhZmUtNDlmZi04MjBhLTg4ZGUzMDJjZjg2ZSIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIyLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.u-7m54VOe9qyk22YjjoCg9DAjPc6j8waStCiRYE0s5XkWlrmKpFMVxSgXaduJ3WS5hrX_Yj_LOwez3IqgABERrMjgERvndUMoshRiTNoiVHosDVjuPvVQzYXlHom5fskR9lN-LiGL8gKXeJqCQw3GZ5NqrhzM0esYbO9q1XRrkjuO1Qs4SH2mkTYMF5iazIyRLDMOm5T9p9c13hQwDOFys58sHuSXUoD-yr0aA1WEe6AUHuOUNTLtuEQIs-o8xnFiTdQ9F5UsktcicH_5GKadI_USdNCMUqJRmRwXFyLeGGf6HV0xlRKIn8HZe6JlIZkSIpGfiM5wlwRxQ4nP4WZ2KQnZOT6D3Aoiuk8QxFhjXuqmGHFn6tjlbDDer2KJVMdeePEblIOQT-bKbiYRjVunoWZBbwTWc-E2TuGQectWkH2elqXMpT0bF9Kj8qqLIwkhMluFAuoD4gBTm-91ATKncUOH8fMOqGhFH1Y_XzirBNhd4dgr1h-AodPPyHGNUReHX_fPfGxeMEKUuVe58oubHOl7I4bMOZ7A52093BmJyzVFJbSXebXZqj6vkGwdx2buDx2sFCRsOHT5hy54M9oznOZciYepJ-GTOc1LlUhxbkWjRJYmIYFA8Jqgm-CGHPt_vkG0DSYppWsnX6ehvvuEur0kSQmYBKIiFgcQmGebt4\",\n                    \"ExpiresAt\": \"2024-08-06T09:48:11Z\",\n                    \"NotBefore\": \"2024-07-30T09:48:11Z\",\n                    \"IssuedAt\": \"2024-07-30T09:48:11Z\",\n                    \"Params\": {\n                        \"RemoteAddr\": \"172.22.0.1\",\n                        \"UserAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36\"\n                    },\n                    \"Language\": \"\"\n                }\n            },\n            {\n                \"status\": \"success\",\n                \"timestamp\": \"2024-07-30T14:26:11.222774+04:00\",\n                \"token_info\": {\n                    \"ID\": \"7d7171ad-2814-449d-8132-c7aeeeb39788\",\n                    \"ParentID\": \"00000000-0000-0000-0000-000000000000\",\n                    \"UserID\": 0,\n                    \"ProjectID\": 0,\n                    \"Type\": \"session\",\n                    \"Raw\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzk4NjcsIm5iZiI6MTcyMjMzNTA2NywiaWF0IjoxNzIyMzM1MDY3LCJUb2tlbiI6eyJJRCI6IjdkNzE3MWFkLTI4MTQtNDQ5ZC04MTMyLWM3YWVlZWIzOTc4OCIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIzLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.HXQmQnLnpruFJaS9WVZzRQyRIpHArdHm6nWugdQUuV-dY_aDhEnycEQS97cNK5N_DnTixmYaLWDIwQToFBPXx8CE0Dlx2W6as3VpDVW3bTVx1UQzyGCEQX1rna88TyNDGB5QHFV0Mc4o9IL8VRdc_vXoonEq-7ZY2WCkPNdXPL1ypRqCjP3omWX53GEXZIec4UGQTadDnD11-T1eJTU_uEL3I9_bJr93oNSnV0iA65pKuE_tjpmW7P1zOul14rBcIV6qaLbzU-k7MEUSSnUDG2JvOaNmYHNlaC9SB6wPz9UjdeBlPQx0Yug1Fo9zg1dp0IAshmF6PpkzyQJI8N5BZ5yfKsTx2DUvyKSKmc56dJNr2z3D6GZDUutP6sQCDXlghmThWGsSm0eNnsDj0mw2TycOUMbjg6eThEyM5pLzXQlL6L06XvIhakSnJEy6qIbRBHGDy4a24tXi3Zxo0s50ZWieL_dqdjYRdPi2D42AClSeGeKMJMkFyKvnkF3R4UDwNsKFE9ecztHfkPghfuyLc4D980jxPxZenPhIzCO5O_SV_XoDeTNiu8I8ByTnuSa4myiitW1bnCihKyV037UtBQercLKtd8MWu_Y1v_9Jl7vyVBII5-HfGL7tmCaY5-pgYJCFzlRhBxBb49bZrw9MfAdBiymTcq09uHRP3rum8wA\",\n                    \"ExpiresAt\": \"2024-08-06T10:24:27Z\",\n                    \"NotBefore\": \"2024-07-30T10:24:27Z\",\n                    \"IssuedAt\": \"2024-07-30T10:24:27Z\",\n                    \"Params\": {\n                        \"RemoteAddr\": \"172.23.0.1\",\n                        \"UserAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36\"\n                    },\n                    \"Language\": \"\"\n                }\n            },\n            {\n                \"status\": \"success\",\n                \"timestamp\": \"2024-07-30T14:27:12.406202+04:00\",\n                \"token_info\": {\n                    \"ID\": \"7d7171ad-2814-449d-8132-c7aeeeb39788\",\n                    \"ParentID\": \"00000000-0000-0000-0000-000000000000\",\n                    \"UserID\": 0,\n                    \"ProjectID\": 0,\n                    \"Type\": \"session\",\n                    \"Raw\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzk4NjcsIm5iZiI6MTcyMjMzNTA2NywiaWF0IjoxNzIyMzM1MDY3LCJUb2tlbiI6eyJJRCI6IjdkNzE3MWFkLTI4MTQtNDQ5ZC04MTMyLWM3YWVlZWIzOTc4OCIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIzLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.HXQmQnLnpruFJaS9WVZzRQyRIpHArdHm6nWugdQUuV-dY_aDhEnycEQS97cNK5N_DnTixmYaLWDIwQToFBPXx8CE0Dlx2W6as3VpDVW3bTVx1UQzyGCEQX1rna88TyNDGB5QHFV0Mc4o9IL8VRdc_vXoonEq-7ZY2WCkPNdXPL1ypRqCjP3omWX53GEXZIec4UGQTadDnD11-T1eJTU_uEL3I9_bJr93oNSnV0iA65pKuE_tjpmW7P1zOul14rBcIV6qaLbzU-k7MEUSSnUDG2JvOaNmYHNlaC9SB6wPz9UjdeBlPQx0Yug1Fo9zg1dp0IAshmF6PpkzyQJI8N5BZ5yfKsTx2DUvyKSKmc56dJNr2z3D6GZDUutP6sQCDXlghmThWGsSm0eNnsDj0mw2TycOUMbjg6eThEyM5pLzXQlL6L06XvIhakSnJEy6qIbRBHGDy4a24tXi3Zxo0s50ZWieL_dqdjYRdPi2D42AClSeGeKMJMkFyKvnkF3R4UDwNsKFE9ecztHfkPghfuyLc4D980jxPxZenPhIzCO5O_SV_XoDeTNiu8I8ByTnuSa4myiitW1bnCihKyV037UtBQercLKtd8MWu_Y1v_9Jl7vyVBII5-HfGL7tmCaY5-pgYJCFzlRhBxBb49bZrw9MfAdBiymTcq09uHRP3rum8wA\",\n                    \"ExpiresAt\": \"2024-08-06T10:24:27Z\",\n                    \"NotBefore\": \"2024-07-30T10:24:27Z\",\n                    \"IssuedAt\": \"2024-07-30T10:24:27Z\",\n                    \"Params\": {\n                        \"RemoteAddr\": \"172.23.0.1\",\n                        \"UserAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36\"\n                    },\n                    \"Language\": \"\"\n                }\n            }\n        ]\n    }\n}\n",
+                                    "status": "È",
+                                    "code": 200,
+                                    "name": "Успешный ответ. "
+                                }
                             ]
                         },
-                        "method": "GET",
-                        "description": "",
-                        "body": {
-                            "mode": "raw",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        }
-                    },
-                    "response": [
                         {
-                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
-                            "status": "Ǵ",
-                            "code": 500,
-                            "name": "Произошла внутренняя ошибка сервера. "
+                            "name": "Получение историю использования короткого url по сокращению. ",
+                            "description": "\nИспользуется для получения истории использования короткого url по сокращению.\n",
+                            "request": {
+                                "url": {
+                                    "raw": "",
+                                    "protocol": "https",
+                                    "host": [
+                                        "box",
+                                        "samgk",
+                                        "ru"
+                                    ],
+                                    "path": [
+                                        "",
+                                        "url-shortner",
+                                        "api",
+                                        "v1.0",
+                                        "management",
+                                        "history",
+                                        "by_reduction",
+                                        ":reduction"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "offset",
+                                            "value": "0",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "20",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "sort_key",
+                                            "value": "",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "sort_type",
+                                            "value": "",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "filter_status",
+                                            "value": "",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "filter_timestamp",
+                                            "value": "",
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "filter_timestamp_type",
+                                            "value": "",
+                                            "description": null
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "description": "",
+                                "body": {
+                                    "mode": "raw",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                                    "status": "Ǵ",
+                                    "code": 500,
+                                    "name": "Произошла внутренняя ошибка сервера. "
+                                },
+                                {
+                                    "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {\n        \"count\": 14,\n        \"history\": [\n            {\n                \"status\": \"success\",\n                \"timestamp\": \"2024-07-30T14:24:22.722266+04:00\",\n                \"token_info\": {\n                    \"ID\": \"2de0d61b-dafe-49ff-820a-88de302cf86e\",\n                    \"ParentID\": \"00000000-0000-0000-0000-000000000000\",\n                    \"UserID\": 0,\n                    \"ProjectID\": 0,\n                    \"Type\": \"session\",\n                    \"Raw\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzc2OTEsIm5iZiI6MTcyMjMzMjg5MSwiaWF0IjoxNzIyMzMyODkxLCJUb2tlbiI6eyJJRCI6IjJkZTBkNjFiLWRhZmUtNDlmZi04MjBhLTg4ZGUzMDJjZjg2ZSIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIyLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.u-7m54VOe9qyk22YjjoCg9DAjPc6j8waStCiRYE0s5XkWlrmKpFMVxSgXaduJ3WS5hrX_Yj_LOwez3IqgABERrMjgERvndUMoshRiTNoiVHosDVjuPvVQzYXlHom5fskR9lN-LiGL8gKXeJqCQw3GZ5NqrhzM0esYbO9q1XRrkjuO1Qs4SH2mkTYMF5iazIyRLDMOm5T9p9c13hQwDOFys58sHuSXUoD-yr0aA1WEe6AUHuOUNTLtuEQIs-o8xnFiTdQ9F5UsktcicH_5GKadI_USdNCMUqJRmRwXFyLeGGf6HV0xlRKIn8HZe6JlIZkSIpGfiM5wlwRxQ4nP4WZ2KQnZOT6D3Aoiuk8QxFhjXuqmGHFn6tjlbDDer2KJVMdeePEblIOQT-bKbiYRjVunoWZBbwTWc-E2TuGQectWkH2elqXMpT0bF9Kj8qqLIwkhMluFAuoD4gBTm-91ATKncUOH8fMOqGhFH1Y_XzirBNhd4dgr1h-AodPPyHGNUReHX_fPfGxeMEKUuVe58oubHOl7I4bMOZ7A52093BmJyzVFJbSXebXZqj6vkGwdx2buDx2sFCRsOHT5hy54M9oznOZciYepJ-GTOc1LlUhxbkWjRJYmIYFA8Jqgm-CGHPt_vkG0DSYppWsnX6ehvvuEur0kSQmYBKIiFgcQmGebt4\",\n                    \"ExpiresAt\": \"2024-08-06T09:48:11Z\",\n                    \"NotBefore\": \"2024-07-30T09:48:11Z\",\n                    \"IssuedAt\": \"2024-07-30T09:48:11Z\",\n                    \"Params\": {\n                        \"RemoteAddr\": \"172.22.0.1\",\n                        \"UserAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36\"\n                    },\n                    \"Language\": \"\"\n                }\n            },\n            {\n                \"status\": \"success\",\n                \"timestamp\": \"2024-07-30T14:26:11.222774+04:00\",\n                \"token_info\": {\n                    \"ID\": \"7d7171ad-2814-449d-8132-c7aeeeb39788\",\n                    \"ParentID\": \"00000000-0000-0000-0000-000000000000\",\n                    \"UserID\": 0,\n                    \"ProjectID\": 0,\n                    \"Type\": \"session\",\n                    \"Raw\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzk4NjcsIm5iZiI6MTcyMjMzNTA2NywiaWF0IjoxNzIyMzM1MDY3LCJUb2tlbiI6eyJJRCI6IjdkNzE3MWFkLTI4MTQtNDQ5ZC04MTMyLWM3YWVlZWIzOTc4OCIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIzLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.HXQmQnLnpruFJaS9WVZzRQyRIpHArdHm6nWugdQUuV-dY_aDhEnycEQS97cNK5N_DnTixmYaLWDIwQToFBPXx8CE0Dlx2W6as3VpDVW3bTVx1UQzyGCEQX1rna88TyNDGB5QHFV0Mc4o9IL8VRdc_vXoonEq-7ZY2WCkPNdXPL1ypRqCjP3omWX53GEXZIec4UGQTadDnD11-T1eJTU_uEL3I9_bJr93oNSnV0iA65pKuE_tjpmW7P1zOul14rBcIV6qaLbzU-k7MEUSSnUDG2JvOaNmYHNlaC9SB6wPz9UjdeBlPQx0Yug1Fo9zg1dp0IAshmF6PpkzyQJI8N5BZ5yfKsTx2DUvyKSKmc56dJNr2z3D6GZDUutP6sQCDXlghmThWGsSm0eNnsDj0mw2TycOUMbjg6eThEyM5pLzXQlL6L06XvIhakSnJEy6qIbRBHGDy4a24tXi3Zxo0s50ZWieL_dqdjYRdPi2D42AClSeGeKMJMkFyKvnkF3R4UDwNsKFE9ecztHfkPghfuyLc4D980jxPxZenPhIzCO5O_SV_XoDeTNiu8I8ByTnuSa4myiitW1bnCihKyV037UtBQercLKtd8MWu_Y1v_9Jl7vyVBII5-HfGL7tmCaY5-pgYJCFzlRhBxBb49bZrw9MfAdBiymTcq09uHRP3rum8wA\",\n                    \"ExpiresAt\": \"2024-08-06T10:24:27Z\",\n                    \"NotBefore\": \"2024-07-30T10:24:27Z\",\n                    \"IssuedAt\": \"2024-07-30T10:24:27Z\",\n                    \"Params\": {\n                        \"RemoteAddr\": \"172.23.0.1\",\n                        \"UserAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36\"\n                    },\n                    \"Language\": \"\"\n                }\n            },\n            {\n                \"status\": \"success\",\n                \"timestamp\": \"2024-07-30T14:27:12.406202+04:00\",\n                \"token_info\": {\n                    \"ID\": \"7d7171ad-2814-449d-8132-c7aeeeb39788\",\n                    \"ParentID\": \"00000000-0000-0000-0000-000000000000\",\n                    \"UserID\": 0,\n                    \"ProjectID\": 0,\n                    \"Type\": \"session\",\n                    \"Raw\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI5Mzk4NjcsIm5iZiI6MTcyMjMzNTA2NywiaWF0IjoxNzIyMzM1MDY3LCJUb2tlbiI6eyJJRCI6IjdkNzE3MWFkLTI4MTQtNDQ5ZC04MTMyLWM3YWVlZWIzOTc4OCIsIlBhcmVudElEIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiVXNlcklEIjowLCJQcm9qZWN0SUQiOjAsIlBhcmFtcyI6eyJSZW1vdGVBZGRyIjoiMTcyLjIzLjAuMSIsIlVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMjQuMC4wLjAgWWFCcm93c2VyLzI0LjYuMC4wIFNhZmFyaS81MzcuMzYifX0sIkxhbmd1YWdlIjoiIn0.HXQmQnLnpruFJaS9WVZzRQyRIpHArdHm6nWugdQUuV-dY_aDhEnycEQS97cNK5N_DnTixmYaLWDIwQToFBPXx8CE0Dlx2W6as3VpDVW3bTVx1UQzyGCEQX1rna88TyNDGB5QHFV0Mc4o9IL8VRdc_vXoonEq-7ZY2WCkPNdXPL1ypRqCjP3omWX53GEXZIec4UGQTadDnD11-T1eJTU_uEL3I9_bJr93oNSnV0iA65pKuE_tjpmW7P1zOul14rBcIV6qaLbzU-k7MEUSSnUDG2JvOaNmYHNlaC9SB6wPz9UjdeBlPQx0Yug1Fo9zg1dp0IAshmF6PpkzyQJI8N5BZ5yfKsTx2DUvyKSKmc56dJNr2z3D6GZDUutP6sQCDXlghmThWGsSm0eNnsDj0mw2TycOUMbjg6eThEyM5pLzXQlL6L06XvIhakSnJEy6qIbRBHGDy4a24tXi3Zxo0s50ZWieL_dqdjYRdPi2D42AClSeGeKMJMkFyKvnkF3R4UDwNsKFE9ecztHfkPghfuyLc4D980jxPxZenPhIzCO5O_SV_XoDeTNiu8I8ByTnuSa4myiitW1bnCihKyV037UtBQercLKtd8MWu_Y1v_9Jl7vyVBII5-HfGL7tmCaY5-pgYJCFzlRhBxBb49bZrw9MfAdBiymTcq09uHRP3rum8wA\",\n                    \"ExpiresAt\": \"2024-08-06T10:24:27Z\",\n                    \"NotBefore\": \"2024-07-30T10:24:27Z\",\n                    \"IssuedAt\": \"2024-07-30T10:24:27Z\",\n                    \"Params\": {\n                        \"RemoteAddr\": \"172.23.0.1\",\n                        \"UserAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36\"\n                    },\n                    \"Language\": \"\"\n                }\n            }\n        ]\n    }\n}\n",
+                                    "status": "È",
+                                    "code": 200,
+                                    "name": "Успешный ответ. "
+                                }
+                            ]
                         }
                     ]
                 }
