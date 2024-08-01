@@ -4,8 +4,8 @@ import (
 	"context"
 	"google.golang.org/grpc"
 	"net"
+	"sm-box/internal/services/url_shortner/objects/constructors"
 	"sm-box/internal/services/url_shortner/objects/models"
-	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
@@ -30,11 +30,7 @@ type server struct {
 // controllers - контроллеры сервера.
 type controllers struct {
 	UrlsManagement interface {
-		Create(ctx context.Context,
-			source string,
-			type_ types.ShortUrlType,
-			numberOfUses int64,
-			startActive, endActive time.Time) (url *models.ShortUrlInfo, cErr c_errors.Grpc)
+		Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Grpc)
 	}
 }
 

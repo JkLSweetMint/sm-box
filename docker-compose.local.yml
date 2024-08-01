@@ -144,9 +144,9 @@ services:
       - ./var/test:/home/app/var/test
 
   url_shortner-service:
-    build:
-        context: .
-        dockerfile: Dockerfile.url_shortner-service
+#    build:
+#        context: .
+#        dockerfile: Dockerfile.url_shortner-service
     image: box/url_shortner-service:latest
     container_name: url_shortner-service
     restart: unless-stopped
@@ -219,6 +219,30 @@ services:
       - ./var/logs:/home/app/var/logs
       - ./var/test:/home/app/var/test
 
+  notifications-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.notifications-service
+    image: box/notifications-service:latest
+    container_name: notifications-service
+    restart: unless-stopped
+    #    attach: false
+    depends_on:
+      authentication-service:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    networks:
+      - system
+    volumes:
+      - ./etc:/home/app/etc
+      - ./src:/home/app/src
+      - ./system:/home/app/system
+      - ./var/data:/home/app/var/data
+      - ./var/lib:/home/app/var/lib
+      - ./var/logs:/home/app/var/logs
+      - ./var/test:/home/app/var/test
+
   dashboard:
 #    build:
 #      context: .
@@ -250,6 +274,7 @@ services:
       - dashboard
       - url_shortner-service
       - resources-service
+      - notifications-service
     networks:
       - system
     volumes:

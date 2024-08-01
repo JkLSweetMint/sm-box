@@ -9,6 +9,7 @@ import (
 	common_types "sm-box/internal/common/types"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/url_shortner/objects"
+	"sm-box/internal/services/url_shortner/objects/constructors"
 	"sm-box/internal/services/url_shortner/objects/models"
 	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/internal/services/url_shortner/transport/servers/http/rest_api/config"
@@ -67,12 +68,7 @@ type controllers struct {
 			filters *objects.ShortUrlsUsageHistoryListFilters,
 		) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI)
 
-		Create(ctx context.Context,
-			source string,
-			type_ types.ShortUrlType,
-			numberOfUses int64,
-			startActive, endActive time.Time,
-		) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
+		Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
 
 		Remove(ctx context.Context, id common_types.ID) (cErr c_errors.RestAPI)
 		RemoveByReduction(ctx context.Context, reduction string) (cErr c_errors.RestAPI)

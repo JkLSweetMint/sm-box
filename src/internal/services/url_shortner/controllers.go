@@ -7,10 +7,10 @@ import (
 	urls_controller "sm-box/internal/services/url_shortner/infrastructure/controllers/urls"
 	urls_management_controller "sm-box/internal/services/url_shortner/infrastructure/controllers/urls_management"
 	"sm-box/internal/services/url_shortner/objects"
+	"sm-box/internal/services/url_shortner/objects/constructors"
 	"sm-box/internal/services/url_shortner/objects/models"
 	"sm-box/internal/services/url_shortner/objects/types"
 	c_errors "sm-box/pkg/errors"
-	"time"
 )
 
 // Controllers - описание контроллеров сервиса.
@@ -44,12 +44,7 @@ type Controllers interface {
 			filters *objects.ShortUrlsUsageHistoryListFilters,
 		) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error)
 
-		Create(ctx context.Context,
-			source string,
-			type_ types.ShortUrlType,
-			numberOfUses int64,
-			startActive, endActive time.Time,
-		) (url *models.ShortUrlInfo, cErr c_errors.Error)
+		Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error)
 
 		Remove(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 		RemoveByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)
@@ -105,12 +100,7 @@ func (controllers *controllers) UrlsManagement() interface {
 		filters *objects.ShortUrlsUsageHistoryListFilters,
 	) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error)
 
-	Create(ctx context.Context,
-		source string,
-		type_ types.ShortUrlType,
-		numberOfUses int64,
-		startActive, endActive time.Time,
-	) (url *models.ShortUrlInfo, cErr c_errors.Error)
+	Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error)
 
 	Remove(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 	RemoveByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)

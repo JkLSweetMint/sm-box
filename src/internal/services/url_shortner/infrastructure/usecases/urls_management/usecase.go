@@ -9,6 +9,7 @@ import (
 	urls_management_repository "sm-box/internal/services/url_shortner/infrastructure/repositories/urls_management"
 	urls_redis_repository "sm-box/internal/services/url_shortner/infrastructure/repositories/urls_redis"
 	"sm-box/internal/services/url_shortner/objects"
+	"sm-box/internal/services/url_shortner/objects/constructors"
 	"sm-box/internal/services/url_shortner/objects/entities"
 	srv_errors "sm-box/internal/services/url_shortner/objects/errors"
 	"sm-box/internal/services/url_shortner/objects/types"
@@ -16,7 +17,6 @@ import (
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
 	"strings"
-	"time"
 )
 
 const (
@@ -55,12 +55,7 @@ type repositories struct {
 			filters *objects.ShortUrlsUsageHistoryListFilters,
 		) (count int64, history []*entities.ShortUrlUsageHistory, err error)
 
-		Create(ctx context.Context,
-			source string,
-			type_ types.ShortUrlType,
-			numberOfUses int64,
-			startActive, endActive time.Time,
-		) (id common_types.ID, err error)
+		Create(ctx context.Context, constructor *constructors.ShortUrl) (id common_types.ID, err error)
 
 		Remove(ctx context.Context, id common_types.ID) (err error)
 		RemoveByReduction(ctx context.Context, reduction string) (err error)
@@ -177,7 +172,7 @@ func (usecase *UseCase) GetList(ctx context.Context,
 	// Подготовка данных
 	{
 		if search != nil {
-			search.Global = strings.ToLower(strings.TrimSpace(search.Global))
+			search.Global = strings.TrimSpace(search.Global)
 		}
 
 		if sort != nil {
@@ -599,34 +594,36 @@ func (usecase *UseCase) GetUsageHistoryByReduction(ctx context.Context, reductio
 }
 
 // Create - создание сокращенного url.
-func (usecase *UseCase) Create(ctx context.Context,
-	source string,
-	type_ types.ShortUrlType,
-	numberOfUses int64,
-	startActive, endActive time.Time,
-) (url *entities.ShortUrl, cErr c_errors.Error) {
+func (usecase *UseCase) Create(ctx context.Context, constructor *constructors.ShortUrl) (url *entities.ShortUrl, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
 
-		trc.FunctionCall(ctx, source, type_, numberOfUses, startActive, endActive)
+		trc.FunctionCall(ctx, constructor)
 		defer func() { trc.Error(cErr).FunctionCallFinished(url) }()
 	}
 
 	usecase.components.Logger.Info().
-		Text("The process of creating a short url has been started... ").Write()
+		Text("The process of creating a short url has been started... ").
+		Field("constructor", constructor).Write()
 
 	defer func() {
 		usecase.components.Logger.Info().
 			Text("The process of creating a short url is completed. ").
+			Field("constructor", constructor).
 			Field("url", url).Write()
 	}()
 
 	var id common_types.ID
 
+	// Подготовка входных данных
+	{
+		constructor.FillEmptyFields()
+	}
+
 	// Валидация
 	{
-		if source = strings.TrimSpace(source); source == "" {
+		if constructor.Source = strings.TrimSpace(constructor.Source); constructor.Source == "" {
 			usecase.components.Logger.Error().
 				Text("An invalid type value was passed. ").Write()
 
@@ -636,7 +633,7 @@ func (usecase *UseCase) Create(ctx context.Context,
 			return
 		}
 
-		if numberOfUses < 0 {
+		if constructor.Properties.NumberOfUses < 0 {
 			usecase.components.Logger.Error().
 				Text("An invalid type value was passed. ").Write()
 
@@ -646,7 +643,7 @@ func (usecase *UseCase) Create(ctx context.Context,
 			return
 		}
 
-		if type_ != types.ShortUrlTypeProxy && type_ != types.ShortUrlTypeRedirect {
+		if constructor.Properties.Type != types.ShortUrlTypeProxy && constructor.Properties.Type != types.ShortUrlTypeRedirect {
 			usecase.components.Logger.Error().
 				Text("An invalid type value was passed. ").Write()
 
@@ -661,7 +658,7 @@ func (usecase *UseCase) Create(ctx context.Context,
 	{
 		var err error
 
-		if id, err = usecase.repositories.UrlsManagement.Create(ctx, source, type_, numberOfUses, startActive, endActive); err != nil {
+		if id, err = usecase.repositories.UrlsManagement.Create(ctx, constructor); err != nil {
 			usecase.components.Logger.Error().
 				Format("Could not get the shortened url by id: '%s'. ", err).Write()
 

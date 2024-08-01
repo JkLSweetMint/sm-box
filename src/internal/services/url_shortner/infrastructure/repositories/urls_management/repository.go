@@ -7,9 +7,9 @@ import (
 	"github.com/lib/pq"
 	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/url_shortner/objects"
+	"sm-box/internal/services/url_shortner/objects/constructors"
 	"sm-box/internal/services/url_shortner/objects/db_models"
 	"sm-box/internal/services/url_shortner/objects/entities"
-	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/databases/connectors/postgresql"
@@ -141,7 +141,7 @@ func (repo *Repository) GetList(ctx context.Context,
 			// Доработки запроса
 			{
 				if search != nil {
-					query.WriteString(fmt.Sprintf("(urls.source like '%%%s%%' or urls.reduction like '%%%s%%')", search.Global, search.Global))
+					query.WriteString(fmt.Sprintf("(lower(urls.source) like lower('%%%s%%') or lower(urls.reduction) like lower('%%%s%%'))", search.Global, search.Global))
 				}
 
 				if filters != nil {
@@ -962,48 +962,124 @@ func (repo *Repository) GetUsageHistoryByReduction(ctx context.Context, reductio
 }
 
 // Create - создание сокращенного url.
-func (repo *Repository) Create(ctx context.Context,
-	source string,
-	type_ types.ShortUrlType,
-	numberOfUses int64,
-	startActive, endActive time.Time,
-) (id common_types.ID, err error) {
+func (repo *Repository) Create(ctx context.Context, constructor *constructors.ShortUrl) (id common_types.ID, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
 
-		trc.FunctionCall(ctx, source, type_, numberOfUses, startActive, endActive)
+		trc.FunctionCall(ctx, constructor)
 		defer func() { trc.Error(err).FunctionCallFinished() }()
 	}
 
-	var query = `
+	// Основные данные
+	{
+		var query = `
 			select
 				public.create_short_url(
 					$1,
 					$2,
 					$3,
 					$4,
-					$5
+					$5,
+					$6
 				) as id;
 		`
 
-	var row = repo.connector.QueryRowxContext(ctx, query,
-		source,
-		type_,
-		numberOfUses,
-		startActive,
-		endActive)
+		var row = repo.connector.QueryRowxContext(ctx, query,
+			constructor.Source,
+			constructor.Properties.Type,
+			constructor.Properties.NumberOfUses,
+			constructor.Properties.StartActive,
+			constructor.Properties.EndActive,
+			constructor.Properties.Active)
 
-	if err = row.Err(); err != nil {
-		repo.components.Logger.Error().
-			Format("Error when retrieving an item from the database: '%s'. ", err).Write()
-		return
+		if err = row.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+			return
+		}
+
+		if err = row.Scan(&id); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
 	}
 
-	if err = row.Scan(&id); err != nil {
-		repo.components.Logger.Error().
-			Format("Error while reading item data from the database:: '%s'. ", err).Write()
-		return
+	// Доступы
+	{
+		if constructor.Accesses != nil &&
+			(len(constructor.Accesses.RolesID) > 0 || len(constructor.Accesses.PermissionsID) > 0) {
+			var tx *sqlx.Tx
+
+			// Создание транзакции
+			{
+				if tx, err = repo.connector.BeginTxx(ctx, nil); err != nil {
+					repo.components.Logger.Error().
+						Format("An error occurred during the creation of the transaction: '%s'. ", err).Write()
+					return
+				}
+			}
+
+			// Загрузка новых
+			{
+				// Роли
+				{
+					if constructor.Accesses.RolesID != nil {
+						var query = `
+						insert into 
+							   public.accesses(
+								   url_id,
+								   role_id
+							   )
+							   values (
+								   $1,
+								   $2
+							   )
+					`
+
+						for _, role := range constructor.Accesses.RolesID {
+							if _, err = tx.Exec(query, id, role); err != nil {
+								repo.components.Logger.Error().
+									Format("Error inserting an item from the database: '%s'. ", err).Write()
+								return
+							}
+						}
+					}
+				}
+
+				// Права
+				{
+					if constructor.Accesses.PermissionsID != nil {
+						var query = `
+				insert into 
+					   public.accesses(
+						   url_id,
+						   permission_id
+					   )
+					   values (
+						   $1,
+						   $2
+					   )
+			`
+
+						for _, permission := range constructor.Accesses.PermissionsID {
+							if _, err = tx.Exec(query, id, permission); err != nil {
+								repo.components.Logger.Error().
+									Format("Error inserting an item from the database: '%s'. ", err).Write()
+								return
+							}
+						}
+					}
+				}
+			}
+
+			if err = tx.Commit(); err != nil {
+				repo.components.Logger.Error().
+					Format("An error occurred during the execution of the transaction: '%s'. ", err).Write()
+				return
+			}
+		}
 	}
 
 	return

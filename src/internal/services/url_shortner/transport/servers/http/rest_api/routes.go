@@ -8,6 +8,7 @@ import (
 	common_types "sm-box/internal/common/types"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/url_shortner/objects"
+	"sm-box/internal/services/url_shortner/objects/constructors"
 	"sm-box/internal/services/url_shortner/objects/models"
 	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/tracer"
@@ -990,10 +991,15 @@ func (srv *server) registerRoutes() error {
 				type Request struct {
 					Source string `json:"source"`
 
+					Accesses *struct {
+						RolesID       []common_types.ID `json:"roles_id"`
+						PermissionsID []common_types.ID `json:"permissions_id"`
+					}
 					Properties *struct {
 						Type types.ShortUrlType `json:"type"`
 
 						NumberOfUses int64 `json:"number_of_uses"`
+						Active       bool  `json:"active"`
 
 						StartActive time.Time `json:"start_active"`
 						EndActive   time.Time `json:"end_active"`
@@ -1053,18 +1059,38 @@ func (srv *server) registerRoutes() error {
 
 						return
 					}
+
+					if request.Accesses == nil {
+						request.Accesses = new(struct {
+							RolesID       []common_types.ID `json:"roles_id"`
+							PermissionsID []common_types.ID `json:"permissions_id"`
+						})
+					}
 				}
 
 				// Обработка
 				{
-					var cErr c_errors.RestAPI
+					var (
+						cErr        c_errors.RestAPI
+						constructor = &constructors.ShortUrl{
+							Source: request.Source,
+							Accesses: &constructors.ShortUrlAccesses{
+								RolesID:       request.Accesses.RolesID,
+								PermissionsID: request.Accesses.PermissionsID,
+							},
+							Properties: &constructors.ShortUrlProperties{
+								Type:         request.Properties.Type,
+								NumberOfUses: request.Properties.NumberOfUses,
+								StartActive:  request.Properties.StartActive,
+								EndActive:    request.Properties.EndActive,
+								Active:       request.Properties.Active,
+							},
+						}
+					)
 
-					if response.Url, cErr = srv.controllers.UrlsManagement.Create(ctx.Context(),
-						request.Source,
-						request.Properties.Type,
-						request.Properties.NumberOfUses,
-						request.Properties.StartActive,
-						request.Properties.EndActive); cErr != nil {
+					constructor.FillEmptyFields()
+
+					if response.Url, cErr = srv.controllers.UrlsManagement.Create(ctx.Context(), constructor); cErr != nil {
 						srv.components.Logger.Error().
 							Format("Could not create short url: '%s'. ", cErr).Write()
 
@@ -1112,9 +1138,14 @@ func (srv *server) registerRoutes() error {
 						Raw: `
 {
 	"source": "",
+	"accesses": {
+		"roles_id": [],
+		"permissions_id": []
+	},
 	"properties": {
 		"type": "",
 		"number_of_uses": 0,
+		"active": false,
 		"start_active": "0001-01-01T00:00:00+00:00",
 		"end_active": "0001-01-01T00:00:00+00:00"
 	}
@@ -1666,7 +1697,7 @@ func (srv *server) registerRoutes() error {
 			})
 		}
 
-		// GET /history
+		// /history
 		{
 			var (
 				router       = router.Group("/history")

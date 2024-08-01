@@ -417,7 +417,7 @@
                         "description": "",
                         "body": {
                             "mode": "raw",
-                            "raw": "\n{\n\t\"source\": \"\",\n\t\"properties\": {\n\t\t\"type\": \"\",\n\t\t\"number_of_uses\": 0,\n\t\t\"start_active\": \"0001-01-01T00:00:00+00:00\",\n\t\t\"end_active\": \"0001-01-01T00:00:00+00:00\"\n\t}\n}\n",
+                            "raw": "\n{\n\t\"source\": \"\",\n\t\"accesses\": {\n\t\t\"roles_id\": [],\n\t\t\"permissions_id\": []\n\t},\n\t\"properties\": {\n\t\t\"type\": \"\",\n\t\t\"number_of_uses\": 0,\n\t\t\"active\": false,\n\t\t\"start_active\": \"0001-01-01T00:00:00+00:00\",\n\t\t\"end_active\": \"0001-01-01T00:00:00+00:00\"\n\t}\n}\n",
                             "options": {
                                 "raw": {
                                     "language": "json"

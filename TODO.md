@@ -9,6 +9,12 @@
  
 ---
 
+### v24.0.51:
+- [x] Завершение разработки [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
+- [x] Разработка [сервиса уведомлений](src/internal/services/notifications/service.go);
+
+---
+
 ### v24.0.50:
 - [x] Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
 

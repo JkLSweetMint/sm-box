@@ -9,16 +9,23 @@ option go_package = "./";
 import "src/transport/proto/src/url_shortner-service/models.proto";
 
 message UrlShortnerCreateRequest {
+  message _Accesses {
+    repeated uint64 RolesID       = 1;
+    repeated uint64 PermissionsID = 2;
+  }
   message _Properties {
-    string Type         = 1;
-    int64  NumberOfUses = 2;
+    string Type = 1;
 
-    google.protobuf.Timestamp StartActive = 3;
-    google.protobuf.Timestamp EndActive   = 4;
+    int64 NumberOfUses = 2;
+    bool  Active       = 3;
+
+    google.protobuf.Timestamp StartActive = 4;
+    google.protobuf.Timestamp EndActive   = 5;
   }
 
   string      Source     = 1;
-  _Properties Properties = 2;
+  _Accesses   Accesses   = 2;
+  _Properties Properties = 3;
 }
 
 message UrlShortnerCreateResponse {

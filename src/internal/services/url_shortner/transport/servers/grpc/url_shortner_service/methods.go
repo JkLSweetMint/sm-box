@@ -4,6 +4,8 @@ import (
 	"context"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	common_errors "sm-box/internal/common/errors"
+	common_types "sm-box/internal/common/types"
+	"sm-box/internal/services/url_shortner/objects/constructors"
 	"sm-box/internal/services/url_shortner/objects/models"
 	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/tracer"
@@ -40,12 +42,39 @@ func (srv *server) Create(ctx context.Context, request *pb.UrlShortnerCreateRequ
 
 	// Обработка
 	{
-		if url, err = srv.controllers.UrlsManagement.Create(ctx,
-			request.Source,
-			types.ShortUrlType(request.Properties.Type),
-			request.Properties.NumberOfUses,
-			request.Properties.StartActive.AsTime(),
-			request.Properties.EndActive.AsTime()); err != nil {
+		var constructor *constructors.ShortUrl
+
+		// Подготовка конструктора
+		{
+			constructor = &constructors.ShortUrl{
+				Source: request.Source,
+
+				Accesses: &constructors.ShortUrlAccesses{
+					RolesID:       make([]common_types.ID, 0),
+					PermissionsID: make([]common_types.ID, 0),
+				},
+				Properties: &constructors.ShortUrlProperties{
+					Type:         types.ShortUrlType(request.Properties.Type),
+					NumberOfUses: request.Properties.NumberOfUses,
+					StartActive:  request.Properties.StartActive.AsTime(),
+					EndActive:    request.Properties.EndActive.AsTime(),
+					Active:       request.Properties.Active,
+				},
+			}
+			constructor.FillEmptyFields()
+
+			if request.Accesses != nil {
+				for _, id := range request.Accesses.RolesID {
+					constructor.Accesses.RolesID = append(constructor.Accesses.RolesID, common_types.ID(id))
+				}
+
+				for _, id := range request.Accesses.PermissionsID {
+					constructor.Accesses.PermissionsID = append(constructor.Accesses.PermissionsID, common_types.ID(id))
+				}
+			}
+		}
+
+		if url, err = srv.controllers.UrlsManagement.Create(ctx, constructor); err != nil {
 			srv.components.Logger.Error().
 				Format("Could not create short url: '%s'. ", err).Write()
 

@@ -1,5 +1,11 @@
 # ChangeLog:
 
+### v24.0.51:
+- Завершение разработки [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
+- Разработка [сервиса уведомлений](src/internal/services/notifications/service.go);
+
+---
+
 ### v24.0.50:
 - Разработка [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);
 

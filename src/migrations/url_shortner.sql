@@ -59,7 +59,7 @@ create table
         check (number_of_uses >= 0)
 );
 
-create or replace function public.create_short_url(source varchar(2048), type public.url_type, number_of_uses integer, start_active timestamptz, end_active timestamptz)
+create or replace function public.create_short_url(source varchar(2048), type public.url_type, number_of_uses integer, start_active timestamptz, end_active timestamptz, active bool)
     returns bigint
     language plpgsql as
 $$
@@ -81,14 +81,16 @@ begin
            type,
            number_of_uses,
            start_active,
-           end_active
+           end_active,
+           active
         )
     values (
             urlID,
             type,
             number_of_uses,
             start_active,
-            end_active
+            end_active,
+            active
    );
 
     return urlID;

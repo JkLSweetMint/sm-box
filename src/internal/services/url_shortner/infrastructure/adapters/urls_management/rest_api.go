@@ -5,12 +5,11 @@ import (
 	common_types "sm-box/internal/common/types"
 	urls_management_controller "sm-box/internal/services/url_shortner/infrastructure/controllers/urls_management"
 	"sm-box/internal/services/url_shortner/objects"
+	"sm-box/internal/services/url_shortner/objects/constructors"
 	"sm-box/internal/services/url_shortner/objects/models"
-	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
-	"time"
 )
 
 const (
@@ -42,12 +41,7 @@ type Adapter_HttpRestAPI struct {
 			filters *objects.ShortUrlsUsageHistoryListFilters,
 		) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error)
 
-		Create(ctx context.Context,
-			source string,
-			type_ types.ShortUrlType,
-			numberOfUses int64,
-			startActive, endActive time.Time,
-		) (url *models.ShortUrlInfo, cErr c_errors.Error)
+		Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error)
 
 		Remove(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 		RemoveByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)
@@ -238,22 +232,18 @@ func (adapter *Adapter_HttpRestAPI) GetUsageHistoryByReduction(ctx context.Conte
 }
 
 // Create - создание сокращенного url.
-func (adapter *Adapter_HttpRestAPI) Create(ctx context.Context,
-	source string,
-	type_ types.ShortUrlType,
-	numberOfUses int64,
-	startActive, endActive time.Time) (url *models.ShortUrlInfo, cErr c_errors.RestAPI) {
+func (adapter *Adapter_HttpRestAPI) Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, source, type_, numberOfUses, startActive, endActive)
+		trc.FunctionCall(ctx, constructor)
 		defer func() { trc.Error(cErr).FunctionCallFinished(url) }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if url, proxyErr = adapter.controller.Create(ctx, source, type_, numberOfUses, startActive, endActive); proxyErr != nil {
+	if url, proxyErr = adapter.controller.Create(ctx, constructor); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().

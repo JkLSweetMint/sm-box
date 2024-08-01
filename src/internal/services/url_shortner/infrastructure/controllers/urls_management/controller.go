@@ -5,13 +5,12 @@ import (
 	common_types "sm-box/internal/common/types"
 	urls_management_usecase "sm-box/internal/services/url_shortner/infrastructure/usecases/urls_management"
 	"sm-box/internal/services/url_shortner/objects"
+	"sm-box/internal/services/url_shortner/objects/constructors"
 	"sm-box/internal/services/url_shortner/objects/entities"
 	"sm-box/internal/services/url_shortner/objects/models"
-	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
-	"time"
 )
 
 const (
@@ -50,11 +49,7 @@ type usecases struct {
 			filters *objects.ShortUrlsUsageHistoryListFilters,
 		) (count int64, history []*entities.ShortUrlUsageHistory, cErr c_errors.Error)
 
-		Create(ctx context.Context,
-			source string,
-			type_ types.ShortUrlType,
-			numberOfUses int64,
-			startActive, endActive time.Time) (url *entities.ShortUrl, cErr c_errors.Error)
+		Create(ctx context.Context, constructor *constructors.ShortUrl) (url *entities.ShortUrl, cErr c_errors.Error)
 
 		Remove(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 		RemoveByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)
@@ -309,17 +304,12 @@ func (controller *Controller) GetUsageHistoryByReduction(ctx context.Context, re
 }
 
 // Create - создание сокращенного url.
-func (controller *Controller) Create(ctx context.Context,
-	source string,
-	type_ types.ShortUrlType,
-	numberOfUses int64,
-	startActive, endActive time.Time,
-) (url *models.ShortUrlInfo, cErr c_errors.Error) {
+func (controller *Controller) Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, source, type_, numberOfUses, startActive, endActive)
+		trc.FunctionCall(ctx, constructor)
 		defer func() { trc.Error(cErr).FunctionCallFinished(url) }()
 	}
 
@@ -327,7 +317,7 @@ func (controller *Controller) Create(ctx context.Context,
 	{
 		var url_ *entities.ShortUrl
 
-		if url_, cErr = controller.usecases.UrlsManagement.Create(ctx, source, type_, numberOfUses, startActive, endActive); cErr != nil {
+		if url_, cErr = controller.usecases.UrlsManagement.Create(ctx, constructor); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
