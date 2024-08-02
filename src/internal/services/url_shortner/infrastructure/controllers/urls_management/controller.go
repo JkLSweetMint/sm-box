@@ -17,7 +17,7 @@ const (
 	loggerInitiator = "infrastructure-[controllers]=urls_management"
 )
 
-// Controller - контроллер базовой аутентификации пользователей.
+// Controller - контроллер управления сокращениями url запросов.
 type Controller struct {
 	components *components
 	usecases   *usecases
@@ -49,7 +49,7 @@ type usecases struct {
 			filters *objects.ShortUrlsUsageHistoryListFilters,
 		) (count int64, history []*entities.ShortUrlUsageHistory, cErr c_errors.Error)
 
-		Create(ctx context.Context, constructor *constructors.ShortUrl) (url *entities.ShortUrl, cErr c_errors.Error)
+		CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (url *entities.ShortUrl, cErr c_errors.Error)
 
 		Remove(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 		RemoveByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)
@@ -303,8 +303,8 @@ func (controller *Controller) GetUsageHistoryByReduction(ctx context.Context, re
 	return
 }
 
-// Create - создание сокращенного url.
-func (controller *Controller) Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error) {
+// CreateOne - создание сокращенного url.
+func (controller *Controller) CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
@@ -317,7 +317,7 @@ func (controller *Controller) Create(ctx context.Context, constructor *construct
 	{
 		var url_ *entities.ShortUrl
 
-		if url_, cErr = controller.usecases.UrlsManagement.Create(ctx, constructor); cErr != nil {
+		if url_, cErr = controller.usecases.UrlsManagement.CreateOne(ctx, constructor); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 

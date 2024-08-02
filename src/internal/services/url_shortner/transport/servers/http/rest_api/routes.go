@@ -1090,7 +1090,7 @@ func (srv *server) registerRoutes() error {
 
 					constructor.FillEmptyFields()
 
-					if response.Url, cErr = srv.controllers.UrlsManagement.Create(ctx.Context(), constructor); cErr != nil {
+					if response.Url, cErr = srv.controllers.UrlsManagement.CreateOne(ctx.Context(), constructor); cErr != nil {
 						srv.components.Logger.Error().
 							Format("Could not create short url: '%s'. ", cErr).Write()
 

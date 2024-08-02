@@ -19,7 +19,7 @@ type Adapter_Grpc struct {
 	components *components
 
 	controller interface {
-		Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error)
+		CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -64,8 +64,8 @@ func New_Grpc(ctx context.Context) (adapter *Adapter_Grpc, err error) {
 	return
 }
 
-// Create - создание сокращенного url.
-func (adapter *Adapter_Grpc) Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Grpc) {
+// CreateOne - создание сокращенного url.
+func (adapter *Adapter_Grpc) CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Grpc) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
@@ -76,7 +76,7 @@ func (adapter *Adapter_Grpc) Create(ctx context.Context, constructor *constructo
 
 	var proxyErr c_errors.Error
 
-	if url, proxyErr = adapter.controller.Create(ctx, constructor); proxyErr != nil {
+	if url, proxyErr = adapter.controller.CreateOne(ctx, constructor); proxyErr != nil {
 		cErr = c_errors.ToGrpc(proxyErr)
 
 		adapter.components.Logger.Error().

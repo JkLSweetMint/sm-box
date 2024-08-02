@@ -12,8 +12,8 @@ import (
 	pb "sm-box/transport/proto/pb/golang/url_shortner-service"
 )
 
-// Create - создание сокращенного url.
-func (srv *server) Create(ctx context.Context, request *pb.UrlShortnerCreateRequest) (response *pb.UrlShortnerCreateResponse, err error) {
+// CreateOne - создание сокращенного url.
+func (srv *server) CreateOne(ctx context.Context, request *pb.UrlShortnerCreateRequest) (response *pb.UrlShortnerCreateResponse, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelTransportGrpc)
@@ -74,7 +74,7 @@ func (srv *server) Create(ctx context.Context, request *pb.UrlShortnerCreateRequ
 			}
 		}
 
-		if url, err = srv.controllers.UrlsManagement.Create(ctx, constructor); err != nil {
+		if url, err = srv.controllers.UrlsManagement.CreateOne(ctx, constructor); err != nil {
 			srv.components.Logger.Error().
 				Format("Could not create short url: '%s'. ", err).Write()
 

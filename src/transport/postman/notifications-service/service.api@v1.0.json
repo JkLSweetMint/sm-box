@@ -130,6 +130,180 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "Пользовательские уведомления. ",
+            "item": [
+                {
+                    "name": "Получение списка пользовательских уведомлений. ",
+                    "description": "\nИспользуется для получения списка пользовательских уведомлений.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "notifications",
+                                "api",
+                                "v1.0",
+                                "users",
+                                "list"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "offset",
+                                    "value": "0",
+                                    "description": null
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "20",
+                                    "description": null
+                                },
+                                {
+                                    "key": "filter_type",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "filter_not_read",
+                                    "value": "",
+                                    "description": null
+                                },
+                                {
+                                    "key": "filter_sender_id",
+                                    "value": "",
+                                    "description": null
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Чтение пользовательских уведомлений. ",
+                    "description": "\nИспользуется для чтения пользовательских уведомлений.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "notifications",
+                                "api",
+                                "v1.0",
+                                "users",
+                                "read"
+                            ]
+                        },
+                        "method": "PUT",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "\n{\n\t\"source\": \"\",\n\t\"accesses\": {\n\t\t\"roles_id\": [],\n\t\t\"permissions_id\": []\n\t},\n\t\"properties\": {\n\t\t\"type\": \"\",\n\t\t\"number_of_uses\": 0,\n\t\t\"active\": false,\n\t\t\"start_active\": \"0001-01-01T00:00:00+00:00\",\n\t\t\"end_active\": \"0001-01-01T00:00:00+00:00\"\n\t}\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {}\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Удаление пользовательских уведомлений. ",
+                    "description": "\nИспользуется для удаления пользовательских уведомлений.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "notifications",
+                                "api",
+                                "v1.0",
+                                "users",
+                                ""
+                            ]
+                        },
+                        "method": "DELETE",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "\n{\n\t\"source\": \"\",\n\t\"accesses\": {\n\t\t\"roles_id\": [],\n\t\t\"permissions_id\": []\n\t},\n\t\"properties\": {\n\t\t\"type\": \"\",\n\t\t\"number_of_uses\": 0,\n\t\t\"active\": false,\n\t\t\"start_active\": \"0001-01-01T00:00:00+00:00\",\n\t\t\"end_active\": \"0001-01-01T00:00:00+00:00\"\n\t}\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {}\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

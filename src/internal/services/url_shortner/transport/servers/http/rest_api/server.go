@@ -68,7 +68,7 @@ type controllers struct {
 			filters *objects.ShortUrlsUsageHistoryListFilters,
 		) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.RestAPI)
 
-		Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
+		CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.RestAPI)
 
 		Remove(ctx context.Context, id common_types.ID) (cErr c_errors.RestAPI)
 		RemoveByReduction(ctx context.Context, reduction string) (cErr c_errors.RestAPI)

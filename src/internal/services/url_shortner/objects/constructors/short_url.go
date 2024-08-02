@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	// ShortUrl - конструктор короткой ссылки.
+	// ShortUrl - конструктор для создания короткого url.
 	ShortUrl struct {
 		Source string
 
@@ -16,13 +16,13 @@ type (
 		Properties *ShortUrlProperties
 	}
 
-	// ShortUrlAccesses - конструктор информации по доступам к короткому url.
+	// ShortUrlAccesses - конструктор доступов к короткому url.
 	ShortUrlAccesses struct {
 		RolesID       []common_types.ID
 		PermissionsID []common_types.ID
 	}
 
-	// ShortUrlProperties - конструктор свойств короткой ссылке.
+	// ShortUrlProperties - конструктор свойств короткого url.
 	ShortUrlProperties struct {
 		Type         types.ShortUrlType
 		NumberOfUses int64
@@ -32,60 +32,60 @@ type (
 	}
 )
 
-// FillEmptyFields - заполнение пустых полей сущности.
-func (entity *ShortUrl) FillEmptyFields() *ShortUrl {
+// FillEmptyFields - заполнение пустых полей конструктора.
+func (constructor *ShortUrl) FillEmptyFields() *ShortUrl {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelEntity)
+		var trc = tracer.New(tracer.LevelConstructor)
 
 		trc.FunctionCall()
-		defer func() { trc.FunctionCallFinished(entity) }()
+		defer func() { trc.FunctionCallFinished(constructor) }()
 	}
 
-	if entity.Properties == nil {
-		entity.Properties = new(ShortUrlProperties)
+	if constructor.Properties == nil {
+		constructor.Properties = new(ShortUrlProperties)
 	}
 
-	if entity.Accesses == nil {
-		entity.Accesses = new(ShortUrlAccesses)
+	if constructor.Accesses == nil {
+		constructor.Accesses = new(ShortUrlAccesses)
 	}
 
-	entity.Accesses.FillEmptyFields()
-	entity.Properties.FillEmptyFields()
+	constructor.Accesses.FillEmptyFields()
+	constructor.Properties.FillEmptyFields()
 
-	return entity
+	return constructor
 }
 
-// FillEmptyFields - заполнение пустых полей сущности.
-func (entity *ShortUrlProperties) FillEmptyFields() *ShortUrlProperties {
+// FillEmptyFields - заполнение пустых полей конструктора.
+func (constructor *ShortUrlProperties) FillEmptyFields() *ShortUrlProperties {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelEntity)
+		var trc = tracer.New(tracer.LevelConstructor)
 
 		trc.FunctionCall()
-		defer func() { trc.FunctionCallFinished(entity) }()
+		defer func() { trc.FunctionCallFinished(constructor) }()
 	}
 
-	return entity
+	return constructor
 }
 
-// FillEmptyFields - заполнение пустых полей сущности.
-func (entity *ShortUrlAccesses) FillEmptyFields() *ShortUrlAccesses {
+// FillEmptyFields - заполнение пустых полей конструктора.
+func (constructor *ShortUrlAccesses) FillEmptyFields() *ShortUrlAccesses {
 	// tracer
 	{
-		var trc = tracer.New(tracer.LevelEntity)
+		var trc = tracer.New(tracer.LevelConstructor)
 
 		trc.FunctionCall()
-		defer func() { trc.FunctionCallFinished(entity) }()
+		defer func() { trc.FunctionCallFinished(constructor) }()
 	}
 
-	if entity.RolesID == nil {
-		entity.RolesID = make([]common_types.ID, 0)
+	if constructor.RolesID == nil {
+		constructor.RolesID = make([]common_types.ID, 0)
 	}
 
-	if entity.PermissionsID == nil {
-		entity.PermissionsID = make([]common_types.ID, 0)
+	if constructor.PermissionsID == nil {
+		constructor.PermissionsID = make([]common_types.ID, 0)
 	}
 
-	return entity
+	return constructor
 }

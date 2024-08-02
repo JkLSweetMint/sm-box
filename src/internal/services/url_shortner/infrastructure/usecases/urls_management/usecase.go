@@ -55,7 +55,7 @@ type repositories struct {
 			filters *objects.ShortUrlsUsageHistoryListFilters,
 		) (count int64, history []*entities.ShortUrlUsageHistory, err error)
 
-		Create(ctx context.Context, constructor *constructors.ShortUrl) (id common_types.ID, err error)
+		CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (id common_types.ID, err error)
 
 		Remove(ctx context.Context, id common_types.ID) (err error)
 		RemoveByReduction(ctx context.Context, reduction string) (err error)
@@ -593,8 +593,8 @@ func (usecase *UseCase) GetUsageHistoryByReduction(ctx context.Context, reductio
 	return
 }
 
-// Create - создание сокращенного url.
-func (usecase *UseCase) Create(ctx context.Context, constructor *constructors.ShortUrl) (url *entities.ShortUrl, cErr c_errors.Error) {
+// CreateOne - создание сокращенного url.
+func (usecase *UseCase) CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (url *entities.ShortUrl, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelUseCase)
@@ -658,7 +658,7 @@ func (usecase *UseCase) Create(ctx context.Context, constructor *constructors.Sh
 	{
 		var err error
 
-		if id, err = usecase.repositories.UrlsManagement.Create(ctx, constructor); err != nil {
+		if id, err = usecase.repositories.UrlsManagement.CreateOne(ctx, constructor); err != nil {
 			usecase.components.Logger.Error().
 				Format("Could not get the shortened url by id: '%s'. ", err).Write()
 

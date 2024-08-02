@@ -961,8 +961,8 @@ func (repo *Repository) GetUsageHistoryByReduction(ctx context.Context, reductio
 	return
 }
 
-// Create - создание сокращенного url.
-func (repo *Repository) Create(ctx context.Context, constructor *constructors.ShortUrl) (id common_types.ID, err error) {
+// CreateOne - создание сокращенного url.
+func (repo *Repository) CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (id common_types.ID, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)

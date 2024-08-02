@@ -41,7 +41,7 @@ type Adapter_HttpRestAPI struct {
 			filters *objects.ShortUrlsUsageHistoryListFilters,
 		) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error)
 
-		Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error)
+		CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error)
 
 		Remove(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 		RemoveByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)
@@ -231,8 +231,8 @@ func (adapter *Adapter_HttpRestAPI) GetUsageHistoryByReduction(ctx context.Conte
 	return
 }
 
-// Create - создание сокращенного url.
-func (adapter *Adapter_HttpRestAPI) Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.RestAPI) {
+// CreateOne - создание сокращенного url.
+func (adapter *Adapter_HttpRestAPI) CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
@@ -243,7 +243,7 @@ func (adapter *Adapter_HttpRestAPI) Create(ctx context.Context, constructor *con
 
 	var proxyErr c_errors.Error
 
-	if url, proxyErr = adapter.controller.Create(ctx, constructor); proxyErr != nil {
+	if url, proxyErr = adapter.controller.CreateOne(ctx, constructor); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().

@@ -8,7 +8,7 @@ option go_package = "./";
 
 import "src/transport/proto/src/url_shortner-service/models.proto";
 
-message UrlShortnerCreateRequest {
+message UrlShortnerCreateOneRequest {
   message _Accesses {
     repeated uint64 RolesID       = 1;
     repeated uint64 PermissionsID = 2;
@@ -28,10 +28,10 @@ message UrlShortnerCreateRequest {
   _Properties Properties = 3;
 }
 
-message UrlShortnerCreateResponse {
+message UrlShortnerCreateOneResponse {
   UrlShortner UrlShortner = 1;
 }
 
 service UrlShortnerService {
-  rpc Create(UrlShortnerCreateRequest) returns (UrlShortnerCreateResponse);
+  rpc CreateOne(UrlShortnerCreateOneRequest) returns (UrlShortnerCreateOneResponse);
 }

@@ -30,7 +30,7 @@ type server struct {
 // controllers - контроллеры сервера.
 type controllers struct {
 	UrlsManagement interface {
-		Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Grpc)
+		CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Grpc)
 	}
 }
 

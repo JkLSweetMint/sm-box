@@ -6,11 +6,16 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"os"
 	"path"
+	common_types "sm-box/internal/common/types"
+	"sm-box/internal/services/notifications/objects"
+	"sm-box/internal/services/notifications/objects/constructors"
+	"sm-box/internal/services/notifications/objects/models"
 	"sm-box/internal/services/notifications/transport/servers/http/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	env_mode "sm-box/pkg/core/env/mode"
+	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/http/postman"
 	"sm-box/pkg/tools/file"
 	"sync"
@@ -32,7 +37,25 @@ type server struct {
 }
 
 // controllers - контроллеры сервера.
-type controllers struct{}
+type controllers struct {
+	UserNotifications interface {
+		GetList(ctx context.Context,
+			userID common_types.ID,
+			search *objects.UserNotificationSearch,
+			pagination *objects.UserNotificationPagination,
+			filters *objects.UserNotificationFilters,
+		) (count int64, list []*models.UserNotificationInfo, cErr c_errors.RestAPI)
+
+		CreateOne(ctx context.Context, constructor *constructors.UserNotification) (notification *models.UserNotificationInfo, cErr c_errors.RestAPI)
+		Create(ctx context.Context, constructors ...*constructors.UserNotification) (notifications []*models.UserNotificationInfo, cErr c_errors.RestAPI)
+
+		RemoveOne(ctx context.Context, userID common_types.ID, id common_types.ID) (cErr c_errors.RestAPI)
+		Remove(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.RestAPI)
+
+		ReadOne(ctx context.Context, userID common_types.ID, id common_types.ID) (cErr c_errors.RestAPI)
+		Read(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.RestAPI)
+	}
+}
 
 // components - компоненты сервера.
 type components struct {

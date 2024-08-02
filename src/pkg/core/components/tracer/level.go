@@ -48,6 +48,11 @@ const (
 	LevelEntityInternal
 	LevelEntityEvent
 
+	LevelConstructor
+	LevelConstructorDebug
+	LevelConstructorInternal
+	LevelConstructorEvent
+
 	LevelRepository
 	LevelRepositoryDebug
 	LevelRepositoryInternal
@@ -121,6 +126,11 @@ var (
 		"EntityInternal",
 		"EntityEvent",
 
+		"Constructor",
+		"ConstructorDebug",
+		"ConstructorInternal",
+		"ConstructorEvent",
+
 		"Repository",
 		"RepositoryDebug",
 		"RepositoryInternal",
@@ -191,6 +201,11 @@ var (
 		LevelEntityDebug,
 		LevelEntityInternal,
 		LevelEntityEvent,
+
+		LevelConstructor,
+		LevelConstructorDebug,
+		LevelConstructorInternal,
+		LevelConstructorEvent,
 
 		LevelRepository,
 		LevelRepositoryDebug,

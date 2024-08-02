@@ -44,7 +44,7 @@ type Controllers interface {
 			filters *objects.ShortUrlsUsageHistoryListFilters,
 		) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error)
 
-		Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error)
+		CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error)
 
 		Remove(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 		RemoveByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)
@@ -100,7 +100,7 @@ func (controllers *controllers) UrlsManagement() interface {
 		filters *objects.ShortUrlsUsageHistoryListFilters,
 	) (count int64, history []*models.ShortUrlUsageHistoryInfo, cErr c_errors.Error)
 
-	Create(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error)
+	CreateOne(ctx context.Context, constructor *constructors.ShortUrl) (url *models.ShortUrlInfo, cErr c_errors.Error)
 
 	Remove(ctx context.Context, id common_types.ID) (cErr c_errors.Error)
 	RemoveByReduction(ctx context.Context, reduction string) (cErr c_errors.Error)

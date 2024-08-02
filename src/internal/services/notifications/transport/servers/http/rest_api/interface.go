@@ -2,6 +2,7 @@ package http_rest_api
 
 import (
 	"context"
+	user_notifications_adapter "sm-box/internal/services/notifications/infrastructure/adapters/user_notifications"
 	"sm-box/internal/services/notifications/transport/servers/http/rest_api/config"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
@@ -56,6 +57,10 @@ func New(ctx context.Context) (srv Server, err error) {
 	// Контроллеры
 	{
 		ref.controllers = new(controllers)
+
+		if ref.controllers.UserNotifications, err = user_notifications_adapter.New_RestAPI(ref.ctx); err != nil {
+			return
+		}
 	}
 
 	// Postman
