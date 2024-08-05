@@ -232,7 +232,7 @@
                         "description": "",
                         "body": {
                             "mode": "raw",
-                            "raw": "\n{\n\t\"source\": \"\",\n\t\"accesses\": {\n\t\t\"roles_id\": [],\n\t\t\"permissions_id\": []\n\t},\n\t\"properties\": {\n\t\t\"type\": \"\",\n\t\t\"number_of_uses\": 0,\n\t\t\"active\": false,\n\t\t\"start_active\": \"0001-01-01T00:00:00+00:00\",\n\t\t\"end_active\": \"0001-01-01T00:00:00+00:00\"\n\t}\n}\n",
+                            "raw": "\n{\n\t\"ids\": []\n}\n",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -280,7 +280,105 @@
                         "description": "",
                         "body": {
                             "mode": "raw",
-                            "raw": "\n{\n\t\"source\": \"\",\n\t\"accesses\": {\n\t\t\"roles_id\": [],\n\t\t\"permissions_id\": []\n\t},\n\t\"properties\": {\n\t\t\"type\": \"\",\n\t\t\"number_of_uses\": 0,\n\t\t\"active\": false,\n\t\t\"start_active\": \"0001-01-01T00:00:00+00:00\",\n\t\t\"end_active\": \"0001-01-01T00:00:00+00:00\"\n\t}\n}\n",
+                            "raw": "\n{\n\t\"ids\": []\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {}\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Создание пользовательского уведомления. ",
+                    "description": "\nИспользуется для создания пользовательского уведомления.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "notifications",
+                                "api",
+                                "v1.0",
+                                "users",
+                                "create",
+                                ""
+                            ]
+                        },
+                        "method": "POST",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "\n{\n\t\"type\": \"\",\n\t\"sender_id\": 0,\n\t\"recipient_id\": 0,\n\t\"title\": \"\",\n\t\"title_i18n\": \"\",\n\t\"text\": \"\",\n\t\"text_i18n\": \"\"\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {}\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Создание нескольких пользовательских уведомлений. ",
+                    "description": "\nИспользуется для создания нескольких пользовательских уведомлений.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "notifications",
+                                "api",
+                                "v1.0",
+                                "users",
+                                "create",
+                                "multiple"
+                            ]
+                        },
+                        "method": "POST",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "\n{\n\t\"notifications\": [\n\t\t{\n\t\t\t\"type\": \"\",\n\t\t\t\"sender_id\": 0,\n\t\t\t\"recipient_id\": 0,\n\t\t\t\"title\": \"\",\n\t\t\t\"title_i18n\": \"\",\n\t\t\t\"text\": \"\",\n\t\t\t\"text_i18n\": \"\"\n\t\t}\n\t]\n}\n",
                             "options": {
                                 "raw": {
                                     "language": "json"

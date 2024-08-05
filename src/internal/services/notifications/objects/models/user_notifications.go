@@ -24,5 +24,6 @@ type (
 
 		CreatedTimestamp time.Time `json:"created_timestamp" xml:"created_timestamp,attr"`
 		ReadTimestamp    time.Time `json:"read_timestamp"    xml:"read_timestamp,attr"`
+		RemovedTimestamp time.Time `json:"removed_timestamp" xml:"removed_timestamp,attr"`
 	}
 )

@@ -7,6 +7,7 @@ import (
 	common_types "sm-box/internal/common/types"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
 	"sm-box/internal/services/notifications/objects"
+	"sm-box/internal/services/notifications/objects/constructors"
 	"sm-box/internal/services/notifications/objects/models"
 	"sm-box/internal/services/notifications/objects/types"
 	"sm-box/pkg/core/components/tracer"
@@ -31,6 +32,7 @@ func (srv *server) registerRoutes() error {
 
 	var router = srv.router
 
+	// /users
 	{
 		var (
 			router       = router.Group("/users")
@@ -48,8 +50,10 @@ func (srv *server) registerRoutes() error {
 
 			router.Get("/list", func(ctx fiber.Ctx) (err error) {
 				type Response struct {
-					Count int64                          `json:"count" xml:"count,attr"`
-					List  []*models.UserNotificationInfo `json:"list"  xml:"List"`
+					Count        int64 `json:"count"          xml:"count,attr"`
+					CountNotRead int64 `json:"count_not_read" xml:"count_not_read,attr"`
+
+					List []*models.UserNotificationInfo `json:"list" xml:"List"`
 				}
 				type QueryArgs struct {
 					Search string `query:"search"`
@@ -97,10 +101,10 @@ func (srv *server) registerRoutes() error {
 				// Обработка
 				{
 					var (
-						search     *objects.UserNotificationSearch
-						pagination *objects.UserNotificationPagination
-						filters    *objects.UserNotificationFilters
-						userID     common_types.ID
+						search      *objects.UserNotificationSearch
+						pagination  *objects.UserNotificationPagination
+						filters     *objects.UserNotificationFilters
+						recipientID common_types.ID
 					)
 
 					// Получение ID пользователя
@@ -122,7 +126,7 @@ func (srv *server) registerRoutes() error {
 								}
 							}
 
-							userID = token.UserID
+							recipientID = token.UserID
 						}
 					}
 
@@ -177,7 +181,7 @@ func (srv *server) registerRoutes() error {
 
 					var cErr c_errors.RestAPI
 
-					if response.Count, response.List, cErr = srv.controllers.UserNotifications.GetList(ctx.Context(), userID, search, pagination, filters); cErr != nil {
+					if response.Count, response.CountNotRead, response.List, cErr = srv.controllers.UserNotifications.GetList(ctx.Context(), recipientID, search, pagination, filters); cErr != nil {
 						srv.components.Logger.Error().
 							Format("Couldn't get a list of user notifications: '%s'. ", cErr).Write()
 
@@ -286,7 +290,6 @@ func (srv *server) registerRoutes() error {
 
 			router.Put("/read", func(ctx fiber.Ctx) (err error) {
 				type Request struct {
-					ID  common_types.ID   `json:"id"`
 					IDs []common_types.ID `json:"ids"`
 				}
 				type Response struct{}
@@ -325,7 +328,7 @@ func (srv *server) registerRoutes() error {
 
 				// Обработка
 				{
-					var userID common_types.ID
+					var recipientID common_types.ID
 
 					// Получение ID пользователя
 					{
@@ -346,40 +349,22 @@ func (srv *server) registerRoutes() error {
 								}
 							}
 
-							userID = token.UserID
+							recipientID = token.UserID
 						}
 					}
 
-					var cErr c_errors.RestAPI
+					if cErr := srv.controllers.UserNotifications.Read(ctx.Context(), recipientID, request.IDs...); cErr != nil {
+						srv.components.Logger.Error().
+							Format("Several user notifications could not be read: '%s'. ", cErr).Write()
 
-					if len(request.IDs) > 0 {
-						if cErr = srv.controllers.UserNotifications.Read(ctx.Context(), userID, request.IDs...); cErr != nil {
+						if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
 							srv.components.Logger.Error().
-								Format("Several user notifications could not be read: '%s'. ", cErr).Write()
+								Format("The error response could not be recorded: '%s'. ", err).Write()
 
-							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
-								srv.components.Logger.Error().
-									Format("The error response could not be recorded: '%s'. ", err).Write()
-
-								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
-							}
-
-							return
+							return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 						}
-					} else {
-						if cErr = srv.controllers.UserNotifications.ReadOne(ctx.Context(), userID, request.ID); cErr != nil {
-							srv.components.Logger.Error().
-								Format("The user's notification could not be read: '%s'. ", cErr).Write()
 
-							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
-								srv.components.Logger.Error().
-									Format("The error response could not be recorded: '%s'. ", err).Write()
-
-								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
-							}
-
-							return
-						}
+						return
 					}
 				}
 
@@ -415,18 +400,7 @@ func (srv *server) registerRoutes() error {
 						Mode: "raw",
 						Raw: `
 {
-	"source": "",
-	"accesses": {
-		"roles_id": [],
-		"permissions_id": []
-	},
-	"properties": {
-		"type": "",
-		"number_of_uses": 0,
-		"active": false,
-		"start_active": "0001-01-01T00:00:00+00:00",
-		"end_active": "0001-01-01T00:00:00+00:00"
-	}
+	"ids": []
 }
 `,
 						Options: &postman.BodyOptions{
@@ -479,7 +453,6 @@ func (srv *server) registerRoutes() error {
 
 			router.Delete("/", func(ctx fiber.Ctx) (err error) {
 				type Request struct {
-					ID  common_types.ID   `json:"id"`
 					IDs []common_types.ID `json:"ids"`
 				}
 				type Response struct{}
@@ -518,7 +491,7 @@ func (srv *server) registerRoutes() error {
 
 				// Обработка
 				{
-					var userID common_types.ID
+					var recipientID common_types.ID
 
 					// Получение ID пользователя
 					{
@@ -539,40 +512,22 @@ func (srv *server) registerRoutes() error {
 								}
 							}
 
-							userID = token.UserID
+							recipientID = token.UserID
 						}
 					}
 
-					var cErr c_errors.RestAPI
+					if cErr := srv.controllers.UserNotifications.Remove(ctx.Context(), recipientID, request.IDs...); cErr != nil {
+						srv.components.Logger.Error().
+							Format("Several user notifications could not be removed: '%s'. ", cErr).Write()
 
-					if len(request.IDs) > 0 {
-						if cErr = srv.controllers.UserNotifications.Remove(ctx.Context(), userID, request.IDs...); cErr != nil {
+						if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
 							srv.components.Logger.Error().
-								Format("Several user notifications could not be removed: '%s'. ", cErr).Write()
+								Format("The error response could not be recorded: '%s'. ", err).Write()
 
-							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
-								srv.components.Logger.Error().
-									Format("The error response could not be recorded: '%s'. ", err).Write()
-
-								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
-							}
-
-							return
+							return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
 						}
-					} else {
-						if cErr = srv.controllers.UserNotifications.RemoveOne(ctx.Context(), userID, request.ID); cErr != nil {
-							srv.components.Logger.Error().
-								Format("The user's notification could not be removed: '%s'. ", cErr).Write()
 
-							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
-								srv.components.Logger.Error().
-									Format("The error response could not be recorded: '%s'. ", err).Write()
-
-								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
-							}
-
-							return
-						}
+						return
 					}
 				}
 
@@ -608,18 +563,7 @@ func (srv *server) registerRoutes() error {
 						Mode: "raw",
 						Raw: `
 {
-	"source": "",
-	"accesses": {
-		"roles_id": [],
-		"permissions_id": []
-	},
-	"properties": {
-		"type": "",
-		"number_of_uses": 0,
-		"active": false,
-		"start_active": "0001-01-01T00:00:00+00:00",
-		"end_active": "0001-01-01T00:00:00+00:00"
-	}
+	"ids": []
 }
 `,
 						Options: &postman.BodyOptions{
@@ -664,6 +608,373 @@ func (srv *server) registerRoutes() error {
 					},
 				},
 			})
+		}
+
+		// /create
+		{
+			var (
+				router = router.Group("/create")
+			)
+
+			// POST /
+			{
+				var id = uuid.New().String()
+
+				router.Post("/", func(ctx fiber.Ctx) (err error) {
+					type Request struct {
+						Type types.NotificationType `json:"type"`
+
+						SenderID    common_types.ID `json:"sender_id"`
+						RecipientID common_types.ID `json:"recipient_id"`
+
+						Title     string    `json:"title"`
+						TitleI18n uuid.UUID `json:"title_i18n"`
+
+						Text     string    `json:"text"`
+						TextI18n uuid.UUID `json:"text_i18n"`
+					}
+					type Response struct {
+						Notification *models.UserNotificationInfo `json:"notification" xml:"Notification"`
+					}
+
+					var (
+						request  = new(Request)
+						response = new(Response)
+					)
+
+					// Чтение данных
+					{
+						if err = ctx.Bind().Body(request); err != nil {
+							srv.components.Logger.Error().
+								Format("The request body data could not be read: '%s'. ", err).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, common_errors.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+								srv.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
+								cErr.SetError(err)
+
+								if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+									srv.components.Logger.Error().
+										Format("The error response could not be recorded: '%s'. ", err).Write()
+
+									return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+								}
+
+								return
+							}
+
+							return
+						}
+					}
+
+					// Обработка
+					{
+						var (
+							cErr        c_errors.RestAPI
+							constructor *constructors.UserNotification
+						)
+
+						// Создание конструктора
+						{
+							constructor = &constructors.UserNotification{
+								Type: request.Type,
+
+								SenderID:    request.SenderID,
+								RecipientID: request.RecipientID,
+
+								Title:     request.Title,
+								TitleI18n: request.TitleI18n,
+
+								Text:     request.Text,
+								TextI18n: request.TextI18n,
+							}
+						}
+
+						if response.Notification, cErr = srv.controllers.UserNotifications.CreateOne(ctx.Context(), constructor); cErr != nil {
+							srv.components.Logger.Error().
+								Format("Failed to create a user notification: '%s'. ", cErr).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								srv.components.Logger.Error().
+									Format("The error response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+							}
+
+							return
+						}
+					}
+
+					// Отправка ответа
+					{
+						if err = http_rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+							srv.components.Logger.Error().
+								Format("The error response could not be recorded: '%s'. ", err).Write()
+
+							return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+						}
+
+						return
+					}
+				}).Name(id)
+
+				var route = srv.app.GetRoute(id)
+
+				postmanGroup.AddItem(&postman.Items{
+					Name: "Создание пользовательского уведомления. ",
+					Description: `
+Используется для создания пользовательского уведомления.
+`,
+					Request: &postman.Request{
+						URL: &postman.URL{
+							Protocol: srv.conf.Postman.Protocol,
+							Host:     strings.Split(srv.conf.Postman.Host, "."),
+							Path:     strings.Split(route.Path, "/"),
+						},
+						Method:      postman.Method(route.Method),
+						Description: ``,
+						Body: &postman.Body{
+							Mode: "raw",
+							Raw: `
+{
+	"type": "",
+	"sender_id": 0,
+	"recipient_id": 0,
+	"title": "",
+	"title_i18n": "",
+	"text": "",
+	"text_i18n": ""
+}
+`,
+							Options: &postman.BodyOptions{
+								Raw: postman.BodyOptionsRaw{
+									Language: postman.JSON,
+								},
+							},
+						},
+					},
+					Responses: []*postman.Response{
+						{
+							Name:   "Произошла внутренняя ошибка сервера. ",
+							Status: string(fiber.StatusInternalServerError),
+							Code:   fiber.StatusInternalServerError,
+							Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+						},
+						{
+							Name:   "Успешный ответ. ",
+							Status: string(fiber.StatusOK),
+							Code:   fiber.StatusOK,
+							Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {}
+}
+`,
+						},
+					},
+				})
+			}
+
+			// POST /multiple
+			{
+				var id = uuid.New().String()
+
+				router.Post("/multiple", func(ctx fiber.Ctx) (err error) {
+					type Request struct {
+						Notifications []*struct {
+							Type types.NotificationType `json:"type"`
+
+							SenderID    common_types.ID `json:"sender_id"`
+							RecipientID common_types.ID `json:"recipient_id"`
+
+							Title     string    `json:"title"`
+							TitleI18n uuid.UUID `json:"title_i18n"`
+
+							Text     string    `json:"text"`
+							TextI18n uuid.UUID `json:"text_i18n"`
+						} `json:"notifications"`
+					}
+					type Response struct {
+						Notifications []*models.UserNotificationInfo `json:"notifications" xml:"Notifications>Notification"`
+					}
+
+					var (
+						request  = new(Request)
+						response = new(Response)
+					)
+
+					// Чтение данных
+					{
+						if err = ctx.Bind().Body(request); err != nil {
+							srv.components.Logger.Error().
+								Format("The request body data could not be read: '%s'. ", err).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, common_errors.RequestBodyDataCouldNotBeRead_RestAPI()); err != nil {
+								srv.components.Logger.Error().
+									Format("The response could not be recorded: '%s'. ", err).Write()
+
+								var cErr = common_errors.ResponseCouldNotBeRecorded_RestAPI()
+								cErr.SetError(err)
+
+								if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+									srv.components.Logger.Error().
+										Format("The error response could not be recorded: '%s'. ", err).Write()
+
+									return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+								}
+
+								return
+							}
+
+							return
+						}
+					}
+
+					// Обработка
+					{
+						var (
+							cErr c_errors.RestAPI
+							list []*constructors.UserNotification
+						)
+
+						// Создание конструкторов
+						{
+							for _, notification := range request.Notifications {
+								list = append(list, &constructors.UserNotification{
+									Type: notification.Type,
+
+									SenderID:    notification.SenderID,
+									RecipientID: notification.RecipientID,
+
+									Title:     notification.Title,
+									TitleI18n: notification.TitleI18n,
+
+									Text:     notification.Text,
+									TextI18n: notification.TextI18n,
+								})
+							}
+						}
+
+						if response.Notifications, cErr = srv.controllers.UserNotifications.Create(ctx.Context(), list...); cErr != nil {
+							srv.components.Logger.Error().
+								Format("Failed to create a user notifications: '%s'. ", cErr).Write()
+
+							if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
+								srv.components.Logger.Error().
+									Format("The error response could not be recorded: '%s'. ", err).Write()
+
+								return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+							}
+
+							return
+						}
+					}
+
+					// Отправка ответа
+					{
+						if err = http_rest_api_io.Write(ctx.Status(fiber.StatusOK), response); err != nil {
+							srv.components.Logger.Error().
+								Format("The error response could not be recorded: '%s'. ", err).Write()
+
+							return http_rest_api_io.WriteError(ctx, common_errors.ResponseCouldNotBeRecorded_RestAPI())
+						}
+
+						return
+					}
+				}).Name(id)
+
+				var route = srv.app.GetRoute(id)
+
+				postmanGroup.AddItem(&postman.Items{
+					Name: "Создание нескольких пользовательских уведомлений. ",
+					Description: `
+Используется для создания нескольких пользовательских уведомлений.
+`,
+					Request: &postman.Request{
+						URL: &postman.URL{
+							Protocol: srv.conf.Postman.Protocol,
+							Host:     strings.Split(srv.conf.Postman.Host, "."),
+							Path:     strings.Split(route.Path, "/"),
+						},
+						Method:      postman.Method(route.Method),
+						Description: ``,
+						Body: &postman.Body{
+							Mode: "raw",
+							Raw: `
+{
+	"notifications": [
+		{
+			"type": "",
+			"sender_id": 0,
+			"recipient_id": 0,
+			"title": "",
+			"title_i18n": "",
+			"text": "",
+			"text_i18n": ""
+		}
+	]
+}
+`,
+							Options: &postman.BodyOptions{
+								Raw: postman.BodyOptionsRaw{
+									Language: postman.JSON,
+								},
+							},
+						},
+					},
+					Responses: []*postman.Response{
+						{
+							Name:   "Произошла внутренняя ошибка сервера. ",
+							Status: string(fiber.StatusInternalServerError),
+							Code:   fiber.StatusInternalServerError,
+							Body: `
+{
+    "code": 500,
+    "code_message": "Internal Server Error",
+    "status": "error",
+    "error": {
+        "id": "I-000001",
+        "type": "system",
+        "status": "error",
+        "message": "Internal server error. ",
+        "details": {}
+    }
+}
+`,
+						},
+						{
+							Name:   "Успешный ответ. ",
+							Status: string(fiber.StatusOK),
+							Code:   fiber.StatusOK,
+							Body: `
+{
+    "code": 200,
+    "code_message": "OK",
+    "status": "success",
+    "data": {}
+}
+`,
+						},
+					},
+				})
+			}
 		}
 	}
 

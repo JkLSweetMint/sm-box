@@ -40,20 +40,20 @@ type server struct {
 type controllers struct {
 	UserNotifications interface {
 		GetList(ctx context.Context,
-			userID common_types.ID,
+			recipientID common_types.ID,
 			search *objects.UserNotificationSearch,
 			pagination *objects.UserNotificationPagination,
 			filters *objects.UserNotificationFilters,
-		) (count int64, list []*models.UserNotificationInfo, cErr c_errors.RestAPI)
+		) (count, countNotRead int64, list []*models.UserNotificationInfo, cErr c_errors.RestAPI)
 
 		CreateOne(ctx context.Context, constructor *constructors.UserNotification) (notification *models.UserNotificationInfo, cErr c_errors.RestAPI)
 		Create(ctx context.Context, constructors ...*constructors.UserNotification) (notifications []*models.UserNotificationInfo, cErr c_errors.RestAPI)
 
-		RemoveOne(ctx context.Context, userID common_types.ID, id common_types.ID) (cErr c_errors.RestAPI)
-		Remove(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.RestAPI)
+		RemoveOne(ctx context.Context, recipientID common_types.ID, id common_types.ID) (cErr c_errors.RestAPI)
+		Remove(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (cErr c_errors.RestAPI)
 
-		ReadOne(ctx context.Context, userID common_types.ID, id common_types.ID) (cErr c_errors.RestAPI)
-		Read(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.RestAPI)
+		ReadOne(ctx context.Context, recipientID common_types.ID, id common_types.ID) (cErr c_errors.RestAPI)
+		Read(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (cErr c_errors.RestAPI)
 	}
 }
 

@@ -24,6 +24,7 @@ create table
 
     created_timestamp timestamptz not null default now(),
     read_timestamp    timestamptz,
+    removed_timestamp timestamptz,
 
     constraint check_title
         check (title is not null or title_i18n is not null),

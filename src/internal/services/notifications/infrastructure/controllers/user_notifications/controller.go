@@ -30,20 +30,20 @@ type Controller struct {
 type usecases struct {
 	UserNotifications interface {
 		GetList(ctx context.Context,
-			userID common_types.ID,
+			recipientID common_types.ID,
 			search *objects.UserNotificationSearch,
 			pagination *objects.UserNotificationPagination,
 			filters *objects.UserNotificationFilters,
-		) (count int64, list []*entities.UserNotification, cErr c_errors.Error)
+		) (count, countNotRead int64, list []*entities.UserNotification, cErr c_errors.Error)
 
 		CreateOne(ctx context.Context, constructor *constructors.UserNotification) (notification *entities.UserNotification, cErr c_errors.Error)
 		Create(ctx context.Context, constructors ...*constructors.UserNotification) (notifications []*entities.UserNotification, cErr c_errors.Error)
 
-		RemoveOne(ctx context.Context, userID common_types.ID, id common_types.ID) (cErr c_errors.Error)
-		Remove(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error)
+		RemoveOne(ctx context.Context, recipientID common_types.ID, id common_types.ID) (cErr c_errors.Error)
+		Remove(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error)
 
-		ReadOne(ctx context.Context, userID common_types.ID, id common_types.ID) (cErr c_errors.Error)
-		Read(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error)
+		ReadOne(ctx context.Context, recipientID common_types.ID, id common_types.ID) (cErr c_errors.Error)
+		Read(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error)
 	}
 }
 
@@ -108,24 +108,24 @@ func New(ctx context.Context) (controller *Controller, err error) {
 
 // GetList - получение списка пользовательских уведомлений.
 func (controller *Controller) GetList(ctx context.Context,
-	userID common_types.ID,
+	recipientID common_types.ID,
 	search *objects.UserNotificationSearch,
 	pagination *objects.UserNotificationPagination,
 	filters *objects.UserNotificationFilters,
-) (count int64, list []*models.UserNotificationInfo, cErr c_errors.Error) {
+) (count, countNotRead int64, list []*models.UserNotificationInfo, cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, userID, search, pagination, filters)
-		defer func() { trc.Error(cErr).FunctionCallFinished(count, list) }()
+		trc.FunctionCall(ctx, recipientID, search, pagination, filters)
+		defer func() { trc.Error(cErr).FunctionCallFinished(count, countNotRead, list) }()
 	}
 
 	// Выполнения инструкций
 	{
 		var notifications []*entities.UserNotification
 
-		if count, notifications, cErr = controller.usecases.UserNotifications.GetList(ctx, userID, search, pagination, filters); cErr != nil {
+		if count, countNotRead, notifications, cErr = controller.usecases.UserNotifications.GetList(ctx, recipientID, search, pagination, filters); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
@@ -212,18 +212,18 @@ func (controller *Controller) Create(ctx context.Context, constructors ...*const
 }
 
 // RemoveOne - удаление пользовательского уведомления.
-func (controller *Controller) RemoveOne(ctx context.Context, userID, id common_types.ID) (cErr c_errors.Error) {
+func (controller *Controller) RemoveOne(ctx context.Context, recipientID, id common_types.ID) (cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, userID, id)
+		trc.FunctionCall(ctx, recipientID, id)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	// Выполнения инструкций
 	{
-		if cErr = controller.usecases.UserNotifications.RemoveOne(ctx, userID, id); cErr != nil {
+		if cErr = controller.usecases.UserNotifications.RemoveOne(ctx, recipientID, id); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
@@ -235,18 +235,18 @@ func (controller *Controller) RemoveOne(ctx context.Context, userID, id common_t
 }
 
 // Remove - удаление пользовательских уведомлений.
-func (controller *Controller) Remove(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error) {
+func (controller *Controller) Remove(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, userID, ids)
+		trc.FunctionCall(ctx, recipientID, ids)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	// Выполнения инструкций
 	{
-		if cErr = controller.usecases.UserNotifications.Remove(ctx, userID, ids...); cErr != nil {
+		if cErr = controller.usecases.UserNotifications.Remove(ctx, recipientID, ids...); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
@@ -258,18 +258,18 @@ func (controller *Controller) Remove(ctx context.Context, userID common_types.ID
 }
 
 // ReadOne - чтение пользовательского уведомления.
-func (controller *Controller) ReadOne(ctx context.Context, userID, id common_types.ID) (cErr c_errors.Error) {
+func (controller *Controller) ReadOne(ctx context.Context, recipientID, id common_types.ID) (cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, userID, id)
+		trc.FunctionCall(ctx, recipientID, id)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	// Выполнения инструкций
 	{
-		if cErr = controller.usecases.UserNotifications.ReadOne(ctx, userID, id); cErr != nil {
+		if cErr = controller.usecases.UserNotifications.ReadOne(ctx, recipientID, id); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 
@@ -281,18 +281,18 @@ func (controller *Controller) ReadOne(ctx context.Context, userID, id common_typ
 }
 
 // Read - чтение пользовательских уведомлений.
-func (controller *Controller) Read(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error) {
+func (controller *Controller) Read(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelController)
 
-		trc.FunctionCall(ctx, userID, ids)
+		trc.FunctionCall(ctx, recipientID, ids)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	// Выполнения инструкций
 	{
-		if cErr = controller.usecases.UserNotifications.Read(ctx, userID, ids...); cErr != nil {
+		if cErr = controller.usecases.UserNotifications.Read(ctx, recipientID, ids...); cErr != nil {
 			controller.components.Logger.Error().
 				Format("The controller instructions were executed with an error: '%s'. ", cErr).Write()
 

@@ -22,20 +22,20 @@ type Adapter_HttpRestAPI struct {
 
 	controller interface {
 		GetList(ctx context.Context,
-			userID common_types.ID,
+			recipientID common_types.ID,
 			search *objects.UserNotificationSearch,
 			pagination *objects.UserNotificationPagination,
 			filters *objects.UserNotificationFilters,
-		) (count int64, list []*models.UserNotificationInfo, cErr c_errors.Error)
+		) (count, countNotRead int64, list []*models.UserNotificationInfo, cErr c_errors.Error)
 
 		CreateOne(ctx context.Context, constructor *constructors.UserNotification) (notification *models.UserNotificationInfo, cErr c_errors.Error)
 		Create(ctx context.Context, constructors ...*constructors.UserNotification) (notifications []*models.UserNotificationInfo, cErr c_errors.Error)
 
-		RemoveOne(ctx context.Context, userID common_types.ID, id common_types.ID) (cErr c_errors.Error)
-		Remove(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error)
+		RemoveOne(ctx context.Context, recipientID common_types.ID, id common_types.ID) (cErr c_errors.Error)
+		Remove(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error)
 
-		ReadOne(ctx context.Context, userID common_types.ID, id common_types.ID) (cErr c_errors.Error)
-		Read(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error)
+		ReadOne(ctx context.Context, recipientID common_types.ID, id common_types.ID) (cErr c_errors.Error)
+		Read(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (cErr c_errors.Error)
 	}
 
 	ctx context.Context
@@ -87,22 +87,22 @@ func New_RestAPI(ctx context.Context) (adapter *Adapter_HttpRestAPI, err error) 
 
 // GetList - получение списка пользовательских уведомлений.
 func (adapter *Adapter_HttpRestAPI) GetList(ctx context.Context,
-	userID common_types.ID,
+	recipientID common_types.ID,
 	search *objects.UserNotificationSearch,
 	pagination *objects.UserNotificationPagination,
 	filters *objects.UserNotificationFilters,
-) (count int64, list []*models.UserNotificationInfo, cErr c_errors.RestAPI) {
+) (count, countNotRead int64, list []*models.UserNotificationInfo, cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, userID, search, pagination, filters)
-		defer func() { trc.Error(cErr).FunctionCallFinished(count, list) }()
+		trc.FunctionCall(ctx, recipientID, search, pagination, filters)
+		defer func() { trc.Error(cErr).FunctionCallFinished(count, countNotRead, list) }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if count, list, proxyErr = adapter.controller.GetList(ctx, userID, search, pagination, filters); proxyErr != nil {
+	if count, countNotRead, list, proxyErr = adapter.controller.GetList(ctx, recipientID, search, pagination, filters); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().
@@ -160,18 +160,18 @@ func (adapter *Adapter_HttpRestAPI) Create(ctx context.Context, constructors ...
 }
 
 // RemoveOne - удаление пользовательского уведомления.
-func (adapter *Adapter_HttpRestAPI) RemoveOne(ctx context.Context, userID, id common_types.ID) (cErr c_errors.RestAPI) {
+func (adapter *Adapter_HttpRestAPI) RemoveOne(ctx context.Context, recipientID, id common_types.ID) (cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, userID, id)
+		trc.FunctionCall(ctx, recipientID, id)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if proxyErr = adapter.controller.RemoveOne(ctx, userID, id); proxyErr != nil {
+	if proxyErr = adapter.controller.RemoveOne(ctx, recipientID, id); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().
@@ -183,18 +183,18 @@ func (adapter *Adapter_HttpRestAPI) RemoveOne(ctx context.Context, userID, id co
 }
 
 // Remove - удаление пользовательских уведомлений.
-func (adapter *Adapter_HttpRestAPI) Remove(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.RestAPI) {
+func (adapter *Adapter_HttpRestAPI) Remove(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, userID, ids)
+		trc.FunctionCall(ctx, recipientID, ids)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if proxyErr = adapter.controller.Remove(ctx, userID, ids...); proxyErr != nil {
+	if proxyErr = adapter.controller.Remove(ctx, recipientID, ids...); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().
@@ -206,18 +206,18 @@ func (adapter *Adapter_HttpRestAPI) Remove(ctx context.Context, userID common_ty
 }
 
 // ReadOne - чтение пользовательского уведомления.
-func (adapter *Adapter_HttpRestAPI) ReadOne(ctx context.Context, userID, id common_types.ID) (cErr c_errors.RestAPI) {
+func (adapter *Adapter_HttpRestAPI) ReadOne(ctx context.Context, recipientID, id common_types.ID) (cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, userID, id)
+		trc.FunctionCall(ctx, recipientID, id)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if proxyErr = adapter.controller.ReadOne(ctx, userID, id); proxyErr != nil {
+	if proxyErr = adapter.controller.ReadOne(ctx, recipientID, id); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().
@@ -229,18 +229,18 @@ func (adapter *Adapter_HttpRestAPI) ReadOne(ctx context.Context, userID, id comm
 }
 
 // Read - чтение пользовательских уведомлений.
-func (adapter *Adapter_HttpRestAPI) Read(ctx context.Context, userID common_types.ID, ids ...common_types.ID) (cErr c_errors.RestAPI) {
+func (adapter *Adapter_HttpRestAPI) Read(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (cErr c_errors.RestAPI) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelAdapter)
 
-		trc.FunctionCall(ctx, userID, ids)
+		trc.FunctionCall(ctx, recipientID, ids)
 		defer func() { trc.Error(cErr).FunctionCallFinished() }()
 	}
 
 	var proxyErr c_errors.Error
 
-	if proxyErr = adapter.controller.Read(ctx, userID, ids...); proxyErr != nil {
+	if proxyErr = adapter.controller.Read(ctx, recipientID, ids...); proxyErr != nil {
 		cErr = c_errors.ToRestAPI(proxyErr)
 
 		adapter.components.Logger.Error().

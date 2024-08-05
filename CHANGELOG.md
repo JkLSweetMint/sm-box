@@ -1,5 +1,9 @@
 # ChangeLog:
 
+### v24.0.53:
+- Доработать валидации как валидация в сервисе авторизации;
+- Разработка [сервиса уведомлений](src/internal/services/notifications/service.go);
+
 ### v24.0.52:
 - Разработка [сервиса уведомлений](src/internal/services/notifications/service.go);
 

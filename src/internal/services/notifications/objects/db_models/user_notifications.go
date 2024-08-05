@@ -24,5 +24,6 @@ type (
 
 		CreatedTimestamp time.Time `db:"created_timestamp"`
 		ReadTimestamp    time.Time `db:"read_timestamp"`
+		RemovedTimestamp time.Time `db:"removed_timestamp"`
 	}
 )

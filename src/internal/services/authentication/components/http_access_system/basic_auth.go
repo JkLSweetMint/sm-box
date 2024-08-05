@@ -15,6 +15,8 @@ import (
 	"sm-box/internal/services/users/objects"
 	users_models "sm-box/internal/services/users/objects/models"
 	c_errors "sm-box/pkg/errors"
+	err_details "sm-box/pkg/errors/entities/details"
+	err_messages "sm-box/pkg/errors/entities/messages"
 	http_rest_api_io "sm-box/pkg/http/rest_api/io"
 	"time"
 )
@@ -891,7 +893,10 @@ func (acc *accessSystem) basicAuthenticationProcessingAccessToken(ctx fiber.Ctx)
 					Field("raw", token.Raw).Write()
 
 				cErr = srv_errors.ValidityPeriodOfUserTokenHasNotStarted()
-				cErr.Details().Set("not_before", token.NotBefore.Format(time.RFC3339Nano))
+				cErr.Details().SetField(
+					new(err_details.FieldKey).Add("not_before"),
+					new(err_messages.TextMessage).Text(token.NotBefore.Format(time.RFC3339Nano)),
+				)
 
 				return
 			}

@@ -9,7 +9,7 @@ import (
 	"sm-box/pkg/errors/types"
 )
 
-// E-100001
+// APP-E-100001
 var (
 	ProjectNotFound = c_errors.Constructor[c_errors.Error]{
 		ID:     "APP-E-100001",
@@ -27,7 +27,7 @@ var (
 	}).Build()
 )
 
-// E-100002
+// APP-E-100002
 var (
 	ListUserProjectsCouldNotBeRetrieved = c_errors.Constructor[c_errors.Error]{
 		ID:     "APP-E-100002",
@@ -45,7 +45,7 @@ var (
 	}).Build()
 )
 
-// E-100003
+// APP-E-100003
 var (
 	ProjectHasAlreadyBeenSelected = c_errors.Constructor[c_errors.Error]{
 		ID:     "APP-E-100003",
@@ -63,7 +63,7 @@ var (
 	}).Build()
 )
 
-// E-100004
+// APP-E-100004
 var (
 	NotAccessToProject = c_errors.Constructor[c_errors.Error]{
 		ID:     "APP-E-100004",

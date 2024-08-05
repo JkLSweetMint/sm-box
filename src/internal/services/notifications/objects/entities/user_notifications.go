@@ -26,6 +26,7 @@ type (
 
 		CreatedTimestamp time.Time
 		ReadTimestamp    time.Time
+		RemovedTimestamp time.Time
 	}
 )
 
@@ -69,6 +70,7 @@ func (entity *UserNotification) ToModel() (model *models.UserNotificationInfo) {
 
 		CreatedTimestamp: entity.CreatedTimestamp,
 		ReadTimestamp:    entity.ReadTimestamp,
+		RemovedTimestamp: entity.RemovedTimestamp,
 	}
 
 	return

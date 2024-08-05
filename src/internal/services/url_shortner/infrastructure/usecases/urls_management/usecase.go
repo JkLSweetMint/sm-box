@@ -16,6 +16,8 @@ import (
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
+	err_details "sm-box/pkg/errors/entities/details"
+	err_messages "sm-box/pkg/errors/entities/messages"
 	"strings"
 )
 
@@ -178,6 +180,8 @@ func (usecase *UseCase) GetList(ctx context.Context,
 		if sort != nil {
 			sort.Key = strings.TrimSpace(sort.Key)
 
+			sort.Type = strings.ToLower(strings.TrimSpace(sort.Type))
+
 			if sort.Key == "" {
 				sort = nil
 			}
@@ -186,74 +190,116 @@ func (usecase *UseCase) GetList(ctx context.Context,
 
 	// Валидация
 	{
-		if sort != nil {
-			sort.Type = strings.ToLower(strings.TrimSpace(sort.Type))
+		// Сортировка
+		{
+			if sort != nil {
+				var tmpCErr c_errors.Error
 
-			if sort.Type != "asc" && sort.Type != "desc" {
-				usecase.components.Logger.Error().
-					Text("An invalid sort type value was passed. ").Write()
+				if sort.Type != "asc" && sort.Type != "desc" {
+					if tmpCErr == nil {
+						tmpCErr = common_errors.InvalidSortValue()
+					}
 
-				cErr = common_errors.InvalidSortValue()
-				cErr.Details().Set("sort_type", "Invalid value. ")
+					usecase.components.Logger.Error().
+						Text("An invalid sort type value was passed. ").Write()
 
-				return
+					tmpCErr.Details().SetField(
+						new(err_details.FieldKey).Add("sort_type"),
+						new(err_messages.TextMessage).Text("Invalid value. "),
+					)
+
+					return
+				}
+
+				if tmpCErr != nil {
+					cErr = tmpCErr
+					return
+				}
 			}
 		}
 
-		if filters != nil {
-			if filters.StartActiveType != nil {
-				var v = *filters.StartActiveType
+		// Фильтрация
+		{
+			if filters != nil {
+				var tmpCErr c_errors.Error
 
-				if v != common_types.ComparisonOperatorsEqual &&
-					v != common_types.ComparisonOperatorsNotEqual &&
-					v != common_types.ComparisonOperatorsGreater &&
-					v != common_types.ComparisonOperatorsLess &&
-					v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
-					v != common_types.ComparisonOperatorsLessThanOrEqual {
-					usecase.components.Logger.Error().
-						Text("An invalid filter value was passed. ").Write()
+				if filters.StartActiveType != nil {
+					var v = *filters.StartActiveType
 
-					cErr = common_errors.InvalidFilterValue()
-					cErr.Details().Set("filter_start_active_type", "Invalid value. ")
+					if v != common_types.ComparisonOperatorsEqual &&
+						v != common_types.ComparisonOperatorsNotEqual &&
+						v != common_types.ComparisonOperatorsGreater &&
+						v != common_types.ComparisonOperatorsLess &&
+						v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
+						v != common_types.ComparisonOperatorsLessThanOrEqual {
+						if tmpCErr == nil {
+							tmpCErr = common_errors.InvalidFilterValue()
+						}
 
-					return
+						usecase.components.Logger.Error().
+							Text("An invalid filter value was passed. ").Write()
+
+						tmpCErr.Details().SetField(
+							new(err_details.FieldKey).Add("filter_start_active_type"),
+							new(err_messages.TextMessage).Text("Invalid value. "),
+						)
+
+						return
+					}
 				}
-			}
 
-			if filters.EndActiveType != nil {
-				var v = *filters.EndActiveType
+				if filters.EndActiveType != nil {
+					var v = *filters.EndActiveType
 
-				if v != common_types.ComparisonOperatorsEqual &&
-					v != common_types.ComparisonOperatorsNotEqual &&
-					v != common_types.ComparisonOperatorsGreater &&
-					v != common_types.ComparisonOperatorsLess &&
-					v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
-					v != common_types.ComparisonOperatorsLessThanOrEqual {
-					usecase.components.Logger.Error().
-						Text("An invalid filter value was passed. ").Write()
+					if v != common_types.ComparisonOperatorsEqual &&
+						v != common_types.ComparisonOperatorsNotEqual &&
+						v != common_types.ComparisonOperatorsGreater &&
+						v != common_types.ComparisonOperatorsLess &&
+						v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
+						v != common_types.ComparisonOperatorsLessThanOrEqual {
+						if tmpCErr == nil {
+							tmpCErr = common_errors.InvalidFilterValue()
+						}
 
-					cErr = common_errors.InvalidFilterValue()
-					cErr.Details().Set("filter_end_active_type", "Invalid value. ")
+						usecase.components.Logger.Error().
+							Text("An invalid filter value was passed. ").Write()
 
-					return
+						tmpCErr.Details().SetField(
+							new(err_details.FieldKey).Add("filter_end_active_type"),
+							new(err_messages.TextMessage).Text("Invalid value. "),
+						)
+
+						return
+					}
 				}
-			}
 
-			if filters.NumberOfUsesType != nil {
-				var v = *filters.NumberOfUsesType
+				if filters.NumberOfUsesType != nil {
+					var v = *filters.NumberOfUsesType
 
-				if v != common_types.ComparisonOperatorsEqual &&
-					v != common_types.ComparisonOperatorsNotEqual &&
-					v != common_types.ComparisonOperatorsGreater &&
-					v != common_types.ComparisonOperatorsLess &&
-					v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
-					v != common_types.ComparisonOperatorsLessThanOrEqual {
-					usecase.components.Logger.Error().
-						Text("An invalid filter value was passed. ").Write()
+					if v != common_types.ComparisonOperatorsEqual &&
+						v != common_types.ComparisonOperatorsNotEqual &&
+						v != common_types.ComparisonOperatorsGreater &&
+						v != common_types.ComparisonOperatorsLess &&
+						v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
+						v != common_types.ComparisonOperatorsLessThanOrEqual {
+						if tmpCErr == nil {
+							tmpCErr = common_errors.InvalidFilterValue()
+						}
 
-					cErr = common_errors.InvalidFilterValue()
-					cErr.Details().Set("filter_end_active_type", "Invalid value. ")
+						usecase.components.Logger.Error().
+							Text("An invalid filter value was passed. ").Write()
 
+						tmpCErr.Details().SetField(
+							new(err_details.FieldKey).Add("filter_end_active_type"),
+							new(err_messages.TextMessage).Text("Invalid value. "),
+						)
+
+						return
+					}
+				}
+
+				if tmpCErr != nil {
+					cErr = tmpCErr
 					return
 				}
 			}
@@ -401,60 +447,103 @@ func (usecase *UseCase) GetUsageHistory(ctx context.Context, id common_types.ID,
 			Field("filters", filters).Write()
 	}()
 
-	// Валидация
+	// Подготовка данных
 	{
 		if sort != nil {
 			sort.Key = strings.TrimSpace(sort.Key)
 
+			sort.Type = strings.ToLower(strings.TrimSpace(sort.Type))
+
 			if sort.Key == "" {
 				sort = nil
-			} else {
-				sort.Type = strings.ToLower(strings.TrimSpace(sort.Type))
+			}
+		}
+	}
+
+	// Валидация
+	{
+		// Сортировка
+		{
+			if sort != nil {
+				var tmpCErr c_errors.Error
 
 				if sort.Type != "asc" && sort.Type != "desc" {
+					if tmpCErr == nil {
+						tmpCErr = common_errors.InvalidSortValue()
+					}
+
 					usecase.components.Logger.Error().
 						Text("An invalid sort type value was passed. ").Write()
 
-					cErr = common_errors.InvalidSortValue()
-					cErr.Details().Set("sort_type", "Invalid value. ")
+					tmpCErr.Details().SetField(
+						new(err_details.FieldKey).Add("sort_type"),
+						new(err_messages.TextMessage).Text("Invalid value. "),
+					)
 
+					return
+				}
+
+				if tmpCErr != nil {
+					cErr = tmpCErr
 					return
 				}
 			}
 		}
 
-		if filters != nil {
-			if filters.Timestamp != nil {
-				var v = *filters.TimestampType
+		// Фильтрация
+		{
+			if filters != nil {
+				var tmpCErr c_errors.Error
 
-				if v != common_types.ComparisonOperatorsEqual &&
-					v != common_types.ComparisonOperatorsNotEqual &&
-					v != common_types.ComparisonOperatorsGreater &&
-					v != common_types.ComparisonOperatorsLess &&
-					v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
-					v != common_types.ComparisonOperatorsLessThanOrEqual {
-					usecase.components.Logger.Error().
-						Text("An invalid filter value was passed. ").Write()
+				if filters.Timestamp != nil {
+					var v = *filters.TimestampType
 
-					cErr = common_errors.InvalidFilterValue()
-					cErr.Details().Set("timestamp_type", "Invalid value. ")
+					if v != common_types.ComparisonOperatorsEqual &&
+						v != common_types.ComparisonOperatorsNotEqual &&
+						v != common_types.ComparisonOperatorsGreater &&
+						v != common_types.ComparisonOperatorsLess &&
+						v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
+						v != common_types.ComparisonOperatorsLessThanOrEqual {
+						if tmpCErr == nil {
+							tmpCErr = common_errors.InvalidFilterValue()
+						}
 
-					return
+						usecase.components.Logger.Error().
+							Text("An invalid filter value was passed. ").Write()
+
+						tmpCErr.Details().SetField(
+							new(err_details.FieldKey).Add("timestamp_type"),
+							new(err_messages.TextMessage).Text("Invalid value. "),
+						)
+
+						return
+					}
 				}
-			}
 
-			if filters.Status != nil {
-				var v = *filters.Status
+				if filters.Status != nil {
+					var v = *filters.Status
 
-				if v != types.ShortUrlUsageHistoryStatusFailed &&
-					v != types.ShortUrlUsageHistoryStatusSuccess &&
-					v != types.ShortUrlUsageHistoryStatusForbidden {
-					usecase.components.Logger.Error().
-						Text("An invalid filter value was passed. ").Write()
+					if v != types.ShortUrlUsageHistoryStatusFailed &&
+						v != types.ShortUrlUsageHistoryStatusSuccess &&
+						v != types.ShortUrlUsageHistoryStatusForbidden {
+						if tmpCErr == nil {
+							tmpCErr = common_errors.InvalidFilterValue()
+						}
 
-					cErr = common_errors.InvalidFilterValue()
-					cErr.Details().Set("status", "Invalid value. ")
+						usecase.components.Logger.Error().
+							Text("An invalid filter value was passed. ").Write()
 
+						tmpCErr.Details().SetField(
+							new(err_details.FieldKey).Add("status"),
+							new(err_messages.TextMessage).Text("Invalid value. "),
+						)
+
+						return
+					}
+				}
+
+				if tmpCErr != nil {
+					cErr = tmpCErr
 					return
 				}
 			}
@@ -512,60 +601,103 @@ func (usecase *UseCase) GetUsageHistoryByReduction(ctx context.Context, reductio
 			Field("filters", filters).Write()
 	}()
 
-	// Валидация
+	// Подготовка данных
 	{
 		if sort != nil {
 			sort.Key = strings.TrimSpace(sort.Key)
 
+			sort.Type = strings.ToLower(strings.TrimSpace(sort.Type))
+
 			if sort.Key == "" {
 				sort = nil
-			} else {
-				sort.Type = strings.ToLower(strings.TrimSpace(sort.Type))
+			}
+		}
+	}
+
+	// Валидация
+	{
+		// Сортировка
+		{
+			if sort != nil {
+				var tmpCErr c_errors.Error
 
 				if sort.Type != "asc" && sort.Type != "desc" {
+					if tmpCErr == nil {
+						tmpCErr = common_errors.InvalidSortValue()
+					}
+
 					usecase.components.Logger.Error().
 						Text("An invalid sort type value was passed. ").Write()
 
-					cErr = common_errors.InvalidSortValue()
-					cErr.Details().Set("sort_type", "Invalid value. ")
+					tmpCErr.Details().SetField(
+						new(err_details.FieldKey).Add("sort_type"),
+						new(err_messages.TextMessage).Text("Invalid value. "),
+					)
 
+					return
+				}
+
+				if tmpCErr != nil {
+					cErr = tmpCErr
 					return
 				}
 			}
 		}
 
-		if filters != nil {
-			if filters.Timestamp != nil {
-				var v = *filters.TimestampType
+		// Фильтрация
+		{
+			if filters != nil {
+				var tmpCErr c_errors.Error
 
-				if v != common_types.ComparisonOperatorsEqual &&
-					v != common_types.ComparisonOperatorsNotEqual &&
-					v != common_types.ComparisonOperatorsGreater &&
-					v != common_types.ComparisonOperatorsLess &&
-					v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
-					v != common_types.ComparisonOperatorsLessThanOrEqual {
-					usecase.components.Logger.Error().
-						Text("An invalid filter value was passed. ").Write()
+				if filters.Timestamp != nil {
+					var v = *filters.TimestampType
 
-					cErr = common_errors.InvalidFilterValue()
-					cErr.Details().Set("timestamp_type", "Invalid value. ")
+					if v != common_types.ComparisonOperatorsEqual &&
+						v != common_types.ComparisonOperatorsNotEqual &&
+						v != common_types.ComparisonOperatorsGreater &&
+						v != common_types.ComparisonOperatorsLess &&
+						v != common_types.ComparisonOperatorsGreaterThanOrEqual &&
+						v != common_types.ComparisonOperatorsLessThanOrEqual {
+						if tmpCErr == nil {
+							tmpCErr = common_errors.InvalidFilterValue()
+						}
 
-					return
+						usecase.components.Logger.Error().
+							Text("An invalid filter value was passed. ").Write()
+
+						tmpCErr.Details().SetField(
+							new(err_details.FieldKey).Add("timestamp_type"),
+							new(err_messages.TextMessage).Text("Invalid value. "),
+						)
+
+						return
+					}
 				}
-			}
 
-			if filters.Status != nil {
-				var v = *filters.Status
+				if filters.Status != nil {
+					var v = *filters.Status
 
-				if v != types.ShortUrlUsageHistoryStatusFailed &&
-					v != types.ShortUrlUsageHistoryStatusSuccess &&
-					v != types.ShortUrlUsageHistoryStatusForbidden {
-					usecase.components.Logger.Error().
-						Text("An invalid filter value was passed. ").Write()
+					if v != types.ShortUrlUsageHistoryStatusFailed &&
+						v != types.ShortUrlUsageHistoryStatusSuccess &&
+						v != types.ShortUrlUsageHistoryStatusForbidden {
+						if tmpCErr == nil {
+							tmpCErr = common_errors.InvalidFilterValue()
+						}
 
-					cErr = common_errors.InvalidFilterValue()
-					cErr.Details().Set("status", "Invalid value. ")
+						usecase.components.Logger.Error().
+							Text("An invalid filter value was passed. ").Write()
 
+						tmpCErr.Details().SetField(
+							new(err_details.FieldKey).Add("status"),
+							new(err_messages.TextMessage).Text("Invalid value. "),
+						)
+
+						return
+					}
+				}
+
+				if cErr != nil {
+					cErr = tmpCErr
 					return
 				}
 			}
@@ -623,33 +755,58 @@ func (usecase *UseCase) CreateOne(ctx context.Context, constructor *constructors
 
 	// Валидация
 	{
+		var tmpCErr c_errors.Error
+
 		if constructor.Source = strings.TrimSpace(constructor.Source); constructor.Source == "" {
+			if tmpCErr == nil {
+				tmpCErr = common_errors.InvalidArguments()
+			}
+
 			usecase.components.Logger.Error().
 				Text("An invalid type value was passed. ").Write()
 
-			cErr = common_errors.InvalidArguments()
-			cErr.Details().Set("source", "Is empty. ")
+			tmpCErr.Details().SetField(
+				new(err_details.FieldKey).Add("source"),
+				new(err_messages.TextMessage).Text("Is empty. "),
+			)
 
 			return
 		}
 
 		if constructor.Properties.NumberOfUses < 0 {
+			if tmpCErr == nil {
+				tmpCErr = common_errors.InvalidArguments()
+			}
+
 			usecase.components.Logger.Error().
 				Text("An invalid type value was passed. ").Write()
 
-			cErr = common_errors.InvalidArguments()
-			cErr.Details().Set("number_of_uses", "Negative value. ")
+			tmpCErr.Details().SetField(
+				new(err_details.FieldKey).Add("number_of_uses"),
+				new(err_messages.TextMessage).Text("Negative value. "),
+			)
 
 			return
 		}
 
 		if constructor.Properties.Type != types.ShortUrlTypeProxy && constructor.Properties.Type != types.ShortUrlTypeRedirect {
+			if tmpCErr == nil {
+				tmpCErr = common_errors.InvalidArguments()
+			}
+
 			usecase.components.Logger.Error().
 				Text("An invalid type value was passed. ").Write()
 
-			cErr = common_errors.InvalidArguments()
-			cErr.Details().Set("type", "Invalid value. ")
+			tmpCErr.Details().SetField(
+				new(err_details.FieldKey).Add("type"),
+				new(err_messages.TextMessage).Text("Invalid value. "),
+			)
 
+			return
+		}
+
+		if tmpCErr != nil {
+			cErr = tmpCErr
 			return
 		}
 	}
@@ -1261,8 +1418,15 @@ func (usecase *UseCase) UpdateAccesses(ctx context.Context, id common_types.ID, 
 				Text("An invalid type value was passed. ").Write()
 
 			cErr = common_errors.InvalidArguments()
-			cErr.Details().Set("roles_id", "Is empty. ")
-			cErr.Details().Set("permissions_id", "Is empty. ")
+
+			cErr.Details().SetField(
+				new(err_details.FieldKey).Add("roles_id"),
+				new(err_messages.TextMessage).Text("Is empty. "),
+			)
+			cErr.Details().SetField(
+				new(err_details.FieldKey).Add("roles_id"),
+				new(err_messages.TextMessage).Text("Is empty. "),
+			)
 
 			return
 		}
@@ -1338,8 +1502,15 @@ func (usecase *UseCase) UpdateAccessesByReduction(ctx context.Context, reduction
 				Text("An invalid type value was passed. ").Write()
 
 			cErr = common_errors.InvalidArguments()
-			cErr.Details().Set("roles_id", "Is empty. ")
-			cErr.Details().Set("permissions_id", "Is empty. ")
+
+			cErr.Details().SetField(
+				new(err_details.FieldKey).Add("roles_id"),
+				new(err_messages.TextMessage).Text("Is empty. "),
+			)
+			cErr.Details().SetField(
+				new(err_details.FieldKey).Add("permissions_id"),
+				new(err_messages.TextMessage).Text("Is empty. "),
+			)
 
 			return
 		}

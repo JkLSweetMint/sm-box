@@ -13,6 +13,8 @@ import (
 	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/tracer"
 	c_errors "sm-box/pkg/errors"
+	err_details "sm-box/pkg/errors/entities/details"
+	err_messages "sm-box/pkg/errors/entities/messages"
 	"sm-box/pkg/http/postman"
 	http_rest_api_io "sm-box/pkg/http/rest_api/io"
 	"strings"
@@ -1048,7 +1050,11 @@ func (srv *server) registerRoutes() error {
 							Text("Invalid arguments were received. ").Write()
 
 						var cErr = common_errors.InvalidArguments()
-						cErr.Details().Set("properties", "Is empty. ")
+
+						cErr.Details().SetField(
+							new(err_details.FieldKey).Add("properties"),
+							new(err_messages.TextMessage).Text("Is empty. "),
+						)
 
 						if err = http_rest_api_io.WriteError(ctx, c_errors.ToRestAPI(cErr)); err != nil {
 							srv.components.Logger.Error().

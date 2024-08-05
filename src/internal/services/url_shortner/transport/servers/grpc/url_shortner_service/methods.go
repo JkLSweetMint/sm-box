@@ -9,6 +9,8 @@ import (
 	"sm-box/internal/services/url_shortner/objects/models"
 	"sm-box/internal/services/url_shortner/objects/types"
 	"sm-box/pkg/core/components/tracer"
+	err_details "sm-box/pkg/errors/entities/details"
+	err_messages "sm-box/pkg/errors/entities/messages"
 	pb "sm-box/transport/proto/pb/golang/url_shortner-service"
 )
 
@@ -31,7 +33,10 @@ func (srv *server) CreateOne(ctx context.Context, request *pb.UrlShortnerCreateR
 				Text("Invalid arguments were received. ").Write()
 
 			var cErr = common_errors.InvalidArguments()
-			cErr.Details().Set("properties", "Is empty. ")
+			cErr.Details().SetField(
+				new(err_details.FieldKey).Add("properties"),
+				new(err_messages.TextMessage).Text("Is empty. "),
+			)
 
 			err = cErr
 			return
