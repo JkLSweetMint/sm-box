@@ -818,7 +818,10 @@ func (usecase *UseCase) SetTokenProject(ctx context.Context, rawSessionToken str
 					Params: currentSessionToken.Params,
 				},
 				UserInfo: &entities.JwtAccessTokenUserInfo{
-					Accesses: user.Accesses,
+					Accesses: &entities.JwtAccessTokenUserInfoAccesses{
+						Roles:       user.Accesses.RolesIDs(),
+						Permissions: user.Accesses.PermissionsIDs(),
+					},
 				},
 			}
 

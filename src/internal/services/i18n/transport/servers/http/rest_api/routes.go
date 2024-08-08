@@ -1,7 +1,7 @@
 package http_rest_api
 
 import (
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	common_errors "sm-box/internal/common/errors"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
@@ -40,7 +40,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Get("/select", func(ctx fiber.Ctx) (err error) {
+			router.Get("/select", func(ctx *fiber.Ctx) (err error) {
 				type Response struct {
 					List    []*models.Language `json:"list"    xml:"List>Item"`
 					Current string             `json:"current" xml:"current,attr"`
@@ -221,7 +221,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Post("/set", func(ctx fiber.Ctx) (err error) {
+			router.Post("/set", func(ctx *fiber.Ctx) (err error) {
 				type Request struct {
 					Code string `json:"code"`
 				}
@@ -234,7 +234,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Body(request); err != nil {
+					if err = ctx.BodyParser(request); err != nil {
 						srv.components.Logger.Error().
 							Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -400,7 +400,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Get("/list", func(ctx fiber.Ctx) (err error) {
+				router.Get("/list", func(ctx *fiber.Ctx) (err error) {
 					type Response struct {
 						List []*models.Language `json:"list" xml:"List"`
 					}
@@ -540,7 +540,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Delete("/", func(ctx fiber.Ctx) (err error) {
+				router.Delete("/", func(ctx *fiber.Ctx) (err error) {
 					type Request struct {
 						Code string `json:"code"`
 					}
@@ -553,7 +553,7 @@ func (srv *server) registerRoutes() error {
 
 					// Чтение данных
 					{
-						if err = ctx.Bind().Body(request); err != nil {
+						if err = ctx.BodyParser(request); err != nil {
 							srv.components.Logger.Error().
 								Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -663,7 +663,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Put("/", func(ctx fiber.Ctx) (err error) {
+				router.Put("/", func(ctx *fiber.Ctx) (err error) {
 					type Request struct {
 						Code string `json:"code"`
 						Name string `json:"name"`
@@ -677,7 +677,7 @@ func (srv *server) registerRoutes() error {
 
 					// Чтение данных
 					{
-						if err = ctx.Bind().Body(request); err != nil {
+						if err = ctx.BodyParser(request); err != nil {
 							srv.components.Logger.Error().
 								Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -787,7 +787,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Put("/", func(ctx fiber.Ctx) (err error) {
+				router.Put("/", func(ctx *fiber.Ctx) (err error) {
 					type Request struct {
 						Code string `json:"code"`
 						Name string `json:"name"`
@@ -801,7 +801,7 @@ func (srv *server) registerRoutes() error {
 
 					// Чтение данных
 					{
-						if err = ctx.Bind().Body(request); err != nil {
+						if err = ctx.BodyParser(request); err != nil {
 							srv.components.Logger.Error().
 								Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -911,7 +911,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Post("/activate", func(ctx fiber.Ctx) (err error) {
+				router.Post("/activate", func(ctx *fiber.Ctx) (err error) {
 					type Request struct {
 						Code string `json:"code"`
 					}
@@ -924,7 +924,7 @@ func (srv *server) registerRoutes() error {
 
 					// Чтение данных
 					{
-						if err = ctx.Bind().Body(request); err != nil {
+						if err = ctx.BodyParser(request); err != nil {
 							srv.components.Logger.Error().
 								Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -1034,7 +1034,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Post("/deactivate", func(ctx fiber.Ctx) (err error) {
+				router.Post("/deactivate", func(ctx *fiber.Ctx) (err error) {
 					type Request struct {
 						Code string `json:"code"`
 					}
@@ -1047,7 +1047,7 @@ func (srv *server) registerRoutes() error {
 
 					// Чтение данных
 					{
-						if err = ctx.Bind().Body(request); err != nil {
+						if err = ctx.BodyParser(request); err != nil {
 							srv.components.Logger.Error().
 								Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -1166,12 +1166,12 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Get("/dictionary", func(ctx fiber.Ctx) (err error) {
+			router.Get("/dictionary", func(ctx *fiber.Ctx) (err error) {
 				type Response struct {
 					Dictionary models.Dictionary `json:"dictionary" xml:"Dictionary"`
 				}
 				type QueryArgs struct {
-					Paths []string `uri:"paths"`
+					Paths []string `params:"paths"`
 				}
 
 				var (
@@ -1181,7 +1181,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Query(queryArgs); err != nil {
+					if err = ctx.QueryParser(queryArgs); err != nil {
 						srv.components.Logger.Error().
 							Format("The request body data could not be read: '%s'. ", err).Write()
 

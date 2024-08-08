@@ -2,7 +2,7 @@ package http_access_system
 
 import (
 	"context"
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	http_routes_repository "sm-box/internal/services/authentication/components/http_access_system/repositories/http_routes"
 	http_routes_redis_repository "sm-box/internal/services/authentication/components/http_access_system/repositories/http_routes_redis"
 	jwt_tokens_repository "sm-box/internal/services/authentication/components/http_access_system/repositories/jwt_tokens"
@@ -18,7 +18,7 @@ const (
 
 // AccessSystem - описание компонента системы доступа.
 type AccessSystem interface {
-	BasicAuthentication(ctx fiber.Ctx) (err error)
+	BasicAuthentication(ctx *fiber.Ctx) (err error)
 }
 
 // New - создание компонента.

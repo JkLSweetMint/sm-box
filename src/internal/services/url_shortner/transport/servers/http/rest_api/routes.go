@@ -1,7 +1,7 @@
 package http_rest_api
 
 import (
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
 	common_errors "sm-box/internal/common/errors"
@@ -43,7 +43,7 @@ func (srv *server) registerRoutes() error {
 			route fiber.Route
 		)
 
-		router.All("/use/*", func(ctx fiber.Ctx) (err error) {
+		router.All("/use/*", func(ctx *fiber.Ctx) (err error) {
 			var (
 				reduction string
 				token     *authentication_entities.JwtSessionToken
@@ -59,7 +59,7 @@ func (srv *server) registerRoutes() error {
 							Format("Failed to get session token data: '%s'. ", err).
 							Field("raw", raw).Write()
 
-						err = ctx.Redirect().To("/errors/403")
+						err = ctx.Redirect("/errors/403")
 						return
 					}
 				}
@@ -87,15 +87,15 @@ func (srv *server) registerRoutes() error {
 
 						switch status {
 						case types.ShortUrlUsageHistoryStatusForbidden:
-							return ctx.Redirect().To("/errors/403")
+							return ctx.Redirect("/errors/403")
 						case types.ShortUrlUsageHistoryStatusFailed:
-							return ctx.Redirect().To("/errors/50x")
+							return ctx.Redirect("/errors/50x")
 						}
 
 						if cErr.StatusCode() >= 500 {
-							return ctx.Redirect().To("/errors/50x")
+							return ctx.Redirect("/errors/50x")
 						} else if cErr.StatusCode() == 403 {
-							return ctx.Redirect().To("/errors/403")
+							return ctx.Redirect("/errors/403")
 						}
 
 						if err = http_rest_api_io.WriteError(ctx, cErr); err != nil {
@@ -110,9 +110,9 @@ func (srv *server) registerRoutes() error {
 
 					switch status {
 					case types.ShortUrlUsageHistoryStatusForbidden:
-						return ctx.Redirect().To("/errors/403")
+						return ctx.Redirect("/errors/403")
 					case types.ShortUrlUsageHistoryStatusFailed:
-						return ctx.Redirect().To("/errors/50x")
+						return ctx.Redirect("/errors/50x")
 					}
 				}
 
@@ -121,12 +121,12 @@ func (srv *server) registerRoutes() error {
 					switch url.Properties.Type {
 					case types.ShortUrlTypeRedirect:
 						{
-							if err = ctx.Redirect().To(url.Source); err != nil {
+							if err = ctx.Redirect(url.Source); err != nil {
 								srv.components.Logger.Warn().
 									Format("Failed to redirect a remote resource: '%s'. ", err).
 									Field("url", url).Write()
 
-								err = ctx.Redirect().To("/errors/50x")
+								err = ctx.Redirect("/errors/50x")
 								return
 							}
 						}
@@ -141,7 +141,7 @@ func (srv *server) registerRoutes() error {
 									Format("Failed to proxy a remote resource: '%s'. ", err).
 									Field("url", url).Write()
 
-								err = ctx.Redirect().To("/errors/50x")
+								err = ctx.Redirect("/errors/50x")
 								return
 							}
 						}
@@ -166,7 +166,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Get("/list", func(ctx fiber.Ctx) (err error) {
+			router.Get("/list", func(ctx *fiber.Ctx) (err error) {
 				type Response struct {
 					Count int64                  `json:"count" xml:"count,attr"`
 					List  []*models.ShortUrlInfo `json:"list"  xml:"List"`
@@ -200,7 +200,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Query(queryArgs); err != nil {
+					if err = ctx.QueryParser(queryArgs); err != nil {
 						srv.components.Logger.Error().
 							Format("The request query data could not be read: '%s'. ", err).Write()
 
@@ -520,22 +520,22 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Get("/by_id/:id", func(ctx fiber.Ctx) (err error) {
+			router.Get("/by_id/:id", func(ctx *fiber.Ctx) (err error) {
 				type Response struct {
 					Url *models.ShortUrlInfo `json:"url" xml:"Url"`
 				}
-				type UriArgs struct {
-					ID common_types.ID `uri:"id"`
+				type UriParams struct {
+					ID common_types.ID `params:"id"`
 				}
 
 				var (
-					response = new(Response)
-					uriArgs  = new(UriArgs)
+					response  = new(Response)
+					uriParams = new(UriParams)
 				)
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().URI(uriArgs); err != nil {
+					if err = ctx.ParamsParser(uriParams); err != nil {
 						srv.components.Logger.Error().
 							Format("The request uri data could not be read: '%s'. ", err).Write()
 
@@ -564,7 +564,7 @@ func (srv *server) registerRoutes() error {
 				{
 					var cErr c_errors.RestAPI
 
-					if response.Url, cErr = srv.controllers.UrlsManagement.GetOne(ctx.Context(), uriArgs.ID); cErr != nil {
+					if response.Url, cErr = srv.controllers.UrlsManagement.GetOne(ctx.Context(), uriParams.ID); cErr != nil {
 						srv.components.Logger.Error().
 							Format("Could not get the short url data by id: '%s'. ", cErr).Write()
 
@@ -676,22 +676,22 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Get("/by_reduction/:reduction", func(ctx fiber.Ctx) (err error) {
+			router.Get("/by_reduction/:reduction", func(ctx *fiber.Ctx) (err error) {
 				type Response struct {
 					Url *models.ShortUrlInfo `json:"url" xml:"Url"`
 				}
-				type UriArgs struct {
-					Reduction string `uri:"reduction"`
+				type UriParams struct {
+					Reduction string `params:"reduction"`
 				}
 
 				var (
-					response = new(Response)
-					uriArgs  = new(UriArgs)
+					response  = new(Response)
+					uriParams = new(UriParams)
 				)
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().URI(uriArgs); err != nil {
+					if err = ctx.ParamsParser(uriParams); err != nil {
 						srv.components.Logger.Error().
 							Format("The request uri data could not be read: '%s'. ", err).Write()
 
@@ -720,7 +720,7 @@ func (srv *server) registerRoutes() error {
 				{
 					var cErr c_errors.RestAPI
 
-					if response.Url, cErr = srv.controllers.UrlsManagement.GetOneByReduction(ctx.Context(), uriArgs.Reduction); cErr != nil {
+					if response.Url, cErr = srv.controllers.UrlsManagement.GetOneByReduction(ctx.Context(), uriParams.Reduction); cErr != nil {
 						srv.components.Logger.Error().
 							Format("Could not get the short url data by reduction: '%s'. ", cErr).Write()
 
@@ -832,7 +832,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Delete("/", func(ctx fiber.Ctx) (err error) {
+			router.Delete("/", func(ctx *fiber.Ctx) (err error) {
 				type Request struct {
 					ID        common_types.ID `json:"id"`
 					Reduction string          `json:"reduction"`
@@ -846,7 +846,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Body(request); err != nil {
+					if err = ctx.BodyParser(request); err != nil {
 						srv.components.Logger.Error().
 							Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -989,7 +989,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Post("/", func(ctx fiber.Ctx) (err error) {
+			router.Post("/", func(ctx *fiber.Ctx) (err error) {
 				type Request struct {
 					Source string `json:"source"`
 
@@ -1018,7 +1018,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Body(request); err != nil {
+					if err = ctx.BodyParser(request); err != nil {
 						srv.components.Logger.Error().
 							Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -1223,7 +1223,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Put("/activate", func(ctx fiber.Ctx) (err error) {
+			router.Put("/activate", func(ctx *fiber.Ctx) (err error) {
 				type Request struct {
 					ID        common_types.ID `json:"id"`
 					Reduction string          `json:"reduction"`
@@ -1237,7 +1237,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Body(request); err != nil {
+					if err = ctx.BodyParser(request); err != nil {
 						srv.components.Logger.Error().
 							Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -1386,7 +1386,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Put("/deactivate", func(ctx fiber.Ctx) (err error) {
+			router.Put("/deactivate", func(ctx *fiber.Ctx) (err error) {
 				type Request struct {
 					ID        common_types.ID `json:"id"`
 					Reduction string          `json:"reduction"`
@@ -1400,7 +1400,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Body(request); err != nil {
+					if err = ctx.BodyParser(request); err != nil {
 						srv.components.Logger.Error().
 							Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -1544,7 +1544,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Put("/accesses", func(ctx fiber.Ctx) (err error) {
+			router.Put("/accesses", func(ctx *fiber.Ctx) (err error) {
 				type Request struct {
 					ID        common_types.ID `json:"id"`
 					Reduction string          `json:"reduction"`
@@ -1561,7 +1561,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Body(request); err != nil {
+					if err = ctx.BodyParser(request); err != nil {
 						srv.components.Logger.Error().
 							Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -1714,13 +1714,13 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Get("/by_id/:id", func(ctx fiber.Ctx) (err error) {
+				router.Get("/by_id/:id", func(ctx *fiber.Ctx) (err error) {
 					type Response struct {
 						Count   int64                              `json:"count"   xml:"count,attr"`
 						History []*models.ShortUrlUsageHistoryInfo `json:"history" xml:"History"`
 					}
-					type UriArgs struct {
-						ID common_types.ID `uri:"id"`
+					type UriParams struct {
+						ID common_types.ID `params:"id"`
 					}
 					type QueryArgs struct {
 						Limit  *int64 `query:"limit"`
@@ -1737,13 +1737,13 @@ func (srv *server) registerRoutes() error {
 
 					var (
 						response  = new(Response)
-						uriArgs   = new(UriArgs)
+						uriParams = new(UriParams)
 						queryArgs = new(QueryArgs)
 					)
 
 					// Чтение данных
 					{
-						if err = ctx.Bind().URI(uriArgs); err != nil {
+						if err = ctx.ParamsParser(uriParams); err != nil {
 							srv.components.Logger.Error().
 								Format("The request uri data could not be read: '%s'. ", err).Write()
 
@@ -1767,7 +1767,7 @@ func (srv *server) registerRoutes() error {
 							return
 						}
 
-						if err = ctx.Bind().Query(queryArgs); err != nil {
+						if err = ctx.QueryParser(queryArgs); err != nil {
 							srv.components.Logger.Error().
 								Format("The request query data could not be read: '%s'. ", err).Write()
 
@@ -1845,7 +1845,7 @@ func (srv *server) registerRoutes() error {
 
 						var cErr c_errors.RestAPI
 
-						if response.Count, response.History, cErr = srv.controllers.UrlsManagement.GetUsageHistory(ctx.Context(), uriArgs.ID, sort, pagination, filters); cErr != nil {
+						if response.Count, response.History, cErr = srv.controllers.UrlsManagement.GetUsageHistory(ctx.Context(), uriParams.ID, sort, pagination, filters); cErr != nil {
 							srv.components.Logger.Error().
 								Format("The short url usage history could not be retrieved: '%s'. ", cErr).Write()
 
@@ -2033,13 +2033,13 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Get("/by_reduction/:reduction", func(ctx fiber.Ctx) (err error) {
+				router.Get("/by_reduction/:reduction", func(ctx *fiber.Ctx) (err error) {
 					type Response struct {
 						Count   int64                              `json:"count"   xml:"count,attr"`
 						History []*models.ShortUrlUsageHistoryInfo `json:"history" xml:"History"`
 					}
-					type UriArgs struct {
-						Reduction string `uri:"reduction"`
+					type UriParams struct {
+						Reduction string `params:"reduction"`
 					}
 					type QueryArgs struct {
 						Limit  *int64 `query:"limit"`
@@ -2056,13 +2056,13 @@ func (srv *server) registerRoutes() error {
 
 					var (
 						response  = new(Response)
-						uriArgs   = new(UriArgs)
+						uriParams = new(UriParams)
 						queryArgs = new(QueryArgs)
 					)
 
 					// Чтение данных
 					{
-						if err = ctx.Bind().URI(uriArgs); err != nil {
+						if err = ctx.ParamsParser(uriParams); err != nil {
 							srv.components.Logger.Error().
 								Format("The request uri data could not be read: '%s'. ", err).Write()
 
@@ -2086,7 +2086,7 @@ func (srv *server) registerRoutes() error {
 							return
 						}
 
-						if err = ctx.Bind().Query(queryArgs); err != nil {
+						if err = ctx.QueryParser(queryArgs); err != nil {
 							srv.components.Logger.Error().
 								Format("The request query data could not be read: '%s'. ", err).Write()
 
@@ -2164,7 +2164,7 @@ func (srv *server) registerRoutes() error {
 
 						var cErr c_errors.RestAPI
 
-						if response.Count, response.History, cErr = srv.controllers.UrlsManagement.GetUsageHistoryByReduction(ctx.Context(), uriArgs.Reduction, sort, pagination, filters); cErr != nil {
+						if response.Count, response.History, cErr = srv.controllers.UrlsManagement.GetUsageHistoryByReduction(ctx.Context(), uriParams.Reduction, sort, pagination, filters); cErr != nil {
 							srv.components.Logger.Error().
 								Format("The short url usage history could not be retrieved: '%s'. ", cErr).Write()
 

@@ -2,6 +2,7 @@ package types
 
 const (
 	NotificationTypeAlerts = "alerts"
+	NotificationTypePopup  = "pop-up"
 )
 
 type (

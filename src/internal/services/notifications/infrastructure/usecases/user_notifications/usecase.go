@@ -2,6 +2,8 @@ package user_notifications_usecase
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
@@ -41,9 +43,11 @@ type repositories struct {
 			pagination *objects.UserNotificationPagination,
 			filters *objects.UserNotificationFilters,
 		) (count, countNotRead int64, list []*entities.UserNotification, err error)
+		GetOne(ctx context.Context, id common_types.ID) (notification *entities.UserNotification, err error)
+		Get(ctx context.Context, ids ...common_types.ID) (list []*entities.UserNotification, err error)
 
-		CreateOne(ctx context.Context, constructor *constructors.UserNotification) (notification *entities.UserNotification, err error)
-		Create(ctx context.Context, constructors ...*constructors.UserNotification) (notifications []*entities.UserNotification, err error)
+		CreateOne(ctx context.Context, constructor *constructors.UserNotification) (id common_types.ID, err error)
+		Create(ctx context.Context, constructors ...*constructors.UserNotification) (ids []common_types.ID, err error)
 
 		RemoveOne(ctx context.Context, recipientID, id common_types.ID) (err error)
 		Remove(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (err error)
@@ -269,7 +273,160 @@ func (usecase *UseCase) CreateOne(ctx context.Context, constructor *constructors
 		defer func() { trc.Error(cErr).FunctionCallFinished(notification) }()
 	}
 
-	fmt.Printf("\n\n%+v\n\n\n", constructor)
+	usecase.components.Logger.Info().
+		Text("The process of creating a user notification has been started... ").
+		Field("constructor", constructor).Write()
+
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The process of creating a custom notification is completed. ").
+			Field("constructor", constructor).Write()
+	}()
+
+	var id common_types.ID
+
+	// Валидация
+	{
+		// Пустой конструктор
+		{
+			if constructor == nil {
+				usecase.components.Logger.Error().
+					Text("An invalid argument value was passed. ").
+					Field("constructor", constructor).Write()
+
+				cErr = common_errors.InvalidArguments()
+				cErr.Details().SetField(
+					new(err_details.FieldKey).Add("constructor"),
+					new(err_messages.TextMessage).Text("Is empty. "),
+				)
+
+				return
+			}
+		}
+
+		// Данные конструктора
+		{
+			var tempCErr c_errors.Error
+
+			if constructor.RecipientID < 0 {
+				if tempCErr == nil {
+					tempCErr = common_errors.InvalidArguments()
+				}
+
+				usecase.components.Logger.Error().
+					Text("An invalid argument value was passed. ").
+					Field("constructor", constructor).Write()
+
+				tempCErr.Details().SetField(
+					new(err_details.FieldKey).Add("recipient_id"),
+					new(err_messages.TextMessage).Text("Negative value. "),
+				)
+
+				return
+			} else if constructor.RecipientID == 0 {
+				if tempCErr == nil {
+					tempCErr = common_errors.InvalidArguments()
+				}
+
+				usecase.components.Logger.Error().
+					Text("An invalid argument value was passed. ").
+					Field("constructor", constructor).Write()
+
+				tempCErr.Details().SetField(
+					new(err_details.FieldKey).Add("recipient_id"),
+					new(err_messages.TextMessage).Text("Zero value. "),
+				)
+
+				return
+			}
+
+			if len(constructor.Title) == 0 && constructor.TitleI18n.String() == "00000000-0000-0000-0000-000000000000" {
+				if tempCErr == nil {
+					tempCErr = common_errors.InvalidArguments()
+				}
+
+				usecase.components.Logger.Error().
+					Text("An invalid argument value was passed. ").
+					Field("constructor", constructor).Write()
+
+				tempCErr.Details().SetField(
+					new(err_details.FieldKey).Add("title"),
+					new(err_messages.TextMessage).Text("Is empty. "),
+				)
+				tempCErr.Details().SetField(
+					new(err_details.FieldKey).Add("title_i18n"),
+					new(err_messages.TextMessage).Text("Is empty. "),
+				)
+
+				return
+			}
+
+			if len(constructor.Text) == 0 && constructor.TextI18n.String() == "00000000-0000-0000-0000-000000000000" {
+				if tempCErr == nil {
+					tempCErr = common_errors.InvalidArguments()
+				}
+
+				usecase.components.Logger.Error().
+					Text("An invalid argument value was passed. ").
+					Field("constructor", constructor).Write()
+
+				tempCErr.Details().SetField(
+					new(err_details.FieldKey).Add("text"),
+					new(err_messages.TextMessage).Text("Is empty. "),
+				)
+				tempCErr.Details().SetField(
+					new(err_details.FieldKey).Add("text_i18n"),
+					new(err_messages.TextMessage).Text("Is empty. "),
+				)
+
+				return
+			}
+
+			if tempCErr != nil {
+				cErr = tempCErr
+				return
+			}
+		}
+	}
+
+	// Создание
+	{
+		var err error
+
+		if id, err = usecase.repositories.UserNotifications.CreateOne(ctx, constructor); err != nil {
+			usecase.components.Logger.Error().
+				Format("Failed to create a user notification: '%s'. ", err).Write()
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The user notification has been successfully created. ").
+			Field("id", id).Write()
+	}
+
+	// Получение
+	{
+		var err error
+
+		if notification, err = usecase.repositories.UserNotifications.GetOne(ctx, id); err != nil {
+			usecase.components.Logger.Error().
+				Format("Could not get the user notification by id: '%s'. ", err).Write()
+
+			if errors.Is(err, sql.ErrNoRows) {
+				cErr = srv_errors.UserNotificationNotFound()
+				return
+			}
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The user notification have been successfully collected. ").
+			Field("notification", notification).Write()
+	}
 
 	return
 }
@@ -284,7 +441,157 @@ func (usecase *UseCase) Create(ctx context.Context, constructors ...*constructor
 		defer func() { trc.Error(cErr).FunctionCallFinished(notifications) }()
 	}
 
-	fmt.Printf("\n\n%+v\n\n\n", constructors)
+	usecase.components.Logger.Info().
+		Text("The process of creating several custom notifications has started... ").
+		Field("constructors", constructors).Write()
+
+	defer func() {
+		usecase.components.Logger.Info().
+			Text("The process of creating multiple user notifications is completed. ").
+			Field("constructors", constructors).Write()
+	}()
+
+	var ids []common_types.ID
+
+	// Валидация
+	{
+		// Пустые конструктора
+		{
+			if len(constructors) == 0 {
+				usecase.components.Logger.Error().
+					Text("An invalid argument value was passed. ").
+					Field("constructors", constructors).Write()
+
+				cErr = common_errors.InvalidArguments()
+				cErr.Details().SetField(
+					new(err_details.FieldKey).Add("constructors"),
+					new(err_messages.TextMessage).Text("Is empty. "),
+				)
+
+				return
+			}
+		}
+
+		// Данные конструкторов
+		{
+			var tempCErr c_errors.Error
+
+			for index, constructor := range constructors {
+				if constructor.RecipientID < 0 {
+					if tempCErr == nil {
+						tempCErr = common_errors.InvalidArguments()
+					}
+
+					usecase.components.Logger.Error().
+						Text("An invalid argument value was passed. ").
+						Field("constructor", constructor).Write()
+
+					tempCErr.Details().SetField(
+						new(err_details.FieldKey).AddArray("constructors", index).Add("recipient_id"),
+						new(err_messages.TextMessage).Text("Negative value. "),
+					)
+
+					return
+				} else if constructor.RecipientID == 0 {
+					if tempCErr == nil {
+						tempCErr = common_errors.InvalidArguments()
+					}
+
+					usecase.components.Logger.Error().
+						Text("An invalid argument value was passed. ").
+						Field("constructor", constructor).Write()
+
+					tempCErr.Details().SetField(
+						new(err_details.FieldKey).AddArray("constructors", index).Add("recipient_id"),
+						new(err_messages.TextMessage).Text("Zero value. "),
+					)
+
+					return
+				}
+
+				if len(constructor.Title) == 0 && constructor.TitleI18n.String() == "00000000-0000-0000-0000-000000000000" {
+					if tempCErr == nil {
+						tempCErr = common_errors.InvalidArguments()
+					}
+
+					usecase.components.Logger.Error().
+						Text("An invalid argument value was passed. ").
+						Field("constructor", constructor).Write()
+
+					tempCErr.Details().SetField(
+						new(err_details.FieldKey).AddArray("constructors", index).Add("title"),
+						new(err_messages.TextMessage).Text("Is empty. "),
+					)
+					tempCErr.Details().SetField(
+						new(err_details.FieldKey).AddArray("constructors", index).Add("title_i18n"),
+						new(err_messages.TextMessage).Text("Is empty. "),
+					)
+
+					return
+				}
+
+				if len(constructor.Text) == 0 && constructor.TextI18n.String() == "00000000-0000-0000-0000-000000000000" {
+					if tempCErr == nil {
+						tempCErr = common_errors.InvalidArguments()
+					}
+
+					usecase.components.Logger.Error().
+						Text("An invalid argument value was passed. ").
+						Field("constructor", constructor).Write()
+
+					tempCErr.Details().SetField(
+						new(err_details.FieldKey).AddArray("constructors", index).Add("text"),
+						new(err_messages.TextMessage).Text("Is empty. "),
+					)
+					tempCErr.Details().SetField(
+						new(err_details.FieldKey).AddArray("constructors", index).Add("text_i18n"),
+						new(err_messages.TextMessage).Text("Is empty. "),
+					)
+
+					return
+				}
+			}
+
+			if tempCErr != nil {
+				cErr = tempCErr
+				return
+			}
+		}
+	}
+
+	// Создание
+	{
+		var err error
+
+		if ids, err = usecase.repositories.UserNotifications.Create(ctx, constructors...); err != nil {
+			usecase.components.Logger.Error().
+				Format("Failed to create a user notifications: '%s'. ", err).Write()
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The user notification has been successfully created. ").
+			Field("ids", ids).Write()
+	}
+
+	// Получение
+	{
+		var err error
+
+		if notifications, err = usecase.repositories.UserNotifications.Get(ctx, ids...); err != nil {
+			usecase.components.Logger.Error().
+				Format("Could not get the user notifications by ids: '%s'. ", err).Write()
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The user notifications have been successfully collected. ").
+			Field("notifications", notifications).Write()
+	}
 
 	return
 }

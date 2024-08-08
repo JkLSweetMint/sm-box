@@ -2,8 +2,8 @@ package http_rest_api
 
 import (
 	"fmt"
-	"github.com/gofiber/fiber/v3"
-	cors_middleware "github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v2"
+	cors_middleware "github.com/gofiber/fiber/v2/middleware/cors"
 	"path"
 	common_errors "sm-box/internal/common/errors"
 	"sm-box/pkg/core/components/tracer"
@@ -27,7 +27,7 @@ func (srv *server) initFiberServer() (err error) {
 
 	var conf = srv.conf.Server.ToFiberConfig()
 
-	conf.ErrorHandler = func(ctx fiber.Ctx, err error) error {
+	conf.ErrorHandler = func(ctx *fiber.Ctx, err error) error {
 		// 404
 		{
 			if err.Error() == fmt.Sprintf("Cannot %s %s", ctx.Method(), ctx.Path()) {

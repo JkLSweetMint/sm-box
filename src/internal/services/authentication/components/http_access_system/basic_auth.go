@@ -3,9 +3,10 @@ package http_access_system
 import (
 	"database/sql"
 	"errors"
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
+	"slices"
 	app_errors "sm-box/internal/app/objects/errors"
 	app_models "sm-box/internal/app/objects/models"
 	common_errors "sm-box/internal/common/errors"
@@ -22,7 +23,7 @@ import (
 )
 
 // BasicAuthentication - промежуточное программное обеспечение для аутентификации пользователя по http маршрутам.
-func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
+func (acc *accessSystem) BasicAuthentication(ctx *fiber.Ctx) (err error) {
 	var (
 		sessionToken *entities.JwtSessionToken
 		accessToken  *entities.JwtAccessToken
@@ -411,7 +412,10 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 							// Запись доступов пользователя
 							{
 								accessToken.UserInfo = &entities.JwtAccessTokenUserInfo{
-									Accesses: user.Accesses,
+									Accesses: &entities.JwtAccessTokenUserInfoAccesses{
+										Roles:       user.Accesses.RolesIDs(),
+										Permissions: user.Accesses.PermissionsIDs(),
+									},
 								}
 							}
 
@@ -624,11 +628,8 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 						if accessToken.UserInfo.Accesses.Roles != nil {
 						CheckAccessForRouteByRole:
 							for _, userRole := range accessToken.UserInfo.Accesses.Roles {
-								for _, routeRoleID := range route.Accesses.Roles {
-									if userRole.ID == routeRoleID {
-										allowed = true
-										break CheckAccessForRouteByRole
-									}
+								if allowed = slices.Contains(route.Accesses.Roles, userRole); allowed {
+									break CheckAccessForRouteByRole
 								}
 							}
 						}
@@ -639,11 +640,8 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 						if accessToken.UserInfo.Accesses.Permissions != nil && !allowed {
 						CheckAccessForRouteByPermission:
 							for _, userPermission := range accessToken.UserInfo.Accesses.Permissions {
-								for _, routePermissionID := range route.Accesses.Permissions {
-									if userPermission.ID == routePermissionID {
-										allowed = true
-										break CheckAccessForRouteByPermission
-									}
+								if allowed = slices.Contains(route.Accesses.Permissions, userPermission); allowed {
+									break CheckAccessForRouteByPermission
 								}
 							}
 						}
@@ -716,7 +714,7 @@ func (acc *accessSystem) BasicAuthentication(ctx fiber.Ctx) (err error) {
 
 // basicAuthenticationProcessingSessionToken - обработка токена сессия в промежуточном программном обеспечении
 // для аутентификации пользователя по http маршрутам.
-func (acc *accessSystem) basicAuthenticationProcessingSessionToken(ctx fiber.Ctx, accessToken *entities.JwtAccessToken) (token *entities.JwtSessionToken, cErr c_errors.Error) {
+func (acc *accessSystem) basicAuthenticationProcessingSessionToken(ctx *fiber.Ctx, accessToken *entities.JwtAccessToken) (token *entities.JwtSessionToken, cErr c_errors.Error) {
 	var expired bool
 
 	// Получение
@@ -829,7 +827,7 @@ func (acc *accessSystem) basicAuthenticationProcessingSessionToken(ctx fiber.Ctx
 
 // basicAuthenticationProcessingAccessToken - обработка токена доступа в промежуточном программном обеспечении
 // для аутентификации пользователя по http маршрутам.
-func (acc *accessSystem) basicAuthenticationProcessingAccessToken(ctx fiber.Ctx) (token *entities.JwtAccessToken, cErr c_errors.Error) {
+func (acc *accessSystem) basicAuthenticationProcessingAccessToken(ctx *fiber.Ctx) (token *entities.JwtAccessToken, cErr c_errors.Error) {
 	// Получение
 	{
 		var raw string
@@ -920,7 +918,7 @@ func (acc *accessSystem) basicAuthenticationProcessingAccessToken(ctx fiber.Ctx)
 
 // basicAuthenticationProcessingAccessToken - обработка токена доступа в промежуточном программном обеспечении
 // для аутентификации пользователя по http маршрутам.
-func (acc *accessSystem) basicAuthenticationProcessingRefreshToken(ctx fiber.Ctx) (token *entities.JwtRefreshToken, cErr c_errors.Error) {
+func (acc *accessSystem) basicAuthenticationProcessingRefreshToken(ctx *fiber.Ctx) (token *entities.JwtRefreshToken, cErr c_errors.Error) {
 	// Получение
 	{
 		var raw string

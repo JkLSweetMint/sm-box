@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"gopkg.in/yaml.v3"
 	c_errors "sm-box/pkg/errors"
 	http_tools "sm-box/pkg/http"
@@ -16,7 +16,7 @@ type ResponseWrapper interface {
 }
 
 // Write - запись ответа.
-func Write(ctx fiber.Ctx, resp any) (err error) {
+func Write(ctx *fiber.Ctx, resp any) (err error) {
 	var wrapper = &ResponseDataWrapper{
 		XMLName: xml.Name{
 			Space: "",
@@ -37,7 +37,7 @@ func Write(ctx fiber.Ctx, resp any) (err error) {
 }
 
 // WriteError - запись ошибки.
-func WriteError(ctx fiber.Ctx, cErr c_errors.RestAPI) (err error) {
+func WriteError(ctx *fiber.Ctx, cErr c_errors.RestAPI) (err error) {
 	ctx.Status(cErr.StatusCode())
 
 	var wrapper = &ResponseErrorWrapper{
@@ -61,7 +61,7 @@ func WriteError(ctx fiber.Ctx, cErr c_errors.RestAPI) (err error) {
 }
 
 // write - внутренняя функция для записи данных через обертку.
-func write(ctx fiber.Ctx, wrapper ResponseWrapper) (err error) {
+func write(ctx *fiber.Ctx, wrapper ResponseWrapper) (err error) {
 	var data []byte
 
 	switch {
@@ -135,7 +135,7 @@ func write(ctx fiber.Ctx, wrapper ResponseWrapper) (err error) {
 }
 
 // acceptMimeType - проверить является ли кодировка принимаемой.
-func acceptMimeType(ctx fiber.Ctx, acceptEncoding []byte) (accepted bool) {
+func acceptMimeType(ctx *fiber.Ctx, acceptEncoding []byte) (accepted bool) {
 	for _, ae := range ctx.Request().Header.PeekAll("Accept") {
 		if bytes.Index(ae, acceptEncoding) >= 0 {
 			accepted = true

@@ -10,6 +10,11 @@
  
 ---
 
+### v24.0.54:
+- [x] Разработка [сервиса уведомлений](src/internal/services/notifications/service.go);
+
+---
+
 ### v24.0.53:
 - [x] Доработать валидации как валидация в сервисе авторизации;
 - [x] Разработка [сервиса уведомлений](src/internal/services/notifications/service.go);

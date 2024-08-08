@@ -1,11 +1,15 @@
 package http_rest_api
 
 import (
-	"github.com/gofiber/fiber/v3"
+	"context"
+	"fmt"
+	"github.com/gofiber/contrib/websocket"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
+	"sm-box/internal/services/notifications/components/notification_notifier"
 	"sm-box/internal/services/notifications/objects"
 	"sm-box/internal/services/notifications/objects/constructors"
 	"sm-box/internal/services/notifications/objects/models"
@@ -32,6 +36,130 @@ func (srv *server) registerRoutes() error {
 
 	var router = srv.router
 
+	// /ws
+	{
+		var router = router.Group("/ws")
+
+		router.Use("/", func(ctx *fiber.Ctx) (err error) {
+			if cookie := ctx.Cookies(srv.conf.Components.AccessSystem.CookieKeyForSessionToken); websocket.IsWebSocketUpgrade(ctx) && cookie != "" {
+				ctx.Locals("allowed", true)
+				return ctx.Next()
+			}
+			return fiber.ErrUpgradeRequired
+		})
+
+		router.Get("/", websocket.New(func(conn *websocket.Conn) {
+			var (
+				ctx, disconnect = context.WithCancel(context.Background())
+				recipient       = new(notification_notifier.Recipient)
+			)
+
+			// Закрытие соединения при завершении работы
+			{
+				defer func() {
+					if len(recipient.Keys) > 0 {
+						srv.components.NotificationNotifier.RemoveRecipient(recipient.JwtToken.ID)
+					}
+
+					if err := conn.Close(); err != nil {
+						srv.components.Logger.Warn().
+							Format("An error occurred when closing the Web socket channel: '%s'. ", err).
+							Field("addr", conn.RemoteAddr()).
+							Field("recipient", recipient).Write()
+					}
+
+					srv.components.Logger.Info().
+						Text("Client disconnected. ").
+						Field("addr", conn.RemoteAddr()).
+						Field("recipient", recipient).Write()
+				}()
+			}
+
+			// Подготовка
+			{
+				srv.components.Logger.Info().
+					Text("Client connected. ").
+					Field("addr", conn.RemoteAddr()).Write()
+
+				// Формирование ключей
+				{
+					var raw = conn.Cookies(srv.conf.Components.AccessSystem.CookieKeyForSessionToken)
+
+					recipient.JwtToken = new(authentication_entities.JwtSessionToken)
+
+					if err := recipient.JwtToken.Parse(raw); err != nil {
+						srv.components.Logger.Error().
+							Format("Failed to get session token data: '%s'. ", err).
+							Field("raw", raw).Write()
+
+						return
+					}
+
+					recipient.Keys = []string{
+						fmt.Sprintf("session:%s", recipient.JwtToken.ID.String()),
+						fmt.Sprintf("users:%d", recipient.JwtToken.UserID),
+					}
+				}
+
+				// Получение канала
+				{
+					srv.components.NotificationNotifier.RegisterRecipient(recipient)
+				}
+			}
+
+			// Обработка web-сокета
+			{
+				go func() {
+					for {
+						if _, _, err := conn.ReadMessage(); err != nil {
+							if err.Error() != "websocket: close 1000 (normal)" {
+								srv.components.Logger.Warn().
+									Format("Error reading the data to the web socket channel: '%s'. ", err).
+									Field("addr", conn.RemoteAddr()).
+									Field("recipient", recipient).Write()
+							}
+
+							disconnect()
+							break
+						}
+					}
+				}()
+			}
+
+			// Логика
+			{
+			WsHandler:
+				for {
+					select {
+					case data := <-recipient.Channel():
+						{
+							srv.components.Logger.Info().
+								Text("Sending data to a web socket channel. ").
+								Field("addr", conn.RemoteAddr()).
+								Field("recipient", recipient).
+								Field("data", data).Write()
+
+							if err := conn.WriteJSON(data); err != nil {
+								srv.components.Logger.Warn().
+									Format("Error writing the response to the web socket channel: '%s'. ", err).
+									Field("addr", conn.RemoteAddr()).
+									Field("recipient", recipient).Write()
+
+								disconnect()
+								break WsHandler
+							}
+						}
+					case <-ctx.Done():
+						break WsHandler
+					case <-srv.ctx.Done():
+						disconnect()
+						break WsHandler
+					}
+				}
+			}
+		}))
+	}
+
 	// /users
 	{
 		var (
@@ -39,16 +167,11 @@ func (srv *server) registerRoutes() error {
 			postmanGroup = srv.postman.AddItemGroup("Пользовательские уведомления. ")
 		)
 
-		// /ws
-		{
-
-		}
-
 		// GET /list
 		{
 			var id = uuid.New().String()
 
-			router.Get("/list", func(ctx fiber.Ctx) (err error) {
+			router.Get("/list", func(ctx *fiber.Ctx) (err error) {
 				type Response struct {
 					Count        int64 `json:"count"          xml:"count,attr"`
 					CountNotRead int64 `json:"count_not_read" xml:"count_not_read,attr"`
@@ -73,7 +196,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Query(queryArgs); err != nil {
+					if err = ctx.QueryParser(queryArgs); err != nil {
 						srv.components.Logger.Error().
 							Format("The request query data could not be read: '%s'. ", err).Write()
 
@@ -121,7 +244,7 @@ func (srv *server) registerRoutes() error {
 										Format("Failed to get session token data: '%s'. ", err).
 										Field("raw", raw).Write()
 
-									err = ctx.Redirect().To("/errors/403")
+									err = ctx.Redirect("/errors/403")
 									return
 								}
 							}
@@ -288,7 +411,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Put("/read", func(ctx fiber.Ctx) (err error) {
+			router.Put("/read", func(ctx *fiber.Ctx) (err error) {
 				type Request struct {
 					IDs []common_types.ID `json:"ids"`
 				}
@@ -301,7 +424,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Body(request); err != nil {
+					if err = ctx.BodyParser(request); err != nil {
 						srv.components.Logger.Error().
 							Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -344,7 +467,7 @@ func (srv *server) registerRoutes() error {
 										Format("Failed to get session token data: '%s'. ", err).
 										Field("raw", raw).Write()
 
-									err = ctx.Redirect().To("/errors/403")
+									err = ctx.Redirect("/errors/403")
 									return
 								}
 							}
@@ -451,7 +574,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Delete("/", func(ctx fiber.Ctx) (err error) {
+			router.Delete("/", func(ctx *fiber.Ctx) (err error) {
 				type Request struct {
 					IDs []common_types.ID `json:"ids"`
 				}
@@ -464,7 +587,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Body(request); err != nil {
+					if err = ctx.BodyParser(request); err != nil {
 						srv.components.Logger.Error().
 							Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -507,7 +630,7 @@ func (srv *server) registerRoutes() error {
 										Format("Failed to get session token data: '%s'. ", err).
 										Field("raw", raw).Write()
 
-									err = ctx.Redirect().To("/errors/403")
+									err = ctx.Redirect("/errors/403")
 									return
 								}
 							}
@@ -620,7 +743,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Post("/", func(ctx fiber.Ctx) (err error) {
+				router.Post("/", func(ctx *fiber.Ctx) (err error) {
 					type Request struct {
 						Type types.NotificationType `json:"type"`
 
@@ -644,7 +767,7 @@ func (srv *server) registerRoutes() error {
 
 					// Чтение данных
 					{
-						if err = ctx.Bind().Body(request); err != nil {
+						if err = ctx.BodyParser(request); err != nil {
 							srv.components.Logger.Error().
 								Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -796,7 +919,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Post("/multiple", func(ctx fiber.Ctx) (err error) {
+				router.Post("/multiple", func(ctx *fiber.Ctx) (err error) {
 					type Request struct {
 						Notifications []*struct {
 							Type types.NotificationType `json:"type"`
@@ -822,7 +945,7 @@ func (srv *server) registerRoutes() error {
 
 					// Чтение данных
 					{
-						if err = ctx.Bind().Body(request); err != nil {
+						if err = ctx.BodyParser(request); err != nil {
 							srv.components.Logger.Error().
 								Format("The request body data could not be read: '%s'. ", err).Write()
 

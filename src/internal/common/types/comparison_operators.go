@@ -43,3 +43,35 @@ func ParseComparisonOperators(operator string) (result ComparisonOperators) {
 
 	return
 }
+
+// TranslateToSign - получение знака оператора.
+func (operator ComparisonOperators) TranslateToSign() (result string) {
+	switch operator {
+	case ComparisonOperatorsEqual:
+		{
+			result = "="
+		}
+	case ComparisonOperatorsNotEqual:
+		{
+			result = "!="
+		}
+	case ComparisonOperatorsGreater:
+		{
+			result = ">"
+		}
+	case ComparisonOperatorsLess:
+		{
+			result = "<"
+		}
+	case ComparisonOperatorsGreaterThanOrEqual:
+		{
+			result = ">="
+		}
+	case ComparisonOperatorsLessThanOrEqual:
+		{
+			result = "<="
+		}
+	}
+
+	return
+}

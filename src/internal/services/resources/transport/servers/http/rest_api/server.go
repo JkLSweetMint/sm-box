@@ -3,7 +3,7 @@ package http_rest_api
 import (
 	"context"
 	"fmt"
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"os"
 	"path"
 	"sm-box/internal/services/resources/transport/servers/http/rest_api/config"
@@ -111,7 +111,7 @@ func (srv *server) Listen() (err error) {
 	go func() {
 		defer wg.Done()
 
-		if err = srv.app.Listen(srv.conf.Server.Addr, srv.conf.Server.ToFiberListenConfig()); err != nil {
+		if err = srv.app.Listen(srv.conf.Server.Addr); err != nil {
 			srv.components.Logger.Error().
 				Format("An error occurred when starting the http rest api server maintenance: '%s'. ", err).Write()
 			return

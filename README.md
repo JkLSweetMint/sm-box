@@ -1,5 +1,5 @@
 # sm-box
-### v24.0.53:
+### v24.0.54:
 
 [See Changelog](CHANGELOG.md)
 

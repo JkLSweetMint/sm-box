@@ -2,7 +2,7 @@ package common_errors
 
 import (
 	"github.com/gofiber/contrib/websocket"
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	grpc_codes "google.golang.org/grpc/codes"
 	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/errors/entities/details"

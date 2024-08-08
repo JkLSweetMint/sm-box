@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"sm-box/pkg/core/components/tracer"
 	"time"
 )
@@ -307,11 +307,13 @@ func (conf *Server) ToFiberConfig() (c fiber.Config) {
 	}
 
 	c = fiber.Config{
+		Prefork:                      false,
 		ServerHeader:                 conf.ServerHeader,
 		StrictRouting:                conf.StrictRouting,
 		CaseSensitive:                conf.CaseSensitive,
 		Immutable:                    conf.Immutable,
 		UnescapePath:                 conf.UnescapePath,
+		ETag:                         false,
 		BodyLimit:                    conf.BodyLimit,
 		Concurrency:                  conf.Concurrency,
 		Views:                        nil,
@@ -330,6 +332,7 @@ func (conf *Server) ToFiberConfig() (c fiber.Config) {
 		DisableDefaultDate:           conf.DisableDefaultDate,
 		DisableDefaultContentType:    conf.DisableDefaultContentType,
 		DisableHeaderNormalizing:     conf.DisableHeaderNormalizing,
+		DisableStartupMessage:        true,
 		AppName:                      conf.AppName,
 		StreamRequestBody:            conf.StreamRequestBody,
 		DisablePreParseMultipartForm: conf.DisablePreParseMultipartForm,
@@ -337,30 +340,14 @@ func (conf *Server) ToFiberConfig() (c fiber.Config) {
 		JSONEncoder:                  nil,
 		JSONDecoder:                  nil,
 		XMLEncoder:                   nil,
+		Network:                      "",
 		EnableTrustedProxyCheck:      conf.EnableTrustedProxyCheck,
 		TrustedProxies:               conf.TrustedProxies,
 		EnableIPValidation:           conf.EnableIPValidation,
+		EnablePrintRoutes:            false,
 		ColorScheme:                  fiber.Colors{},
-		StructValidator:              nil,
 		RequestMethods:               conf.RequestMethods,
 		EnableSplittingOnParsers:     conf.EnableSplittingOnParsers,
-	}
-
-	return
-}
-
-// ToFiberListenConfig - преобразовать конфигурацию в формат fiber.ListenConfig.
-func (conf *Server) ToFiberListenConfig() (c fiber.ListenConfig) {
-	// tracer
-	{
-		var trc = tracer.New(tracer.LevelConfig)
-
-		trc.FunctionCall()
-		defer func() { trc.FunctionCallFinished(c) }()
-	}
-
-	c = fiber.ListenConfig{
-		DisableStartupMessage: true,
 	}
 
 	return

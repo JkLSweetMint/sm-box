@@ -1,7 +1,7 @@
 package http_rest_api
 
 import (
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	common_errors "sm-box/internal/common/errors"
 	"sm-box/internal/services/users/objects/models"
@@ -45,7 +45,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Get("/select", func(ctx fiber.Ctx) (err error) {
+				router.Get("/select", func(ctx *fiber.Ctx) (err error) {
 					type Response struct {
 						List []*models.RoleInfo `json:"list" xml:"List"`
 					}
@@ -145,7 +145,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Get("/select", func(ctx fiber.Ctx) (err error) {
+				router.Get("/select", func(ctx *fiber.Ctx) (err error) {
 					type Response struct {
 						List []*models.PermissionInfo `json:"list" xml:"List"`
 					}

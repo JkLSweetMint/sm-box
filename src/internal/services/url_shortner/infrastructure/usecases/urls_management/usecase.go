@@ -246,6 +246,8 @@ func (usecase *UseCase) GetList(ctx context.Context,
 
 						return
 					}
+				} else {
+					filters.StartActive = nil
 				}
 
 				if filters.EndActiveType != nil {
@@ -271,6 +273,8 @@ func (usecase *UseCase) GetList(ctx context.Context,
 
 						return
 					}
+				} else {
+					filters.EndActive = nil
 				}
 
 				if filters.NumberOfUsesType != nil {

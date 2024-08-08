@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/notifications/objects/models"
@@ -73,5 +74,11 @@ func (entity *UserNotification) ToModel() (model *models.UserNotificationInfo) {
 		RemovedTimestamp: entity.RemovedTimestamp,
 	}
 
+	return
+}
+
+// Recipient - получение получателя уведомления
+func (entity *UserNotification) Recipient() (recipient string) {
+	recipient = fmt.Sprintf("users:%d", entity.RecipientID)
 	return
 }

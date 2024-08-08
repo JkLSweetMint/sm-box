@@ -3,10 +3,11 @@ package http_rest_api
 import (
 	"context"
 	"fmt"
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"os"
 	"path"
 	common_types "sm-box/internal/common/types"
+	"sm-box/internal/services/notifications/components/notification_notifier"
 	"sm-box/internal/services/notifications/objects"
 	"sm-box/internal/services/notifications/objects/constructors"
 	"sm-box/internal/services/notifications/objects/models"
@@ -59,7 +60,8 @@ type controllers struct {
 
 // components - компоненты сервера.
 type components struct {
-	Logger logger.Logger
+	Logger               logger.Logger
+	NotificationNotifier notification_notifier.Notifier
 }
 
 // Listen - запуск сервера.
@@ -134,7 +136,7 @@ func (srv *server) Listen() (err error) {
 	go func() {
 		defer wg.Done()
 
-		if err = srv.app.Listen(srv.conf.Server.Addr, srv.conf.Server.ToFiberListenConfig()); err != nil {
+		if err = srv.app.Listen(srv.conf.Server.Addr); err != nil {
 			srv.components.Logger.Error().
 				Format("An error occurred when starting the http rest api server maintenance: '%s'. ", err).Write()
 			return

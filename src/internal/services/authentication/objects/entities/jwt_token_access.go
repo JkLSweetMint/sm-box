@@ -3,8 +3,8 @@ package entities
 import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	common_types "sm-box/internal/common/types"
 	"sm-box/internal/services/authentication/objects/db_models"
-	users_models "sm-box/internal/services/users/objects/models"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
 	"time"
@@ -20,7 +20,13 @@ type (
 
 	// JwtAccessTokenUserInfo - информация о пользователя для jwt токена доступа.
 	JwtAccessTokenUserInfo struct {
-		Accesses *users_models.UserInfoAccesses
+		Accesses *JwtAccessTokenUserInfoAccesses
+	}
+
+	// JwtAccessTokenUserInfoAccesses - информация о доступах пользователя для jwt токена доступа.
+	JwtAccessTokenUserInfoAccesses struct {
+		Roles       []common_types.ID
+		Permissions []common_types.ID
 	}
 
 	// JwtAccessTokenClaims - данные для подписи jwt токена доступа.
@@ -97,9 +103,9 @@ func (entity *JwtAccessTokenUserInfo) FillEmptyFields() *JwtAccessTokenUserInfo 
 	}
 
 	if entity.Accesses == nil {
-		entity.Accesses = &users_models.UserInfoAccesses{
-			Roles:       make([]*users_models.RoleInfo, 0),
-			Permissions: make([]*users_models.PermissionInfo, 0),
+		entity.Accesses = &JwtAccessTokenUserInfoAccesses{
+			Roles:       make([]common_types.ID, 0),
+			Permissions: make([]common_types.ID, 0),
 		}
 	}
 
@@ -201,7 +207,10 @@ func (entity *JwtAccessToken) ToRedisDbModel() (model *db_models.JwtAccessToken)
 			IssuedAt:  entity.IssuedAt,
 		},
 		UserInfo: &db_models.JwtAccessTokenUserInfo{
-			Accesses: entity.UserInfo.Accesses,
+			Accesses: &db_models.JwtAccessTokenUserInfoAccesses{
+				Roles:       entity.UserInfo.Accesses.Roles,
+				Permissions: entity.UserInfo.Accesses.Permissions,
+			},
 		},
 	}
 

@@ -1,7 +1,7 @@
 package http_rest_api
 
 import (
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	app_models "sm-box/internal/app/objects/models"
 	common_errors "sm-box/internal/common/errors"
@@ -42,7 +42,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Get("/select", func(ctx fiber.Ctx) (err error) {
+				router.Get("/select", func(ctx *fiber.Ctx) (err error) {
 					type Response struct {
 						Projects app_models.ProjectList `json:"projects" xml:"Projects"`
 					}
@@ -209,7 +209,7 @@ func (srv *server) registerRoutes() error {
 			{
 				var id = uuid.New().String()
 
-				router.Post("/set", func(ctx fiber.Ctx) (err error) {
+				router.Post("/set", func(ctx *fiber.Ctx) (err error) {
 					type Request struct {
 						ProjectID common_types.ID `json:"project_id"`
 					}
@@ -222,7 +222,7 @@ func (srv *server) registerRoutes() error {
 
 					// Чтение данных
 					{
-						if err = ctx.Bind().Body(request); err != nil {
+						if err = ctx.BodyParser(request); err != nil {
 							srv.components.Logger.Error().
 								Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -462,7 +462,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Post("/", func(ctx fiber.Ctx) (err error) {
+			router.Post("/", func(ctx *fiber.Ctx) (err error) {
 				type Request struct {
 					Username string `json:"username"`
 					Password string `json:"password"`
@@ -476,7 +476,7 @@ func (srv *server) registerRoutes() error {
 
 				// Чтение данных
 				{
-					if err = ctx.Bind().Body(request); err != nil {
+					if err = ctx.BodyParser(request); err != nil {
 						srv.components.Logger.Error().
 							Format("The request body data could not be read: '%s'. ", err).Write()
 
@@ -743,7 +743,7 @@ func (srv *server) registerRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Get("/logout", func(ctx fiber.Ctx) (err error) {
+			router.Get("/logout", func(ctx *fiber.Ctx) (err error) {
 				type Response struct{}
 
 				var response = new(Response)

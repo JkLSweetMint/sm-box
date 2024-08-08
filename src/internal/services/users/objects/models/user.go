@@ -21,33 +21,45 @@ type (
 )
 
 // RolesIDs - получение списка ID ролей.
-func (accesses UserInfoAccesses) RolesIDs() (list []common_types.ID) {
-	var writeInheritance func(rl *RoleInfo)
+func (accesses UserInfoAccesses) RolesIDs() (roles []common_types.ID) {
+	var (
+		writeInheritance func(rl *RoleInfo)
+		list             = make(map[common_types.ID]struct{})
+	)
+
+	roles = make([]common_types.ID, 0)
 
 	writeInheritance = func(rl *RoleInfo) {
-		list = append(list, rl.ID)
+		list[rl.ID] = struct{}{}
 
 		for _, inheritRl := range rl.Inheritances {
 			writeInheritance(inheritRl.RoleInfo)
 		}
 	}
 
-	list = make([]common_types.ID, 0)
-
 	for _, rl := range accesses.Roles {
 		writeInheritance(rl)
+	}
+
+	for id, _ := range list {
+		roles = append(roles, id)
 	}
 
 	return
 }
 
 // PermissionsIDs - получение списка ID прав.
-func (accesses UserInfoAccesses) PermissionsIDs() (list []common_types.ID) {
-	var writeInheritance func(rl *RoleInfo)
+func (accesses UserInfoAccesses) PermissionsIDs() (permissions []common_types.ID) {
+	var (
+		writeInheritance func(rl *RoleInfo)
+		list             = make(map[common_types.ID]struct{})
+	)
+
+	permissions = make([]common_types.ID, 0)
 
 	writeInheritance = func(rl *RoleInfo) {
 		for _, permission := range rl.Permissions {
-			list = append(list, permission.ID)
+			list[permission.ID] = struct{}{}
 		}
 
 		for _, inheritRl := range rl.Inheritances {
@@ -55,10 +67,12 @@ func (accesses UserInfoAccesses) PermissionsIDs() (list []common_types.ID) {
 		}
 	}
 
-	list = make([]common_types.ID, 0)
-
 	for _, rl := range accesses.Roles {
 		writeInheritance(rl)
+	}
+
+	for id, _ := range list {
+		permissions = append(permissions, id)
 	}
 
 	return

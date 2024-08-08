@@ -165,7 +165,7 @@ func (repo *Repository) GetList(ctx context.Context,
 							operator = common_types.ParseComparisonOperators(*filters.NumberOfUsesType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand number_of_uses%s%d", operator, v))
+						query.WriteString(fmt.Sprintf("\nand number_of_uses%s%d", operator.TranslateToSign(), v))
 					}
 
 					if filters.StartActive != nil {
@@ -178,7 +178,7 @@ func (repo *Repository) GetList(ctx context.Context,
 							operator = common_types.ParseComparisonOperators(*filters.StartActiveType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand start_active%s'%s'", operator, v.Format(time.RFC3339Nano)))
+						query.WriteString(fmt.Sprintf("\nand properties.start_active%s'%s'", operator.TranslateToSign(), v.Format(time.RFC3339Nano)))
 					}
 
 					if filters.EndActive != nil {
@@ -191,7 +191,7 @@ func (repo *Repository) GetList(ctx context.Context,
 							operator = common_types.ParseComparisonOperators(*filters.EndActiveType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand end_active%s'%s'", operator, v.Format(time.RFC3339Nano)))
+						query.WriteString(fmt.Sprintf("\nand properties.end_active%s'%s'", operator.TranslateToSign(), v.Format(time.RFC3339Nano)))
 					}
 				}
 
@@ -324,7 +324,7 @@ func (repo *Repository) GetList(ctx context.Context,
 							operator = common_types.ParseComparisonOperators(*filters.NumberOfUsesType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand number_of_uses%s%d", operator, v))
+						query.WriteString(fmt.Sprintf("\nand number_of_uses%s%d", operator.TranslateToSign(), v))
 					}
 
 					if filters.StartActive != nil {
@@ -337,7 +337,7 @@ func (repo *Repository) GetList(ctx context.Context,
 							operator = common_types.ParseComparisonOperators(*filters.StartActiveType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand start_active%s'%s'", operator, v.Format(time.RFC3339Nano)))
+						query.WriteString(fmt.Sprintf("\nand properties.start_active%s'%s'", operator.TranslateToSign(), v.Format(time.RFC3339Nano)))
 					}
 
 					if filters.EndActive != nil {
@@ -350,7 +350,7 @@ func (repo *Repository) GetList(ctx context.Context,
 							operator = common_types.ParseComparisonOperators(*filters.EndActiveType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand end_active%s'%s'", operator, v.Format(time.RFC3339Nano)))
+						query.WriteString(fmt.Sprintf("\nand properties.end_active%s'%s'", operator.TranslateToSign(), v.Format(time.RFC3339Nano)))
 					}
 				}
 
@@ -651,7 +651,7 @@ func (repo *Repository) GetUsageHistory(ctx context.Context, id common_types.ID,
 							operator = common_types.ParseComparisonOperators(*filters.TimestampType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator, v.Format(time.RFC3339Nano)))
+						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator.TranslateToSign(), v.Format(time.RFC3339Nano)))
 					}
 				}
 
@@ -737,7 +737,7 @@ func (repo *Repository) GetUsageHistory(ctx context.Context, id common_types.ID,
 							operator = common_types.ParseComparisonOperators(*filters.TimestampType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator, v.Format(time.RFC3339Nano)))
+						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator.TranslateToSign(), v.Format(time.RFC3339Nano)))
 					}
 				}
 
@@ -832,7 +832,7 @@ func (repo *Repository) GetUsageHistoryByReduction(ctx context.Context, reductio
 							operator = common_types.ParseComparisonOperators(*filters.TimestampType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator, v.Format(time.RFC3339Nano)))
+						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator.TranslateToSign(), v.Format(time.RFC3339Nano)))
 					}
 				}
 
@@ -918,7 +918,7 @@ func (repo *Repository) GetUsageHistoryByReduction(ctx context.Context, reductio
 							operator = common_types.ParseComparisonOperators(*filters.TimestampType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator, v.Format(time.RFC3339Nano)))
+						query.WriteString(fmt.Sprintf("\nand timestamp%s'%s'", operator.TranslateToSign(), v.Format(time.RFC3339Nano)))
 					}
 				}
 

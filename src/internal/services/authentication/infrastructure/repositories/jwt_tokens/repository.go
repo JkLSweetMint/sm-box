@@ -242,7 +242,10 @@ func (repo *Repository) GetJwtAccessToken(ctx context.Context, id uuid.UUID) (to
 				Params: nil,
 			},
 			UserInfo: &entities.JwtAccessTokenUserInfo{
-				Accesses: value.UserInfo.Accesses,
+				Accesses: &entities.JwtAccessTokenUserInfoAccesses{
+					Roles:       value.UserInfo.Accesses.Roles,
+					Permissions: value.UserInfo.Accesses.Permissions,
+				},
 			},
 		}
 	}

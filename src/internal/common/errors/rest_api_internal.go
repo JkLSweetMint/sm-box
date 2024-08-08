@@ -1,7 +1,7 @@
 package common_errors
 
 import (
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	c_errors "sm-box/pkg/errors"
 	"sm-box/pkg/errors/entities/messages"
 	"sm-box/pkg/errors/types"

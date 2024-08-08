@@ -2,7 +2,7 @@ package http_rest_api
 
 import (
 	"errors"
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	common_errors "sm-box/internal/common/errors"
 	"sm-box/pkg/core/components/tracer"
@@ -40,7 +40,7 @@ func (srv *server) registerBaseRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Get("/ping", func(ctx fiber.Ctx) (err error) {
+			router.Get("/ping", func(ctx *fiber.Ctx) (err error) {
 				type Response struct {
 					Message string `json:"message" xml:"Message"`
 				}
@@ -134,7 +134,7 @@ func (srv *server) registerBaseRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Get("/health", func(ctx fiber.Ctx) (err error) {
+			router.Get("/health", func(ctx *fiber.Ctx) (err error) {
 				type Response struct {
 					SystemName string `json:"system_name" xml:"SystemName"`
 					Mode       string `json:"mode"        xml:"Mode"`
@@ -246,7 +246,7 @@ func (srv *server) registerBaseRoutes() error {
 		{
 			var id = uuid.New().String()
 
-			router.Get("/error", func(ctx fiber.Ctx) (err error) {
+			router.Get("/error", func(ctx *fiber.Ctx) (err error) {
 				var (
 					response c_errors.RestAPI
 				)

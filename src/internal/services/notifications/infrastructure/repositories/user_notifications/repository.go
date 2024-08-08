@@ -432,27 +432,303 @@ func (repo *Repository) GetList(ctx context.Context,
 	return
 }
 
+// GetOne - получение пользовательского уведомления по id.
+func (repo *Repository) GetOne(ctx context.Context, id common_types.ID) (notification *entities.UserNotification, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, id)
+		defer func() { trc.Error(err).FunctionCallFinished(notification) }()
+	}
+
+	var model = new(db_models.UserNotification)
+
+	// Получение
+	{
+		var query = `
+				select
+					notifications.id,
+					notifications.type,
+					coalesce(notifications.sender_id, 0) as sender_id,
+					notifications.recipient_id,
+					notifications.title,
+					coalesce(notifications.title_i18n, '00000000-0000-0000-0000-000000000000') as title_i18n,
+					notifications.text,
+					coalesce(notifications.text_i18n, '00000000-0000-0000-0000-000000000000') as text_i18n,
+					coalesce(notifications.created_timestamp, '0001-01-01 00:00:0.000000 +00:00') as created_timestamp,
+					coalesce(notifications.read_timestamp, '0001-01-01 00:00:0.000000 +00:00') as read_timestamp,
+					coalesce(notifications.removed_timestamp, '0001-01-01 00:00:0.000000 +00:00') as removed_timestamp
+				from
+					users.notifications as notifications
+				where
+					notifications.id = $1
+		`
+
+		var row = repo.connector.QueryRowxContext(ctx, query, id)
+
+		if err = row.Err(); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+			return
+		}
+
+		if err = row.StructScan(model); err != nil {
+			repo.components.Logger.Error().
+				Format("Error while reading item data from the database:: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	// Перенос в сущность
+	{
+		notification = &entities.UserNotification{
+			ID:   model.ID,
+			Type: model.Type,
+
+			SenderID:    model.SenderID,
+			RecipientID: model.RecipientID,
+
+			Title:     model.Title,
+			TitleI18n: model.TitleI18n,
+
+			Text:     model.Text,
+			TextI18n: model.TextI18n,
+
+			CreatedTimestamp: model.CreatedTimestamp,
+			ReadTimestamp:    model.ReadTimestamp,
+			RemovedTimestamp: model.RemovedTimestamp,
+		}
+	}
+
+	return
+}
+
+// Get - получение пользовательских уведомлений по списку id.
+func (repo *Repository) Get(ctx context.Context, ids ...common_types.ID) (list []*entities.UserNotification, err error) {
+	// tracer
+	{
+		var trc = tracer.New(tracer.LevelRepository)
+
+		trc.FunctionCall(ctx, ids)
+		defer func() { trc.Error(err).FunctionCallFinished(list) }()
+	}
+
+	var (
+		rows  *sqlx.Rows
+		query = `
+				select
+					notifications.id,
+					notifications.type,
+					coalesce(notifications.sender_id, 0) as sender_id,
+					notifications.recipient_id,
+					notifications.title,
+					coalesce(notifications.title_i18n, '00000000-0000-0000-0000-000000000000') as title_i18n,
+					notifications.text,
+					coalesce(notifications.text_i18n, '00000000-0000-0000-0000-000000000000') as text_i18n,
+					coalesce(notifications.created_timestamp, '0001-01-01 00:00:0.000000 +00:00') as created_timestamp,
+					coalesce(notifications.read_timestamp, '0001-01-01 00:00:0.000000 +00:00') as read_timestamp,
+					coalesce(notifications.removed_timestamp, '0001-01-01 00:00:0.000000 +00:00') as removed_timestamp
+				from
+					users.notifications as notifications
+				where
+				    notifications.id = any($1)
+`
+		ids_ = make(pq.Int64Array, 0, len(ids))
+	)
+
+	// Подготовка данных
+	{
+		for _, id := range ids {
+			ids_ = append(ids_, int64(id))
+		}
+	}
+
+	// Выполнение запроса
+	{
+		if rows, err = repo.connector.QueryxContext(ctx, query, ids_); err != nil {
+			repo.components.Logger.Error().
+				Format("Error when retrieving an items from the database: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	// Чтение данных
+	{
+		list = make([]*entities.UserNotification, 0)
+
+		for rows.Next() {
+			var (
+				model = new(db_models.UserNotification)
+			)
+
+			if err = rows.StructScan(model); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+
+			list = append(list, &entities.UserNotification{
+				ID:   model.ID,
+				Type: model.Type,
+
+				SenderID:    model.SenderID,
+				RecipientID: model.RecipientID,
+
+				Title:     model.Title,
+				TitleI18n: model.TitleI18n,
+
+				Text:     model.Text,
+				TextI18n: model.TextI18n,
+
+				CreatedTimestamp: model.CreatedTimestamp,
+				ReadTimestamp:    model.ReadTimestamp,
+				RemovedTimestamp: model.RemovedTimestamp,
+			})
+		}
+	}
+
+	return
+}
+
 // CreateOne - создание пользовательского уведомления.
-func (repo *Repository) CreateOne(ctx context.Context, constructor *constructors.UserNotification) (notification *entities.UserNotification, err error) {
+func (repo *Repository) CreateOne(ctx context.Context, constructor *constructors.UserNotification) (id common_types.ID, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
 
 		trc.FunctionCall(ctx, constructor)
-		defer func() { trc.Error(err).FunctionCallFinished(notification) }()
+		defer func() { trc.Error(err).FunctionCallFinished(id) }()
+	}
+
+	var query = `
+			insert into
+				users.notifications(
+					type,
+					sender_id,
+					recipient_id,
+					title,
+					title_i18n,
+					text,
+					text_i18n
+				) 
+			values (
+					$1,
+					$2,
+					$3,
+					$4,
+					$5,
+					$6,
+					$7
+			)
+			returning id;
+		`
+
+	var row = repo.connector.QueryRowxContext(ctx, query,
+		constructor.Type,
+		constructor.SenderID,
+		constructor.RecipientID,
+		constructor.Title,
+		constructor.TitleI18n,
+		constructor.Text,
+		constructor.TextI18n)
+
+	if err = row.Err(); err != nil {
+		repo.components.Logger.Error().
+			Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+		return
+	}
+
+	if err = row.Scan(&id); err != nil {
+		repo.components.Logger.Error().
+			Format("Error while reading item data from the database:: '%s'. ", err).Write()
+		return
 	}
 
 	return
 }
 
 // Create - создание пользовательских уведомлений.
-func (repo *Repository) Create(ctx context.Context, constructors ...*constructors.UserNotification) (notifications []*entities.UserNotification, err error) {
+func (repo *Repository) Create(ctx context.Context, constructors ...*constructors.UserNotification) (ids []common_types.ID, err error) {
 	// tracer
 	{
 		var trc = tracer.New(tracer.LevelRepository)
 
 		trc.FunctionCall(ctx, constructors)
-		defer func() { trc.Error(err).FunctionCallFinished(notifications) }()
+		defer func() { trc.Error(err).FunctionCallFinished(ids) }()
+	}
+
+	var tx *sqlx.Tx
+
+	// Создание транзакции
+	{
+		if tx, err = repo.connector.BeginTxx(ctx, nil); err != nil {
+			repo.components.Logger.Error().
+				Format("An error occurred during the creation of the transaction: '%s'. ", err).Write()
+			return
+		}
+	}
+
+	// Добавлений инструкций
+	{
+		var query = `
+			insert into
+				users.notifications(
+					type,
+					sender_id,
+					recipient_id,
+					title,
+					title_i18n,
+					text,
+					text_i18n
+				) 
+			values (
+					$1,
+					$2,
+					$3,
+					$4,
+					$5,
+					$6,
+					$7
+			)
+			returning id;
+		`
+
+		for _, constructor := range constructors {
+			var id common_types.ID
+
+			var row = tx.QueryRowxContext(ctx, query,
+				constructor.Type,
+				constructor.SenderID,
+				constructor.RecipientID,
+				constructor.Title,
+				constructor.TitleI18n,
+				constructor.Text,
+				constructor.TextI18n)
+
+			if err = row.Err(); err != nil {
+				repo.components.Logger.Error().
+					Format("Error when retrieving an item from the database: '%s'. ", err).Write()
+				return
+			}
+
+			if err = row.Scan(&id); err != nil {
+				repo.components.Logger.Error().
+					Format("Error while reading item data from the database:: '%s'. ", err).Write()
+				return
+			}
+
+			ids = append(ids, id)
+		}
+	}
+
+	// Выполнение транзакции
+	{
+		if err = tx.Commit(); err != nil {
+			repo.components.Logger.Error().
+				Format("An error occurred during the execution of the transaction: '%s'. ", err).Write()
+			return
+		}
 	}
 
 	return

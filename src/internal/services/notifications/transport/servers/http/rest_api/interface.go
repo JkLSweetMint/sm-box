@@ -2,6 +2,7 @@ package http_rest_api
 
 import (
 	"context"
+	"sm-box/internal/services/notifications/components/notification_notifier"
 	user_notifications_adapter "sm-box/internal/services/notifications/infrastructure/adapters/user_notifications"
 	"sm-box/internal/services/notifications/transport/servers/http/rest_api/config"
 	"sm-box/pkg/core/components/logger"
@@ -49,6 +50,13 @@ func New(ctx context.Context) (srv Server, err error) {
 		// Logger
 		{
 			if ref.components.Logger, err = logger.New(loggerInitiator); err != nil {
+				return
+			}
+		}
+
+		// NotificationNotifier
+		{
+			if ref.components.NotificationNotifier, err = notification_notifier.New(ref.ctx); err != nil {
 				return
 			}
 		}

@@ -1,7 +1,7 @@
 package config
 
 import (
-	cors_middleware "github.com/gofiber/fiber/v3/middleware/cors"
+	cors_middleware "github.com/gofiber/fiber/v2/middleware/cors"
 	"sm-box/pkg/core/components/tracer"
 	"strings"
 )
@@ -52,12 +52,6 @@ type MiddlewareCors struct {
 	//
 	// Необязательно. Значение по умолчанию равно 0.
 	MaxAge int `json:"max_age" yaml:"MaxAge" xml:"MaxAge"`
-
-	// Разрешить частную сеть указывает, следует ли установить для заголовка ответа Access-Control-Allow-Private-Network
-	// значение true, разрешающее запросы из частных сетей.
-	//
-	// Необязательно. Значение по умолчанию false.
-	AllowPrivateNetwork bool `json:"allow_private_network" yaml:"AllowPrivateNetwork" xml:"AllowPrivateNetwork"`
 }
 
 // FillEmptyFields - заполнение пустых полей конфигурации
@@ -130,7 +124,6 @@ func (conf *MiddlewareCors) Default() *MiddlewareCors {
 		"Content-Length",
 	}
 	conf.MaxAge = 36000
-	conf.AllowPrivateNetwork = true
 
 	return conf
 }
@@ -159,15 +152,14 @@ func (conf *MiddlewareCors) ToFiberConfig() (c cors_middleware.Config) {
 	}
 
 	c = cors_middleware.Config{
-		Next:                nil,
-		AllowOriginsFunc:    nil,
-		AllowOrigins:        strings.Join(conf.AllowOrigins, ", "),
-		AllowMethods:        strings.Join(conf.AllowMethods, ", "),
-		AllowHeaders:        strings.Join(conf.AllowHeaders, ", "),
-		AllowCredentials:    conf.AllowCredentials,
-		ExposeHeaders:       strings.Join(conf.ExposeHeaders, ", "),
-		MaxAge:              conf.MaxAge,
-		AllowPrivateNetwork: conf.AllowPrivateNetwork,
+		Next:             nil,
+		AllowOriginsFunc: nil,
+		AllowOrigins:     strings.Join(conf.AllowOrigins, ", "),
+		AllowMethods:     strings.Join(conf.AllowMethods, ", "),
+		AllowHeaders:     strings.Join(conf.AllowHeaders, ", "),
+		AllowCredentials: conf.AllowCredentials,
+		ExposeHeaders:    strings.Join(conf.ExposeHeaders, ", "),
+		MaxAge:           conf.MaxAge,
 	}
 
 	return
