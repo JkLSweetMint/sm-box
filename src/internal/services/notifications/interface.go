@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	popup_notifications_srv "sm-box/internal/services/notifications/transport/servers/grpc/popup_notifications_service"
+	user_notifications_srv "sm-box/internal/services/notifications/transport/servers/grpc/user_notifications_service"
 	http_rest_api "sm-box/internal/services/notifications/transport/servers/http/rest_api"
 	"sm-box/pkg/core"
 	"sm-box/pkg/core/addons/pid"
@@ -81,6 +83,14 @@ func New() (srv_ Service, err error) {
 		// Сервера
 		{
 			if ref.transport.servers.http.restApi, err = http_rest_api.New(ref.Ctx()); err != nil {
+				return
+			}
+
+			if ref.transport.servers.grpc.userNotificationsService, err = user_notifications_srv.New(ref.Ctx()); err != nil {
+				return
+			}
+
+			if ref.transport.servers.grpc.popupNotificationsService, err = popup_notifications_srv.New(ref.Ctx()); err != nil {
 				return
 			}
 		}

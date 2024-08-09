@@ -10,8 +10,9 @@
  
 ---
 
-### v24.0.54:
+### v24.0.55:
 - [x] Разработка [сервиса уведомлений](src/internal/services/notifications/service.go);
+- [x] Разработка [сервиса ресурсов](src/internal/services/resources/service.go);
 
 ---
 

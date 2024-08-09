@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-// server - grpc сервер для сервиса системы доступа пользователей.
+// server - grpc сервер для сервиса управления короткими url.
 type server struct {
 	pb.UrlShortnerServiceServer
 	listener net.Listener

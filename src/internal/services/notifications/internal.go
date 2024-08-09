@@ -21,7 +21,7 @@ func (srv *service) serve(ctx context.Context) (err error) {
 
 	// Транспортная часть
 	{
-		env.Synchronization.WaitGroup.Add(1)
+		env.Synchronization.WaitGroup.Add(3)
 
 		go func() {
 			defer env.Synchronization.WaitGroup.Done()
@@ -29,6 +29,24 @@ func (srv *service) serve(ctx context.Context) (err error) {
 			if err = srv.Transport().Servers().Http().RestApi().Listen(); err != nil {
 				srv.Components().Logger().Error().
 					Format("Failed to launch 'http rest api server': '%s'. ", err).Write()
+			}
+		}()
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			if err = srv.Transport().Servers().Grpc().UserNotificationsService().Listen(); err != nil {
+				srv.Components().Logger().Error().
+					Format("Failed to launch 'grpc server for user notifications service': '%s'. ", err).Write()
+			}
+		}()
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			if err = srv.Transport().Servers().Grpc().PopupNotificationsService().Listen(); err != nil {
+				srv.Components().Logger().Error().
+					Format("Failed to launch 'grpc server for popup notifications service': '%s'. ", err).Write()
 			}
 		}()
 	}
@@ -57,6 +75,16 @@ func (srv *service) shutdown(ctx context.Context) (err error) {
 		if err = srv.Transport().Servers().Http().RestApi().Shutdown(); err != nil {
 			srv.Components().Logger().Error().
 				Format("Failed to stop 'http rest api server': '%s'. ", err).Write()
+		}
+
+		if err = srv.Transport().Servers().Grpc().UserNotificationsService().Shutdown(); err != nil {
+			srv.Components().Logger().Error().
+				Format("Failed to stop 'grpc server for user notifications service': '%s'. ", err).Write()
+		}
+
+		if err = srv.Transport().Servers().Grpc().PopupNotificationsService().Shutdown(); err != nil {
+			srv.Components().Logger().Error().
+				Format("Failed to stop 'grpc server for popup notifications service': '%s'. ", err).Write()
 		}
 	}
 

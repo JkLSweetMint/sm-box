@@ -3,7 +3,6 @@ package notification_notifier
 import (
 	"context"
 	"github.com/google/uuid"
-	"sm-box/internal/services/notifications/objects/entities"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sync"
@@ -23,7 +22,7 @@ type (
 	Notifier interface {
 		RegisterRecipient(recipient *Recipient)
 		RemoveRecipient(sessionJwtTokenID uuid.UUID)
-		Notify(notifications ...entities.Notification)
+		Notify(notifications ...*Notification)
 	}
 )
 

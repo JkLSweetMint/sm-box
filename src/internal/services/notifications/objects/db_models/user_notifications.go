@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	// UserNotification - модель базы данных пользовательского уведомления
+	// UserNotification - модель базы данных пользовательского уведомления.
 	UserNotification struct {
 		ID   common_types.ID        `db:"id"`
 		Type types.NotificationType `db:"type"`

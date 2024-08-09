@@ -3,6 +3,7 @@ package http_rest_api
 import (
 	"context"
 	"sm-box/internal/services/notifications/components/notification_notifier"
+	popup_notifications_adapter "sm-box/internal/services/notifications/infrastructure/adapters/popup_notifications"
 	user_notifications_adapter "sm-box/internal/services/notifications/infrastructure/adapters/user_notifications"
 	"sm-box/internal/services/notifications/transport/servers/http/rest_api/config"
 	"sm-box/pkg/core/components/logger"
@@ -67,6 +68,10 @@ func New(ctx context.Context) (srv Server, err error) {
 		ref.controllers = new(controllers)
 
 		if ref.controllers.UserNotifications, err = user_notifications_adapter.New_RestAPI(ref.ctx); err != nil {
+			return
+		}
+
+		if ref.controllers.PopupNotifications, err = popup_notifications_adapter.New_RestAPI(ref.ctx); err != nil {
 			return
 		}
 	}

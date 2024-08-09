@@ -402,6 +402,109 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "Всплывающие уведомления. ",
+            "item": [
+                {
+                    "name": "Создание всплывающего уведомления. ",
+                    "description": "\nИспользуется для создания всплывающего уведомления.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "notifications",
+                                "api",
+                                "v1.0",
+                                "popups",
+                                "create",
+                                ""
+                            ]
+                        },
+                        "method": "POST",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "\n{\n\t\"type\": \"\",\n\t\"sender_id\": 0,\n\t\"recipient_id\": \"\",\n\t\"title\": \"\",\n\t\"title_i18n\": \"\",\n\t\"text\": \"\",\n\t\"text_i18n\": \"\"\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {}\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
+                        }
+                    ]
+                },
+                {
+                    "name": "Создание нескольких всплывающих уведомлений. ",
+                    "description": "\nИспользуется для создания нескольких всплывающих уведомлений.\n",
+                    "request": {
+                        "url": {
+                            "raw": "",
+                            "protocol": "https",
+                            "host": [
+                                "box",
+                                "samgk",
+                                "ru"
+                            ],
+                            "path": [
+                                "",
+                                "notifications",
+                                "api",
+                                "v1.0",
+                                "popups",
+                                "create",
+                                "multiple"
+                            ]
+                        },
+                        "method": "POST",
+                        "description": "",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "\n{\n\t\"notifications\": [\n\t\t{\n\t\t\t\"type\": \"\",\n\t\t\t\"sender_id\": 0,\n\t\t\t\"recipient_id\": \"\",\n\t\t\t\"title\": \"\",\n\t\t\t\"title_i18n\": \"\",\n\t\t\t\"text\": \"\",\n\t\t\t\"text_i18n\": \"\"\n\t\t}\n\t]\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [
+                        {
+                            "body": "\n{\n    \"code\": 500,\n    \"code_message\": \"Internal Server Error\",\n    \"status\": \"error\",\n    \"error\": {\n        \"id\": \"I-000001\",\n        \"type\": \"system\",\n        \"status\": \"error\",\n        \"message\": \"Internal server error. \",\n        \"details\": {}\n    }\n}\n",
+                            "status": "Ǵ",
+                            "code": 500,
+                            "name": "Произошла внутренняя ошибка сервера. "
+                        },
+                        {
+                            "body": "\n{\n    \"code\": 200,\n    \"code_message\": \"OK\",\n    \"status\": \"success\",\n    \"data\": {}\n}\n",
+                            "status": "È",
+                            "code": 200,
+                            "name": "Успешный ответ. "
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

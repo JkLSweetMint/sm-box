@@ -12,7 +12,7 @@ import (
 type (
 	// PopupNotification - всплывающее уведомление.
 	PopupNotification struct {
-		ID   uuid.UUID
+		ID   common_types.ID
 		Type types.NotificationType
 
 		SenderID    common_types.ID
@@ -36,10 +36,6 @@ func (entity *PopupNotification) FillEmptyFields() *PopupNotification {
 
 		trc.FunctionCall()
 		defer func() { trc.FunctionCallFinished(entity) }()
-	}
-
-	if entity.ID.String() == "00000000-0000-0000-0000-000000000000" {
-		entity.ID = uuid.New()
 	}
 
 	return entity

@@ -56,6 +56,10 @@ type controllers struct {
 		ReadOne(ctx context.Context, recipientID common_types.ID, id common_types.ID) (cErr c_errors.RestAPI)
 		Read(ctx context.Context, recipientID common_types.ID, ids ...common_types.ID) (cErr c_errors.RestAPI)
 	}
+	PopupNotifications interface {
+		CreateOne(ctx context.Context, constructor *constructors.PopupNotification) (notification *models.PopupNotificationInfo, cErr c_errors.RestAPI)
+		Create(ctx context.Context, constructors ...*constructors.PopupNotification) (notifications []*models.PopupNotificationInfo, cErr c_errors.RestAPI)
+	}
 }
 
 // components - компоненты сервера.

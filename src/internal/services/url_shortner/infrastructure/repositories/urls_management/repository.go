@@ -165,7 +165,7 @@ func (repo *Repository) GetList(ctx context.Context,
 							operator = common_types.ParseComparisonOperators(*filters.NumberOfUsesType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand number_of_uses%s%d", operator.TranslateToSign(), v))
+						query.WriteString(fmt.Sprintf("\nand number_of_uses * -1 %s%d", operator.TranslateToSign(), v))
 					}
 
 					if filters.StartActive != nil {
@@ -324,7 +324,7 @@ func (repo *Repository) GetList(ctx context.Context,
 							operator = common_types.ParseComparisonOperators(*filters.NumberOfUsesType)
 						}
 
-						query.WriteString(fmt.Sprintf("\nand number_of_uses%s%d", operator.TranslateToSign(), v))
+						query.WriteString(fmt.Sprintf("\nand number_of_uses * -1 %s%d", operator.TranslateToSign(), v))
 					}
 
 					if filters.StartActive != nil {

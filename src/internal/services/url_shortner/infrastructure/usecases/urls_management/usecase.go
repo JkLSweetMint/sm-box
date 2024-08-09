@@ -300,6 +300,8 @@ func (usecase *UseCase) GetList(ctx context.Context,
 
 						return
 					}
+				} else {
+					filters.NumberOfUses = nil
 				}
 
 				if tmpCErr != nil {

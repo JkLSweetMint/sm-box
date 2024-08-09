@@ -1,6 +1,8 @@
 package service
 
 import (
+	popup_notifications_srv "sm-box/internal/services/notifications/transport/servers/grpc/popup_notifications_service"
+	user_notifications_srv "sm-box/internal/services/notifications/transport/servers/grpc/user_notifications_service"
 	http_rest_api "sm-box/internal/services/notifications/transport/servers/http/rest_api"
 )
 
@@ -22,7 +24,10 @@ type TransportServersHttp interface {
 }
 
 // TransportServersGrpc - описание серверов транспортной части приложения по grpc.
-type TransportServersGrpc interface{}
+type TransportServersGrpc interface {
+	UserNotificationsService() user_notifications_srv.Server
+	PopupNotificationsService() popup_notifications_srv.Server
+}
 
 // TransportGateways - описание шлюзов транспортной части сервиса.
 type TransportGateways interface{}
@@ -47,7 +52,10 @@ type transportServersHttp struct {
 }
 
 // transportServersGrpc - сервера транспортной части приложения по grpc.
-type transportServersGrpc struct{}
+type transportServersGrpc struct {
+	userNotificationsService  user_notifications_srv.Server
+	popupNotificationsService popup_notifications_srv.Server
+}
 
 // transportsGateways - шлюзы транспортной части сервиса.
 type transportGateways struct {
@@ -76,4 +84,14 @@ func (t *transportServers) Grpc() TransportServersGrpc {
 // RestApi - получение http rest api сервера.
 func (t *transportServersHttp) RestApi() http_rest_api.Server {
 	return t.restApi
+}
+
+// UserNotificationsService - получение grpc сервера.
+func (t *transportServersGrpc) UserNotificationsService() user_notifications_srv.Server {
+	return t.userNotificationsService
+}
+
+// PopupNotificationsService - получение grpc сервера.
+func (t *transportServersGrpc) PopupNotificationsService() popup_notifications_srv.Server {
+	return t.popupNotificationsService
 }

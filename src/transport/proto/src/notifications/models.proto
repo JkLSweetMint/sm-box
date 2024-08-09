@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package grpc_service;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./";
+
+message UserNotification {
+  uint64 ID   = 1;
+  string Type = 2;
+
+  uint64 SenderID    = 3;
+  uint64 RecipientID = 4;
+
+  string Title     = 5;
+  string TitleI18n = 6;
+
+  string Text     = 7;
+  string TextI18n = 8;
+
+  google.protobuf.Timestamp CreatedTimestamp = 9;
+  google.protobuf.Timestamp ReadTimestamp    = 10;
+  google.protobuf.Timestamp RemovedTimestamp = 11;
+}
+
+message PopupNotification {
+  uint64 ID   = 1;
+  string Type = 2;
+
+  uint64 SenderID    = 3;
+  string RecipientID = 4;
+
+  string Title     = 5;
+  string TitleI18n = 6;
+
+  string Text     = 7;
+  string TextI18n = 8;
+
+  google.protobuf.Timestamp CreatedTimestamp = 9;
+}
+
+message UserNotificationConstructor {
+  string Type = 1;
+
+  uint64 SenderID    = 2;
+  uint64 RecipientID = 3;
+
+  string Title     = 4;
+  string TitleI18n = 5;
+
+  string Text     = 6;
+  string TextI18n = 7;
+}
+
+message PopupNotificationConstructor {
+  string Type = 1;
+
+  uint64 SenderID    = 2;
+  string RecipientID = 3;
+
+  string Title     = 4;
+  string TitleI18n = 5;
+
+  string Text     = 6;
+  string TextI18n = 7;
+}

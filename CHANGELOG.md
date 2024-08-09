@@ -1,5 +1,12 @@
 # ChangeLog:
 
+### v24.0.55:
+- Разработка [сервиса уведомлений](src/internal/services/notifications/service.go);
+- Разработка [сервиса ресурсов](src/internal/services/resources/service.go);
+- Доработки [сервиса коротких url](src/internal/services/url_shortner/service.go);
+
+---
+
 ### v24.0.54:
 - Разработка [сервиса уведомлений](src/internal/services/notifications/service.go);
 - Доработки [сервиса коротких ссылок](src/internal/services/url_shortner/service.go);

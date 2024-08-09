@@ -7,6 +7,7 @@ import (
 	"fmt"
 	common_errors "sm-box/internal/common/errors"
 	common_types "sm-box/internal/common/types"
+	"sm-box/internal/services/notifications/components/notification_notifier"
 	user_notifications_repository "sm-box/internal/services/notifications/infrastructure/repositories/user_notifications"
 	"sm-box/internal/services/notifications/objects"
 	"sm-box/internal/services/notifications/objects/constructors"
@@ -15,6 +16,7 @@ import (
 	"sm-box/internal/services/notifications/objects/types"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
+	"sm-box/pkg/core/env"
 	c_errors "sm-box/pkg/errors"
 	err_details "sm-box/pkg/errors/entities/details"
 	err_messages "sm-box/pkg/errors/entities/messages"
@@ -62,7 +64,8 @@ type repositories struct {
 
 // components - компоненты логики.
 type components struct {
-	Logger logger.Logger
+	Logger               logger.Logger
+	NotificationNotifier notification_notifier.Notifier
 }
 
 // New - создание логики.
@@ -95,6 +98,13 @@ func New(ctx context.Context) (usecase *UseCase, err error) {
 		// Logger
 		{
 			if usecase.components.Logger, err = logger.New(loggerInitiator); err != nil {
+				return
+			}
+		}
+
+		// NotificationNotifier
+		{
+			if usecase.components.NotificationNotifier, err = notification_notifier.New(ctx); err != nil {
 				return
 			}
 		}
@@ -321,8 +331,6 @@ func (usecase *UseCase) CreateOne(ctx context.Context, constructor *constructors
 					new(err_details.FieldKey).Add("recipient_id"),
 					new(err_messages.TextMessage).Text("Negative value. "),
 				)
-
-				return
 			} else if constructor.RecipientID == 0 {
 				if tempCErr == nil {
 					tempCErr = common_errors.InvalidArguments()
@@ -336,8 +344,21 @@ func (usecase *UseCase) CreateOne(ctx context.Context, constructor *constructors
 					new(err_details.FieldKey).Add("recipient_id"),
 					new(err_messages.TextMessage).Text("Zero value. "),
 				)
+			}
 
-				return
+			if constructor.Type != types.NotificationTypeAlerts {
+				if tempCErr == nil {
+					tempCErr = common_errors.InvalidArguments()
+				}
+
+				usecase.components.Logger.Error().
+					Text("An invalid argument value was passed. ").
+					Field("constructor", constructor).Write()
+
+				tempCErr.Details().SetField(
+					new(err_details.FieldKey).Add("type"),
+					new(err_messages.TextMessage).Text("Invalid value. "),
+				)
 			}
 
 			if len(constructor.Title) == 0 && constructor.TitleI18n.String() == "00000000-0000-0000-0000-000000000000" {
@@ -357,8 +378,6 @@ func (usecase *UseCase) CreateOne(ctx context.Context, constructor *constructors
 					new(err_details.FieldKey).Add("title_i18n"),
 					new(err_messages.TextMessage).Text("Is empty. "),
 				)
-
-				return
 			}
 
 			if len(constructor.Text) == 0 && constructor.TextI18n.String() == "00000000-0000-0000-0000-000000000000" {
@@ -378,8 +397,6 @@ func (usecase *UseCase) CreateOne(ctx context.Context, constructor *constructors
 					new(err_details.FieldKey).Add("text_i18n"),
 					new(err_messages.TextMessage).Text("Is empty. "),
 				)
-
-				return
 			}
 
 			if tempCErr != nil {
@@ -426,6 +443,21 @@ func (usecase *UseCase) CreateOne(ctx context.Context, constructor *constructors
 		usecase.components.Logger.Info().
 			Text("The user notification have been successfully collected. ").
 			Field("notification", notification).Write()
+	}
+
+	// Рассылка
+	{
+		env.Synchronization.WaitGroup.Add(1)
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			usecase.components.NotificationNotifier.Notify(&notification_notifier.Notification{
+				Type:      notification_notifier.NotificationTypeCreated,
+				Recipient: fmt.Sprintf("users:%d", notification.RecipientID),
+				Data:      notification,
+			})
+		}()
 	}
 
 	return
@@ -505,8 +537,21 @@ func (usecase *UseCase) Create(ctx context.Context, constructors ...*constructor
 						new(err_details.FieldKey).AddArray("constructors", index).Add("recipient_id"),
 						new(err_messages.TextMessage).Text("Zero value. "),
 					)
+				}
 
-					return
+				if constructor.Type != types.NotificationTypeAlerts {
+					if tempCErr == nil {
+						tempCErr = common_errors.InvalidArguments()
+					}
+
+					usecase.components.Logger.Error().
+						Text("An invalid argument value was passed. ").
+						Field("constructor", constructor).Write()
+
+					tempCErr.Details().SetField(
+						new(err_details.FieldKey).AddArray("constructors", index).Add("type"),
+						new(err_messages.TextMessage).Text("Invalid value. "),
+					)
 				}
 
 				if len(constructor.Title) == 0 && constructor.TitleI18n.String() == "00000000-0000-0000-0000-000000000000" {
@@ -526,8 +571,6 @@ func (usecase *UseCase) Create(ctx context.Context, constructors ...*constructor
 						new(err_details.FieldKey).AddArray("constructors", index).Add("title_i18n"),
 						new(err_messages.TextMessage).Text("Is empty. "),
 					)
-
-					return
 				}
 
 				if len(constructor.Text) == 0 && constructor.TextI18n.String() == "00000000-0000-0000-0000-000000000000" {
@@ -547,8 +590,6 @@ func (usecase *UseCase) Create(ctx context.Context, constructors ...*constructor
 						new(err_details.FieldKey).AddArray("constructors", index).Add("text_i18n"),
 						new(err_messages.TextMessage).Text("Is empty. "),
 					)
-
-					return
 				}
 			}
 
@@ -591,6 +632,27 @@ func (usecase *UseCase) Create(ctx context.Context, constructors ...*constructor
 		usecase.components.Logger.Info().
 			Text("The user notifications have been successfully collected. ").
 			Field("notifications", notifications).Write()
+	}
+
+	// Рассылка
+	{
+		env.Synchronization.WaitGroup.Add(1)
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			var list = make([]*notification_notifier.Notification, 0, len(notifications))
+
+			for _, notification := range notifications {
+				list = append(list, &notification_notifier.Notification{
+					Type:      notification_notifier.NotificationTypeCreated,
+					Recipient: fmt.Sprintf("users:%d", notification.RecipientID),
+					Data:      notification,
+				})
+			}
+
+			usecase.components.NotificationNotifier.Notify(list...)
+		}()
 	}
 
 	return
@@ -742,6 +804,30 @@ func (usecase *UseCase) RemoveOne(ctx context.Context, recipientID, id common_ty
 		}
 	}
 
+	var notification *entities.UserNotification
+
+	// Получение
+	{
+		var err error
+
+		if notification, err = usecase.repositories.UserNotifications.GetOne(ctx, id); err != nil {
+			usecase.components.Logger.Error().
+				Format("Could not get the user notification by id: '%s'. ", err).Write()
+
+			if errors.Is(err, sql.ErrNoRows) {
+				cErr = srv_errors.UserNotificationNotFound()
+				return
+			}
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The user notification have been successfully collected. ").
+			Field("notification", notification).Write()
+	}
+
 	// Удаление
 	{
 		var err error
@@ -760,6 +846,23 @@ func (usecase *UseCase) RemoveOne(ctx context.Context, recipientID, id common_ty
 			Text("Deleting the user notification has been completed successfully. ").
 			Field("recipient_id", recipientID).
 			Field("id", id).Write()
+	}
+
+	// Рассылка
+	{
+		env.Synchronization.WaitGroup.Add(1)
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			usecase.components.NotificationNotifier.Notify(&notification_notifier.Notification{
+				Type:      notification_notifier.NotificationTypeRemoved,
+				Recipient: fmt.Sprintf("users:%d", notification.RecipientID),
+				Data: map[string]any{
+					"id": notification.ID,
+				},
+			})
+		}()
 	}
 
 	return
@@ -936,6 +1039,25 @@ func (usecase *UseCase) Remove(ctx context.Context, recipientID common_types.ID,
 		}
 	}
 
+	var notifications []*entities.UserNotification
+
+	// Получение
+	{
+		var err error
+
+		if notifications, err = usecase.repositories.UserNotifications.Get(ctx, ids...); err != nil {
+			usecase.components.Logger.Error().
+				Format("Could not get the user notifications by ids: '%s'. ", err).Write()
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The user notifications have been successfully collected. ").
+			Field("notifications", notifications).Write()
+	}
+
 	// Удаление
 	{
 		var err error
@@ -954,6 +1076,29 @@ func (usecase *UseCase) Remove(ctx context.Context, recipientID common_types.ID,
 			Text("Deleting multiple user notifications has been completed successfully. ").
 			Field("recipient_id", recipientID).
 			Field("ids", ids).Write()
+	}
+
+	// Рассылка
+	{
+		env.Synchronization.WaitGroup.Add(1)
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			var list = make([]*notification_notifier.Notification, 0, len(notifications))
+
+			for _, notification := range notifications {
+				list = append(list, &notification_notifier.Notification{
+					Type:      notification_notifier.NotificationTypeRemoved,
+					Recipient: fmt.Sprintf("users:%d", notification.RecipientID),
+					Data: map[string]any{
+						"id": notification.ID,
+					},
+				})
+			}
+
+			usecase.components.NotificationNotifier.Notify(list...)
+		}()
 	}
 
 	return
@@ -1146,6 +1291,30 @@ func (usecase *UseCase) ReadOne(ctx context.Context, recipientID, id common_type
 		}
 	}
 
+	var notification *entities.UserNotification
+
+	// Получение
+	{
+		var err error
+
+		if notification, err = usecase.repositories.UserNotifications.GetOne(ctx, id); err != nil {
+			usecase.components.Logger.Error().
+				Format("Could not get the user notification by id: '%s'. ", err).Write()
+
+			if errors.Is(err, sql.ErrNoRows) {
+				cErr = srv_errors.UserNotificationNotFound()
+				return
+			}
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The user notification have been successfully collected. ").
+			Field("notification", notification).Write()
+	}
+
 	// Чтение
 	{
 		var err error
@@ -1164,6 +1333,23 @@ func (usecase *UseCase) ReadOne(ctx context.Context, recipientID, id common_type
 			Text("Reading the user notification has been completed successfully. ").
 			Field("recipient_id", recipientID).
 			Field("id", id).Write()
+	}
+
+	// Рассылка
+	{
+		env.Synchronization.WaitGroup.Add(1)
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			usecase.components.NotificationNotifier.Notify(&notification_notifier.Notification{
+				Type:      notification_notifier.NotificationTypeRead,
+				Recipient: fmt.Sprintf("users:%d", notification.RecipientID),
+				Data: map[string]any{
+					"id": notification.ID,
+				},
+			})
+		}()
 	}
 
 	return
@@ -1389,6 +1575,25 @@ func (usecase *UseCase) Read(ctx context.Context, recipientID common_types.ID, i
 		}
 	}
 
+	var notifications []*entities.UserNotification
+
+	// Получение
+	{
+		var err error
+
+		if notifications, err = usecase.repositories.UserNotifications.Get(ctx, ids...); err != nil {
+			usecase.components.Logger.Error().
+				Format("Could not get the user notifications by ids: '%s'. ", err).Write()
+
+			cErr = common_errors.InternalServerError()
+			return
+		}
+
+		usecase.components.Logger.Info().
+			Text("The user notifications have been successfully collected. ").
+			Field("notifications", notifications).Write()
+	}
+
 	// Чтение
 	{
 		var err error
@@ -1407,6 +1612,29 @@ func (usecase *UseCase) Read(ctx context.Context, recipientID common_types.ID, i
 			Text("Reading multiple user notifications has been completed successfully. ").
 			Field("recipient_id", recipientID).
 			Field("ids", ids).Write()
+	}
+
+	// Рассылка
+	{
+		env.Synchronization.WaitGroup.Add(1)
+
+		go func() {
+			defer env.Synchronization.WaitGroup.Done()
+
+			var list = make([]*notification_notifier.Notification, 0, len(notifications))
+
+			for _, notification := range notifications {
+				list = append(list, &notification_notifier.Notification{
+					Type:      notification_notifier.NotificationTypeRead,
+					Recipient: fmt.Sprintf("users:%d", notification.RecipientID),
+					Data: map[string]any{
+						"id": notification.ID,
+					},
+				})
+			}
+
+			usecase.components.NotificationNotifier.Notify(list...)
+		}()
 	}
 
 	return

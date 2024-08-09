@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package grpc_service;
+
+option go_package = "./";
+
+import "src/transport/proto/src/notifications/models.proto";
+
+message UserNotificationsCreateRequest {
+  repeated UserNotificationConstructor Constructors = 1;
+}
+
+message UserNotificationsCreateResponse {
+  repeated UserNotification Notifications = 1;
+}
+
+message UserNotificationsCreateOneRequest {
+  UserNotificationConstructor Constructor = 1;
+}
+
+message UserNotificationsCreateOneResponse {
+  UserNotification Notification = 1;
+}
+
+service UserNotificationsService {
+  rpc Create(UserNotificationsCreateRequest) returns (UserNotificationsCreateResponse);
+  rpc CreateOne(UserNotificationsCreateOneRequest) returns (UserNotificationsCreateOneResponse);
+}

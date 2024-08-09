@@ -2,19 +2,34 @@ package notification_notifier
 
 import (
 	authentication_entities "sm-box/internal/services/authentication/objects/entities"
-	"sm-box/internal/services/notifications/objects/entities"
+)
+
+const (
+	NotificationTypeCreated = "created"
+	NotificationTypeRemoved = "removed"
+	NotificationTypeRead    = "read"
 )
 
 type (
-	// Channel - канал для получения уведомлений.
-	Channel chan entities.Notification
-
 	// Recipient - получатель уведомлений.
 	Recipient struct {
 		Keys     []string
 		JwtToken *authentication_entities.JwtSessionToken
 		channel  Channel
 	}
+
+	// NotificationType - тип уведомления для рассылки.
+	NotificationType string
+
+	// Notification - уведомления для рассылки.
+	Notification struct {
+		Type      NotificationType `json:"type"      xml:"type,attr"`
+		Recipient string           `json:"recipient" xml:"recipient,attr"`
+		Data      any              `json:"data"      xml:"Data"`
+	}
+
+	// Channel - канал для получения уведомлений.
+	Channel chan *Notification
 )
 
 // Channel - получение канала получателя.

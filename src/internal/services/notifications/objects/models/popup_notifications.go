@@ -10,7 +10,7 @@ import (
 type (
 	// PopupNotificationInfo - внешняя модель с информацией по всплывающему уведомлению.
 	PopupNotificationInfo struct {
-		ID   uuid.UUID              `json:"id"   xml:"id,attr"`
+		ID   common_types.ID        `json:"id"   xml:"id,attr"`
 		Type types.NotificationType `json:"type" xml:"type,attr"`
 
 		SenderID    common_types.ID `json:"sender_id"    xml:"sender_id,attr"`

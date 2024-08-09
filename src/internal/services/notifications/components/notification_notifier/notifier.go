@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"slices"
-	"sm-box/internal/services/notifications/objects/entities"
 	"sm-box/pkg/core/components/logger"
 	"sm-box/pkg/core/components/tracer"
 	"sm-box/pkg/core/env"
@@ -122,7 +121,7 @@ ForFindRecipient:
 }
 
 // Notify - отправка уведомления получателю.
-func (component *notifier) Notify(notifications ...entities.Notification) {
+func (component *notifier) Notify(notifications ...*Notification) {
 	// tracer
 	{
 		var trace = tracer.New(tracer.LevelComponent)
@@ -155,18 +154,21 @@ func (component *notifier) Notify(notifications ...entities.Notification) {
 				continue
 			}
 
-			if slices.Contains(recipient.Keys, notification.Recipient()) && recipient.channel != nil {
+			if slices.Contains(recipient.Keys, notification.Recipient) && recipient.channel != nil {
 				env.Synchronization.WaitGroup.Add(1)
 
-				go component.notify(recipient.channel, notification)
-				break
+				go func() {
+					defer env.Synchronization.WaitGroup.Done()
+
+					component.notify(recipient.channel, notification)
+				}()
 			}
 		}
 	}
 }
 
 // notify - отправка уведомления получателю.
-func (component *notifier) notify(channel Channel, notification entities.Notification) {
+func (component *notifier) notify(channel Channel, notification *Notification) {
 	// tracer
 	{
 		var trace = tracer.New(tracer.LevelComponentInternal)
@@ -175,8 +177,6 @@ func (component *notifier) notify(channel Channel, notification entities.Notific
 
 		defer func() { trace.FunctionCallFinished() }()
 	}
-
-	defer env.Synchronization.WaitGroup.Done()
 
 	component.components.Logger.Info().
 		Text("The process of sending a notification to the recipient has been started... ").

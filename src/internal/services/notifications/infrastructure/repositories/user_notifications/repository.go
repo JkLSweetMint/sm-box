@@ -20,7 +20,7 @@ const (
 	loggerInitiator = "infrastructure-[repositories]=user_notifications"
 )
 
-// Repository - репозиторий управления сокращенными url запросов.
+// Repository - репозиторий управления пользовательскими уведомлениями.
 type Repository struct {
 	connector  postgresql.Connector
 	components *components
@@ -77,7 +77,7 @@ func New(ctx context.Context) (repo *Repository, err error) {
 	}
 
 	repo.components.Logger.Info().
-		Format("A '%s' repository has been created. ", "urls").
+		Format("A '%s' repository has been created. ", "user_notifications").
 		Field("config", repo.conf).Write()
 
 	return

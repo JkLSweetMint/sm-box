@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package grpc_service;
+
+option go_package = "./";
+
+import "src/transport/proto/src/notifications/models.proto";
+
+message PopupNotificationsCreateRequest {
+  repeated PopupNotificationConstructor Constructors = 1;
+}
+
+message PopupNotificationsCreateResponse {
+  repeated PopupNotification Notifications = 1;
+}
+
+message PopupNotificationsCreateOneRequest {
+  PopupNotificationConstructor Constructor = 1;
+}
+
+message PopupNotificationsCreateOneResponse {
+  PopupNotification Notification = 1;
+}
+
+service PopupNotificationsService {
+  rpc Create(PopupNotificationsCreateRequest) returns (PopupNotificationsCreateResponse);
+  rpc CreateOne(PopupNotificationsCreateOneRequest) returns (PopupNotificationsCreateOneResponse);
+}
